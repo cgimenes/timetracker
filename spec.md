@@ -38,7 +38,7 @@ Rules:
 
 - Directory chosen via Android storage picker; permission persisted.
 - Split method: `none`, `day`, `week`, `month`.
-- Filename format: template with tokens `{yyyy}`, `{MM}`, `{dd}`, `{ww}` (ISO week), extension `.timeclock`. Default per split: `none` -> `time.timeclock`, `month` -> `{yyyy}-{MM}.timeclock`, etc.
+- Filename format: template with tokens `{yyyy}`, `{MM}`, `{dd}`, `{ww}` (ISO week), extension `.timeclock`. When the template contains `{ww}`, `{yyyy}` is the ISO week year, so days at the turn of the year land in the right file (2027-01-01 is `2026-W53`). The template must contain every token needed to tell periods apart (day: `{yyyy}`, `{MM}`, `{dd}`; week: `{yyyy}`, `{ww}`; month: `{yyyy}`, `{MM}`). Default per split: `none` -> `time.timeclock`, `month` -> `{yyyy}-{MM}.timeclock`, etc.
 - Entry lives in file of its clock-in date. Clock-out written to same file even if crossing split boundary.
 - Changing split method or format affects new entries only; existing files not migrated (v1). App reads all files in directory matching any `*.timeclock`.
 - External edits (sync) detected on resume/focus; app reloads.

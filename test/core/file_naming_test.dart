@@ -1,0 +1,115 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:timetracker/core/file_naming.dart';
+
+String name(DateTime d, SplitMethod s, [String? template]) =>
+    fileNameFor(d, s, template ?? defaultFileNameTemplate(s));
+
+void main() {
+  group('fileNameFor', () {
+    final d = DateTime(2026, 3, 5, 14);
+
+    test('default templates', () {
+      expect(name(d, SplitMethod.none), 'time.timeclock');
+      expect(name(d, SplitMethod.day), '2026-03-05.timeclock');
+      expect(name(d, SplitMethod.week), '2026-W10.timeclock');
+      expect(name(d, SplitMethod.month), '2026-03.timeclock');
+    });
+
+    test('custom template', () {
+      expect(
+        name(d, SplitMethod.month, 'hours-{MM}-{yyyy}.timeclock'),
+        'hours-03-2026.timeclock',
+      );
+    });
+
+    test('ISO week year differs from the calendar year at year boundaries', () {
+      // 2026-01-01 is a Thursday: week 1 of 2026.
+      expect(
+        name(DateTime(2026, 1, 1), SplitMethod.week),
+        '2026-W01.timeclock',
+      );
+      // 2027-01-01 is a Friday: still week 53 of 2026.
+      expect(
+        name(DateTime(2027, 1, 1), SplitMethod.week),
+        '2026-W53.timeclock',
+      );
+      // 2024-12-30 is a Monday: week 1 of 2025.
+      expect(
+        name(DateTime(2024, 12, 30), SplitMethod.week),
+        '2025-W01.timeclock',
+      );
+      // Sunday 2026-10-25 closes the week that began on Monday the 19th.
+      expect(
+        name(DateTime(2026, 10, 25), SplitMethod.week),
+        '2026-W43.timeclock',
+      );
+      expect(
+        name(DateTime(2026, 10, 26), SplitMethod.week),
+        '2026-W44.timeclock',
+      );
+    });
+
+    test('calendar year is used when the template has no week', () {
+      expect(
+        name(DateTime(2027, 1, 1), SplitMethod.month),
+        '2027-01.timeclock',
+      );
+    });
+
+    test('days are unaffected by DST changes', () {
+      expect(
+        name(DateTime(2026, 3, 29), SplitMethod.week),
+        '2026-W13.timeclock',
+      );
+      expect(
+        name(DateTime(2026, 10, 25), SplitMethod.day),
+        '2026-10-25.timeclock',
+      );
+    });
+  });
+
+  group('validateFileNameTemplate', () {
+    test('defaults are valid for their own split', () {
+      for (final s in SplitMethod.values) {
+        expect(validateFileNameTemplate(defaultFileNameTemplate(s), s), isNull);
+      }
+    });
+
+    test('must keep every period apart', () {
+      expect(
+        validateFileNameTemplate('{yyyy}.timeclock', SplitMethod.month),
+        isNotNull,
+      );
+      expect(
+        validateFileNameTemplate('{yyyy}-{MM}.timeclock', SplitMethod.day),
+        isNotNull,
+      );
+      expect(
+        validateFileNameTemplate('{MM}-{ww}.timeclock', SplitMethod.week),
+        isNotNull,
+      );
+      expect(
+        validateFileNameTemplate('anything.timeclock', SplitMethod.none),
+        isNull,
+      );
+    });
+
+    test('rejects empty names, paths and other extensions', () {
+      expect(validateFileNameTemplate('', SplitMethod.none), isNotNull);
+      expect(
+        validateFileNameTemplate('a/b.timeclock', SplitMethod.none),
+        isNotNull,
+      );
+      expect(
+        validateFileNameTemplate(r'a\b.timeclock', SplitMethod.none),
+        isNotNull,
+      );
+      expect(validateFileNameTemplate('time.txt', SplitMethod.none), isNotNull);
+    });
+  });
+
+  test('isTimeclockFile', () {
+    expect(isTimeclockFile('2026-03.timeclock'), isTrue);
+    expect(isTimeclockFile('2026-03.timeclock.txt'), isFalse);
+  });
+}
