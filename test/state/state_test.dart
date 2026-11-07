@@ -119,6 +119,107 @@ void main() {
       },
     );
 
+    test(
+      'split by project changes the default template and is saved',
+      () async {
+        final c = await makeContainer(MemoryStorage());
+        final settings = c.read(settingsProvider.notifier);
+        expect(c.read(settingsProvider).splitByProject, isFalse);
+
+        await settings.setSplitByProject(true);
+        expect(c.read(settingsProvider).splitByProject, isTrue);
+        expect(
+          c.read(settingsProvider).fileNameTemplate,
+          '{project}-{yyyy}-{MM}.timeclock',
+        );
+        expect(c.read(settingsProvider).fileSettings.splitByProject, isTrue);
+
+        await settings.setSplit(SplitMethod.week); // template follows both
+        expect(
+          c.read(settingsProvider).fileNameTemplate,
+          '{project}-{yyyy}-W{ww}.timeclock',
+        );
+
+        await settings.setSplitByProject(false);
+        expect(
+          c.read(settingsProvider).fileNameTemplate,
+          '{yyyy}-W{ww}.timeclock',
+        );
+
+        final saved = c.read(sharedPreferencesProvider);
+        final again = ProviderContainer(
+          overrides: [sharedPreferencesProvider.overrideWithValue(saved)],
+        );
+        addTearDown(again.dispose);
+        expect(again.read(settingsProvider).splitByProject, isFalse);
+      },
+    );
+
+    test(
+      'a custom template survives turning the option on only if it fits',
+      () async {
+        final c = await makeContainer(MemoryStorage());
+        final settings = c.read(settingsProvider.notifier);
+
+        await settings.setFileNameTemplate('hours-{yyyy}-{MM}.timeclock');
+        await settings.setSplitByProject(true); // no {project}: back to default
+        expect(
+          c.read(settingsProvider).fileNameTemplate,
+          '{project}-{yyyy}-{MM}.timeclock',
+        );
+
+        await settings.setFileNameTemplate('{project}/x.timeclock'); // invalid
+        await settings.setFileNameTemplate('p-{project}-{yyyy}-{MM}.timeclock');
+        await settings.setSplit(SplitMethod.month); // still fits
+        expect(
+          c.read(settingsProvider).fileNameTemplate,
+          'p-{project}-{yyyy}-{MM}.timeclock',
+        );
+      },
+    );
+
+    test(
+      'a stored template with {project} but the option off is replaced',
+      () async {
+        final c = await makeContainer(
+          MemoryStorage(),
+          prefs: {'fileNameTemplate': '{project}-{yyyy}-{MM}.timeclock'},
+        );
+        expect(
+          c.read(settingsProvider).fileNameTemplate,
+          '{yyyy}-{MM}.timeclock',
+        );
+      },
+    );
+
+    test(
+      'with the option on, a template without {project} is rejected',
+      () async {
+        final c = await makeContainer(MemoryStorage());
+        final settings = c.read(settingsProvider.notifier);
+        await settings.setSplitByProject(true);
+        expect(
+          await settings.setFileNameTemplate('{yyyy}-{MM}.timeclock'),
+          isNotNull,
+        );
+      },
+    );
+
+    test(
+      'entries are written to project files when the option is on',
+      () async {
+        final storage = MemoryStorage();
+        final c = await makeContainer(storage);
+        await c.read(settingsProvider.notifier).setSplitByProject(true);
+        await c.read(entriesProvider.notifier).start('work:a', at(30, 9));
+        await c.read(entriesProvider.notifier).start('personal:b', at(30, 10));
+        expect(storage.names, {
+          'work-2026-10.timeclock',
+          'personal-2026-10.timeclock',
+        });
+      },
+    );
+
     test('invalid values are rejected and not saved', () async {
       final c = await makeContainer(MemoryStorage());
       final settings = c.read(settingsProvider.notifier);

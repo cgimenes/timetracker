@@ -129,6 +129,19 @@ void main() {
       );
     });
 
+    trackTest('Start closes the keyboard', (tester, storage) async {
+      final field = find.byKey(const Key('account'));
+      await tester.enterText(field, 'personal:read');
+      await tester.pump();
+      expect(tester.widget<TextField>(field).focusNode!.hasFocus, isTrue);
+
+      await tester.tap(find.byKey(const Key('start')));
+      await tester.pumpAndSettle();
+
+      expect(storage.text('2026-10.timeclock'), contains('personal:read'));
+      expect(tester.widget<TextField>(field).focusNode!.hasFocus, isFalse);
+    });
+
     trackTest('has no comment field', (tester, storage) async {
       expect(find.byKey(const Key('comment')), findsNothing);
     });

@@ -306,6 +306,98 @@ void main() {
     });
   });
 
+  group('split by project', () {
+    final byProject = FileSettings.defaults(
+      SplitMethod.month,
+      splitByProject: true,
+    );
+
+    test('each project gets its own file', () async {
+      await repo.startEntry('work:acme:dev', d(10, 1, 9), settings: byProject);
+      await repo.startEntry('personal:read', d(10, 1, 10), settings: byProject);
+      await repo.startEntry('work:globex', d(10, 2, 9), settings: byProject);
+
+      expect(storage.names, {
+        'work-2026-10.timeclock',
+        'personal-2026-10.timeclock',
+      });
+      expect(
+        storage.text('work-2026-10.timeclock'),
+        'i 2026-10-01 09:00:00 work:acme:dev\ni 2026-10-02 09:00:00 work:globex\n',
+      );
+    });
+
+    test('stop writes the clock-out in the entry\'s file', () async {
+      await repo.startEntry('work:acme', d(10, 31, 23), settings: byProject);
+      expect(await repo.stopOldestRunning('work:acme', d(11, 1, 1)), isTrue);
+      expect(storage.names, {'work-2026-10.timeclock'});
+    });
+
+    test('load reads all the project files together', () async {
+      await repo.startEntry('work:a', d(10, 1, 9), settings: byProject);
+      await repo.startEntry('personal:b', d(10, 1, 10), settings: byProject);
+      final result = await repo.load();
+      expect(result.entries.map((e) => e.entry.account), [
+        'personal:b',
+        'work:a',
+      ]);
+    });
+
+    test('changing the first level moves the entry to the other project', () async {
+      await repo.startEntry('work:a', d(10, 1, 9), settings: byProject);
+      final stored = (await repo.load()).entries.single;
+      await repo.replaceEntry(
+        stored,
+        account: 'personal:a',
+        start: d(10, 1, 9),
+        end: d(10, 1, 10),
+        settings: byProject,
+      );
+      expect(
+        storage.text('personal-2026-10.timeclock'),
+        'i 2026-10-01 09:00:00 personal:a\no 2026-10-01 10:00:00 personal:a\n',
+      );
+      expect(storage.text('work-2026-10.timeclock'), '');
+    });
+
+    test('changing a deeper level keeps the entry in place', () async {
+      await repo.startEntry('work:a', d(10, 1, 9), settings: byProject);
+      final stored = (await repo.load()).entries.single;
+      await repo.replaceEntry(
+        stored,
+        account: 'work:b',
+        start: d(10, 1, 9),
+        settings: byProject,
+      );
+      expect(storage.names, {'work-2026-10.timeclock'});
+      expect(
+        storage.text('work-2026-10.timeclock'),
+        'i 2026-10-01 09:00:00 work:b\n',
+      );
+    });
+
+    test('turning the option on does not move existing entries', () async {
+      storage.externalWrite(
+        '2026-10.timeclock',
+        'i 2026-10-01 09:00:00 work:a\n',
+      );
+      final stored = (await repo.load()).entries.single;
+      await repo.replaceEntry(
+        stored,
+        account: 'work:a',
+        start: d(10, 1, 9, 30),
+        settings: byProject,
+      );
+      expect(storage.names, {'2026-10.timeclock'});
+      expect(storage.text('2026-10.timeclock'), contains('09:30:00 work:a'));
+    });
+
+    test('an unsafe project name still gives a usable file', () async {
+      await repo.startEntry('a b:c', d(10, 1, 9), settings: byProject);
+      expect(storage.names, {'a b-2026-10.timeclock'});
+    });
+  });
+
   test('providers wire the repository to the overridden storage', () async {
     final container = ProviderContainer(
       overrides: [timeclockStorageProvider.overrideWithValue(storage)],

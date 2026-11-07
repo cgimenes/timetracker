@@ -91,6 +91,8 @@ class _AddEntryCardState extends ConsumerState<AddEntryCard> {
 
   Future<void> _submit() async {
     if (_error() != null) return;
+    // Close the keyboard (and the suggestions) right away.
+    FocusManager.instance.primaryFocus?.unfocus();
     final account = _account.text.trim();
     final running = ref.read(runningProvider);
     if (running.any((e) => e.entry.account == account) &&

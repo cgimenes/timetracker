@@ -143,6 +143,49 @@ void main() {
       expect(find.text('Example: hours-10-2026.timeclock'), findsOneWidget);
     });
 
+    settingsTest('split by project switch changes the file name and example', (
+      tester,
+      c,
+    ) async {
+      expect(find.text('Example: 2026-10.timeclock'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('split-by-project')));
+      await tester.pump();
+
+      expect(c.read(settingsProvider).splitByProject, isTrue);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('template')))
+            .controller!
+            .text,
+        '{project}-{yyyy}-{MM}.timeclock',
+      );
+      expect(find.text('Example: work-2026-10.timeclock'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('split-by-project')));
+      await tester.pump();
+      expect(find.text('Example: 2026-10.timeclock'), findsOneWidget);
+    });
+
+    settingsTest(
+      'with split by project on, a name without {project} is refused',
+      (tester, c) async {
+        await tester.tap(find.byKey(const Key('split-by-project')));
+        await tester.pump();
+        await tester.enterText(
+          find.byKey(const Key('template')),
+          '{yyyy}-{MM}.timeclock',
+        );
+        await tester.pump();
+
+        expect(find.textContaining('must contain {project}'), findsOneWidget);
+        expect(
+          c.read(settingsProvider).fileNameTemplate,
+          '{project}-{yyyy}-{MM}.timeclock',
+        );
+      },
+    );
+
     settingsTest('has no header and no metrics level any more', (
       tester,
       c,

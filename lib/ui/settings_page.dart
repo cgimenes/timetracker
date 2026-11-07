@@ -51,9 +51,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final templateError = validateFileNameTemplate(
       _template.text,
       settings.split,
+      byProject: settings.splitByProject,
     );
     final example = templateError == null
-        ? fileNameFor(now, settings.split, _template.text)
+        ? fileNameFor(now, settings.split, _template.text, project: 'work')
         : null;
 
     return Scaffold(
@@ -98,6 +99,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 'Starts a new file for each period. Existing files stay as they are.',
               ),
             ),
+            SwitchListTile(
+              key: const Key('split-by-project'),
+              title: const Text('Split by project'),
+              subtitle: const Text(
+                'One file per first account level, for example work and personal.',
+              ),
+              value: settings.splitByProject,
+              onChanged: notifier.setSplitByProject,
+            ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: TextField(
@@ -121,7 +131,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Tokens: {yyyy} {MM} {dd} {ww}. With {ww}, {yyyy} is the ISO week year.',
+                'Tokens: {yyyy} {MM} {dd} {ww} {project}. With {ww}, {yyyy} is the ISO week year.',
               ),
             ),
             const Divider(height: 32),

@@ -38,9 +38,10 @@ Rules:
 
 - Directory chosen via Android storage picker; permission persisted.
 - Split method: `none`, `day`, `week`, `month`.
-- Filename format: template with tokens `{yyyy}`, `{MM}`, `{dd}`, `{ww}` (ISO week), extension `.timeclock`. When the template contains `{ww}`, `{yyyy}` is the ISO week year, so days at the turn of the year land in the right file (2027-01-01 is `2026-W53`). The template must contain every token needed to tell periods apart (day: `{yyyy}`, `{MM}`, `{dd}`; week: `{yyyy}`, `{ww}`; month: `{yyyy}`, `{MM}`). Default per split: `none` -> `time.timeclock`, `month` -> `{yyyy}-{MM}.timeclock`, etc.
-- Entry lives in file of its clock-in date. Clock-out written to same file even if crossing split boundary.
-- Changing split method or format affects new entries only; existing files not migrated (v1). App reads all files in directory matching any `*.timeclock`.
+- Split by project (switch, default off): also one file per project, the first level of the account (`work` in `work:acme:dev`). It combines with the split method: month and project give `work-2026-10.timeclock`. Files stay in the one directory (no subdirectories); characters that are not safe in a file name (`/ \ : * ? " < > |`, control characters, a leading dot) are replaced by `_` in the project part.
+- Filename format: template with tokens `{yyyy}`, `{MM}`, `{dd}`, `{ww}` (ISO week) and `{project}`, extension `.timeclock`. When the template contains `{ww}`, `{yyyy}` is the ISO week year, so days at the turn of the year land in the right file (2027-01-01 is `2026-W53`). The template must contain every token needed to tell periods apart (day: `{yyyy}`, `{MM}`, `{dd}`; week: `{yyyy}`, `{ww}`; month: `{yyyy}`, `{MM}`), plus `{project}` when splitting by project. `{project}` is refused when the switch is off. Default per split: `none` -> `time.timeclock`, `month` -> `{yyyy}-{MM}.timeclock`, etc.; with split by project the default starts with `{project}-` (`none` -> `{project}.timeclock`). A template that is still the default follows the split method and the switch; a custom one is kept only if it is valid for the new choice, otherwise it goes back to the default.
+- Entry lives in file of its clock-in date (and project, when splitting by project). Clock-out written to same file even if crossing split boundary. Editing an entry moves it to another file when its start leaves the period, or its first account level changes project.
+- Changing split method, project split or format affects new entries only; existing files not migrated (v1). App reads all files in directory matching any `*.timeclock`.
 - External edits (sync) detected on resume/focus; app reloads.
 - Files are created with MIME type `application/octet-stream`. With `text/plain`, Android document providers append `.txt` (`time.timeclock` becomes `time.timeclock.txt`), and the app then fails to find its own files by name.
 
@@ -53,7 +54,7 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 1. Add section
    - Account field: prefilled with last used account; dropdown history sorted by frecency; free text allowed.
    - Start time: prefilled with now, editable (date + time).
-   - Start button. Disabled if account invalid.
+   - Start button. Disabled if account invalid. Pressing it closes the keyboard.
    - No comment field. Comments already present in a file are kept when the app rewrites it, and shown on running entries.
 2. Running section
    - List of running entries: account, start, live elapsed time.
@@ -89,6 +90,7 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 
 - Files directory (picker).
 - File split method: none | day | week | month.
+- Split by project: on | off.
 - Filename format (template, live preview of example filename).
 - Week start day: Monday (default) | Sunday (used by the Metrics week).
 
@@ -125,22 +127,6 @@ Libraries:
 - Notifications: `flutter_local_notifications` with `ActionBroadcastReceiver` declared in `AndroidManifest.xml` and core library desugaring enabled in `android/app/build.gradle.kts`.
 - Notification actions and dismiss callbacks run in a background isolate: top-level `@pragma('vm:entry-point')` function, no UI state, all state read from shared preferences.
 - Settings and the running list: `shared_preferences`.
-
-## Planned later
-
-Not part of the current implementation.
-
-### Split files by project
-
-Option to also split files by project, where the project is the first level of the account (`work` in `work:acme:dev`). It combines with the period split: for example month and project give `work/2026-10.timeclock`, or `work-2026-10.timeclock` if subdirectories are not wanted.
-
-Open details to settle when this is built:
-
-- Filename template token for the project (for example `{project}`), validation that it is present when the option is on, and whether the project may contain characters that are not valid in file names (`/`, spaces).
-- Where the file lives (flat name or a directory per project), since the storage layer currently reads a flat directory.
-- Entry lives in the file of its clock-in date and project. Editing the account's first level moves the entry to another file, the same way changing the start date across periods does today.
-- Like the other split settings, it affects new entries only; existing files are not migrated.
-- Settings gets a switch for it, next to the split method.
 
 ## Open questions
 

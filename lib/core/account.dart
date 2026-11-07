@@ -33,3 +33,6 @@ String truncateAccount(String account, int level) {
 
 /// Number of segments in [account].
 int accountDepth(String account) => account.split(':').length;
+
+/// First level of the account: `work` in `work:acme:dev`.
+String projectOf(String account) => truncateAccount(account, 1);

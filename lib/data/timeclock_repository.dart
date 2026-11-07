@@ -1,19 +1,31 @@
+import '../core/account.dart';
 import '../core/file_naming.dart';
 import '../core/timeclock.dart';
 import 'timeclock_storage.dart';
 
 /// How entries are spread over files (Settings).
 class FileSettings {
-  const FileSettings(this.split, this.template);
+  const FileSettings(this.split, this.template, {this.splitByProject = false});
 
-  factory FileSettings.defaults(SplitMethod split) =>
-      FileSettings(split, defaultFileNameTemplate(split));
+  factory FileSettings.defaults(
+    SplitMethod split, {
+    bool splitByProject = false,
+  }) => FileSettings(
+    split,
+    defaultFileNameTemplate(split, byProject: splitByProject),
+    splitByProject: splitByProject,
+  );
 
   final SplitMethod split;
   final String template;
 
-  /// File that holds entries that start on [date].
-  String nameFor(DateTime date) => fileNameFor(date, split, template);
+  /// Entries of different projects (first account level) go to different
+  /// files. The template then has `{project}`.
+  final bool splitByProject;
+
+  /// File that holds an entry of [account] that starts on [date].
+  String nameFor(DateTime date, String account) =>
+      fileNameFor(date, split, template, project: projectOf(account));
 }
 
 /// An entry together with the file it lives in.
@@ -113,7 +125,7 @@ class TimeclockRepository {
     String? comment,
     required FileSettings settings,
   }) => _update(
-    settings.nameFor(start),
+    settings.nameFor(start, account),
     (doc) => doc.startEntry(account, start, comment: comment),
   );
 
@@ -148,9 +160,9 @@ class TimeclockRepository {
     String? comment,
     required FileSettings settings,
   }) async {
-    final target = settings.nameFor(start);
+    final target = settings.nameFor(start, account);
     final moves =
-        target != settings.nameFor(stored.entry.start) &&
+        target != settings.nameFor(stored.entry.start, stored.entry.account) &&
         target != stored.fileName;
 
     if (!moves) {

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:timetracker/core/account.dart';
 import 'package:timetracker/core/file_naming.dart';
 
 String name(DateTime d, SplitMethod s, [String? template]) =>
@@ -111,5 +112,99 @@ void main() {
   test('isTimeclockFile', () {
     expect(isTimeclockFile('2026-03.timeclock'), isTrue);
     expect(isTimeclockFile('2026-03.timeclock.txt'), isFalse);
+  });
+
+  group('split by project', () {
+    final d = DateTime(2026, 3, 5, 14);
+
+    test('default templates put the project first', () {
+      String t(SplitMethod m) => defaultFileNameTemplate(m, byProject: true);
+      expect(t(SplitMethod.none), '{project}.timeclock');
+      expect(t(SplitMethod.day), '{project}-{yyyy}-{MM}-{dd}.timeclock');
+      expect(t(SplitMethod.week), '{project}-{yyyy}-W{ww}.timeclock');
+      expect(t(SplitMethod.month), '{project}-{yyyy}-{MM}.timeclock');
+    });
+
+    test('defaults are valid for their own choice', () {
+      for (final s in SplitMethod.values) {
+        expect(
+          validateFileNameTemplate(
+            defaultFileNameTemplate(s, byProject: true),
+            s,
+            byProject: true,
+          ),
+          isNull,
+        );
+      }
+    });
+
+    test('the project token is required when on and refused when off', () {
+      expect(
+        validateFileNameTemplate(
+          '{yyyy}-{MM}.timeclock',
+          SplitMethod.month,
+          byProject: true,
+        ),
+        contains('{project}'),
+      );
+      expect(
+        validateFileNameTemplate(
+          '{project}-{yyyy}-{MM}.timeclock',
+          SplitMethod.month,
+        ),
+        contains('Split by project'),
+      );
+    });
+
+    test('the period tokens are still required', () {
+      expect(
+        validateFileNameTemplate(
+          '{project}.timeclock',
+          SplitMethod.month,
+          byProject: true,
+        ),
+        contains('{yyyy}'),
+      );
+    });
+
+    test('fileNameFor puts the project in the name', () {
+      expect(
+        fileNameFor(
+          d,
+          SplitMethod.month,
+          '{project}-{yyyy}-{MM}.timeclock',
+          project: 'work',
+        ),
+        'work-2026-03.timeclock',
+      );
+      expect(
+        fileNameFor(
+          d,
+          SplitMethod.none,
+          '{project}.timeclock',
+          project: 'personal',
+        ),
+        'personal.timeclock',
+      );
+    });
+
+    test('unsafe characters in the project become underscores', () {
+      String name(String project) => fileNameFor(
+        d,
+        SplitMethod.none,
+        '{project}.timeclock',
+        project: project,
+      );
+      expect(name('a/b'), 'a_b.timeclock');
+      expect(name(r'a\b:c*d?'), 'a_b_c_d_.timeclock');
+      expect(name('client work'), 'client work.timeclock'); // spaces are fine
+      expect(name('.hidden'), '_hidden.timeclock');
+      expect(name('..'), '_.timeclock');
+    });
+
+    test('the project of an account is its first level', () {
+      expect(projectOf('work:acme:dev'), 'work');
+      expect(projectOf('personal'), 'personal');
+    });
   });
 }
