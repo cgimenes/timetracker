@@ -56,6 +56,45 @@ The app icon comes from `assets/icon/`. After changing the images:
 dart run flutter_launcher_icons
 ```
 
+### Releasing
+
+CI (`.github/workflows/ci.yml`) runs format check, analyze, tests and a debug
+build on every PR and push to `master`.
+
+Releases are automated with
+[Release Please](https://github.com/googleapis/release-please). Use
+[Conventional Commits](https://www.conventionalcommits.org) (PR titles are
+checked): `fix:` bumps patch, `feat:` bumps minor, `feat!:` or a
+`BREAKING CHANGE:` footer bumps major. Release Please keeps a release PR open
+that updates `CHANGELOG.md` and the `pubspec.yaml` version. Merging it tags
+`vX.Y.Z`, creates the GitHub Release, and the workflow attaches a signed
+`timetracker-vX.Y.Z.apk` plus its `.sha256`.
+
+One-time setup:
+
+```sh
+keytool -genkey -v -keystore release.jks -keyalg RSA -keysize 2048 \
+  -validity 10000 -alias timetracker
+base64 -w0 release.jks    # value for ANDROID_KEYSTORE_BASE64
+```
+
+Add these repository secrets: `ANDROID_KEYSTORE_BASE64`,
+`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Also
+enable Settings > Actions > General > "Allow GitHub Actions to create and
+approve pull requests". Back up the keystore: without it, installed apps cannot
+be updated.
+
+To sign a release build locally, create `android/key.properties` (git ignored):
+
+```properties
+storeFile=app/release.jks
+storePassword=...
+keyAlias=timetracker
+keyPassword=...
+```
+
+Without that file, release builds fall back to the debug key.
+
 ### Layout
 
 | Path | What is there |
