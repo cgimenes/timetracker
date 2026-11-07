@@ -173,6 +173,17 @@ void main() {
       );
     });
 
+    test('addEntry appends both lines, or only the clock-in', () {
+      final doc = TimeclockDocument.empty();
+      expect(
+        doc.addEntry('a', t(9), end: t(10), comment: 'x').serialize(),
+        'i 2026-10-30 09:00:00 a  x\no 2026-10-30 10:00:00 a\n',
+      );
+      expect(doc.addEntry('a', t(9)).serialize(), 'i 2026-10-30 09:00:00 a\n');
+      expect(() => doc.addEntry('a', t(9), end: t(9)), throwsArgumentError);
+      expect(() => doc.addEntry('', t(9)), throwsArgumentError);
+    });
+
     test('startEntry rejects an invalid account', () {
       expect(
         () => TimeclockDocument.empty().startEntry('a  b', t(9)),

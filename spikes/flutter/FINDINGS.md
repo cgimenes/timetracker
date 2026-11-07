@@ -21,6 +21,8 @@ Passed after fixes: SAF pick, persistence across restart, append, rewrite, list,
 - Chosen approach: single ongoing notification, `dismissIsolate: background` callback re-posts it on swipe. No foreground service.
 - Running entries stored in shared_preferences so the background isolate can update the notification.
 - Notification actions and dismiss run in a background isolate (top-level `@pragma('vm:entry-point')` function); it must not touch UI state.
+- The spike never confirmed Stop with the app killed or the swipe re-post on the device. The real app (`lib/notifications/`) confirmed both on the same phone: Stop with the app dead, swipe re-post, and re-post at startup after a swipe while the app was closed. The background handler needed no extra plugin initialization.
+- `flutter_local_notifications` 23.0.0 forces `compileSdk` 37 (via `androidx.core` 1.19); stay on 22.3.x while the project builds with AGP 9.1.
 
 ## Edit loop
 - Hot reload (about 1s, state kept) was the reason for choosing Flutter; not timed in this session.

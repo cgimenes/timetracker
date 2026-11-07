@@ -276,6 +276,24 @@ class TimeclockDocument {
     );
   }
 
+  /// Appends a clock-in and, when [end] is given, its clock-out.
+  TimeclockDocument addEntry(
+    String account,
+    DateTime start, {
+    DateTime? end,
+    String? comment,
+  }) {
+    _check(account, comment);
+    if (end != null && !end.isAfter(start)) {
+      throw ArgumentError('End must be after start');
+    }
+    return TimeclockDocument._([
+      ..._lines,
+      ClockLine(isIn: true, time: start, account: account, comment: comment),
+      if (end != null) ClockLine(isIn: false, time: end, account: account),
+    ], true);
+  }
+
   /// Appends the clock-out of [entry], naming its account.
   TimeclockDocument stopEntry(Entry entry, DateTime time) {
     if (!entry.isRunning) throw ArgumentError('Entry is not running');

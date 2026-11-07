@@ -53,8 +53,8 @@ Bottom tabs: Home, Entries, Settings.
 1. Add section
    - Account field: prefilled with last used account; dropdown history sorted by frecency; free text allowed.
    - Start time: prefilled with now, editable (date + time).
-   - Optional comment.
    - Start button. Disabled if account invalid.
+   - No comment field. Comments already present in a file are kept when the app rewrites it, and shown on running entries.
 2. Running section
    - List of running entries: account, start, live elapsed time.
    - Each has Stop button (clock-out at now) and option to stop at custom time.
@@ -80,7 +80,7 @@ Bottom tabs: Home, Entries, Settings.
 - List all entries, newest first, grouped by day.
 - Filter by level: select level, then account prefix at that level.
 - Each entry menu: Edit, Remove.
-  - Edit: account, start, end (end empty = running), comment. Validation: end > start.
+  - Edit: account, start, end (end empty = running). Validation: end > start, nothing in the future. The entry's comment is kept as it is.
   - Remove: confirmation dialog.
 
 ### Settings
@@ -124,6 +124,22 @@ Libraries:
 - Notifications: `flutter_local_notifications` with `ActionBroadcastReceiver` declared in `AndroidManifest.xml` and core library desugaring enabled in `android/app/build.gradle.kts`.
 - Notification actions and dismiss callbacks run in a background isolate: top-level `@pragma('vm:entry-point')` function, no UI state, all state read from shared preferences.
 - Settings and the running list: `shared_preferences`.
+
+## Planned later
+
+Not part of the current implementation.
+
+### Split files by project
+
+Option to also split files by project, where the project is the first level of the account (`work` in `work:acme:dev`). It combines with the period split: for example month and project give `work/2026-10.timeclock`, or `work-2026-10.timeclock` if subdirectories are not wanted.
+
+Open details to settle when this is built:
+
+- Filename template token for the project (for example `{project}`), validation that it is present when the option is on, and whether the project may contain characters that are not valid in file names (`/`, spaces).
+- Where the file lives (flat name or a directory per project), since the storage layer currently reads a flat directory.
+- Entry lives in the file of its clock-in date and project. Editing the account's first level moves the entry to another file, the same way changing the start date across periods does today.
+- Like the other split settings, it affects new entries only; existing files are not migrated.
+- Settings gets a switch for it, next to the split method.
 
 ## Open questions
 
