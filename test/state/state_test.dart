@@ -38,6 +38,14 @@ Future<ProviderContainer> makeContainer(
   return container;
 }
 
+/// Entries that have a clock-out, newest first.
+List<StoredEntry> finished(ProviderContainer c) => c
+    .read(entriesProvider)
+    .requireValue
+    .entries
+    .where((e) => !e.entry.isRunning)
+    .toList();
+
 void main() {
   group('settings', () {
     test('defaults', () async {
@@ -135,7 +143,7 @@ void main() {
       );
       expect(c.read(entriesProvider).requireValue.entries, hasLength(2));
       expect(c.read(runningProvider).single.entry.account, 'b');
-      expect(c.read(lastFinishedProvider).single.entry.account, 'a');
+      expect(finished(c).single.entry.account, 'a');
     });
 
     test('start, stop and the running list', () async {
@@ -154,10 +162,7 @@ void main() {
       expect(await entries.stopAccount('b', at(30, 12)), isTrue);
       expect(await entries.stopAccount('b', at(30, 13)), isFalse);
       expect(c.read(runningProvider), isEmpty);
-      expect(c.read(lastFinishedProvider).map((e) => e.entry.account), [
-        'b',
-        'a',
-      ]);
+      expect(finished(c).map((e) => e.entry.account), ['b', 'a']);
     });
 
     test('start uses the configured split', () async {
@@ -181,9 +186,9 @@ void main() {
         comment: 'x',
       );
       expect(c.read(runningProvider), isEmpty);
-      expect(c.read(lastFinishedProvider).single.entry.comment, 'x');
+      expect(finished(c).single.entry.comment, 'x');
 
-      await entries.remove(c.read(lastFinishedProvider).single);
+      await entries.remove(finished(c).single);
       expect(c.read(entriesProvider).requireValue.entries, isEmpty);
     });
 

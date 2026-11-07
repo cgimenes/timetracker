@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/account.dart';
 import '../core/file_naming.dart';
 import '../core/metrics.dart';
 import '../data/providers.dart';
@@ -58,114 +57,90 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         : null;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        children: [
-          ListTile(
-            leading: const Icon(Icons.folder_outlined),
-            title: const Text('Files directory'),
-            subtitle: Text(
-              treeUri == null ? 'Not chosen yet' : friendlyFolderName(treeUri),
-            ),
-            trailing: TextButton(
-              onPressed: _pickFolder,
-              child: Text(treeUri == null ? 'Choose' : 'Change'),
-            ),
-          ),
-          const Divider(),
-          const _SectionTitle('Files'),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SegmentedButton<SplitMethod>(
-              key: const Key('split'),
-              showSelectedIcon: false,
-              segments: const [
-                ButtonSegment(value: SplitMethod.none, label: Text('None')),
-                ButtonSegment(value: SplitMethod.day, label: Text('Day')),
-                ButtonSegment(value: SplitMethod.week, label: Text('Week')),
-                ButtonSegment(value: SplitMethod.month, label: Text('Month')),
-              ],
-              selected: {settings.split},
-              onSelectionChanged: (s) => notifier.setSplit(s.first),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: Text(
-              'Starts a new file for each period. Existing files stay as they are.',
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              key: const Key('template'),
-              controller: _template,
-              autocorrect: false,
-              decoration: InputDecoration(
-                labelText: 'File name',
-                border: const OutlineInputBorder(),
-                errorText: templateError,
-                helperText: example == null ? null : 'Example: $example',
-                helperMaxLines: 2,
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          children: [
+            ListTile(
+              leading: const Icon(Icons.folder_outlined),
+              title: const Text('Files directory'),
+              subtitle: Text(
+                treeUri == null
+                    ? 'Not chosen yet'
+                    : friendlyFolderName(treeUri),
               ),
-              onChanged: (text) {
-                // Only valid names are saved; the field shows the error.
-                setState(() {});
-                notifier.setFileNameTemplate(text);
-              },
+              trailing: TextButton(
+                onPressed: _pickFolder,
+                child: Text(treeUri == null ? 'Choose' : 'Change'),
+              ),
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Tokens: {yyyy} {MM} {dd} {ww}. With {ww}, {yyyy} is the ISO week year.',
+            const Divider(),
+            const _SectionTitle('Files'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SegmentedButton<SplitMethod>(
+                key: const Key('split'),
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: SplitMethod.none, label: Text('None')),
+                  ButtonSegment(value: SplitMethod.day, label: Text('Day')),
+                  ButtonSegment(value: SplitMethod.week, label: Text('Week')),
+                  ButtonSegment(value: SplitMethod.month, label: Text('Month')),
+                ],
+                selected: {settings.split},
+                onSelectionChanged: (s) => notifier.setSplit(s.first),
+              ),
             ),
-          ),
-          const Divider(height: 32),
-          const _SectionTitle('Home'),
-          ListTile(
-            title: const Text('Metrics level'),
-            subtitle: Text(
-              'Totals are grouped by account depth. '
-              'work:acme:dev at level ${settings.metricsLevel} is '
-              '${truncateAccount('work:acme:dev', settings.metricsLevel)}.',
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text(
+                'Starts a new file for each period. Existing files stay as they are.',
+              ),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  key: const Key('level-minus'),
-                  icon: const Icon(Icons.remove),
-                  onPressed: settings.metricsLevel > 1
-                      ? () =>
-                            notifier.setMetricsLevel(settings.metricsLevel - 1)
-                      : null,
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                key: const Key('template'),
+                controller: _template,
+                autocorrect: false,
+                decoration: InputDecoration(
+                  labelText: 'File name',
+                  border: const OutlineInputBorder(),
+                  errorText: templateError,
+                  helperText: example == null ? null : 'Example: $example',
+                  helperMaxLines: 2,
                 ),
-                Text('${settings.metricsLevel}'),
-                IconButton(
-                  key: const Key('level-plus'),
-                  icon: const Icon(Icons.add),
-                  onPressed: () =>
-                      notifier.setMetricsLevel(settings.metricsLevel + 1),
-                ),
-              ],
+                onChanged: (text) {
+                  // Only valid names are saved; the field shows the error.
+                  setState(() {});
+                  notifier.setFileNameTemplate(text);
+                },
+              ),
             ),
-          ),
-          ListTile(
-            title: const Text('Week starts on'),
-            trailing: SegmentedButton<WeekStart>(
-              key: const Key('week-start'),
-              showSelectedIcon: false,
-              segments: const [
-                ButtonSegment(value: WeekStart.monday, label: Text('Mon')),
-                ButtonSegment(value: WeekStart.sunday, label: Text('Sun')),
-              ],
-              selected: {settings.weekStart},
-              onSelectionChanged: (s) => notifier.setWeekStart(s.first),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Tokens: {yyyy} {MM} {dd} {ww}. With {ww}, {yyyy} is the ISO week year.',
+              ),
             ),
-          ),
-        ],
+            const Divider(height: 32),
+            const _SectionTitle('Metrics'),
+            ListTile(
+              title: const Text('Week starts on'),
+              trailing: SegmentedButton<WeekStart>(
+                key: const Key('week-start'),
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(value: WeekStart.monday, label: Text('Mon')),
+                  ButtonSegment(value: WeekStart.sunday, label: Text('Sun')),
+                ],
+                selected: {settings.weekStart},
+                onSelectionChanged: (s) => notifier.setWeekStart(s.first),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -21,15 +21,17 @@ class EntriesPage extends ConsumerWidget {
     final hasFolder = ref.watch(treeUriProvider) != null;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Entries')),
-      body: !hasFolder
-          ? const ChooseFolderPrompt()
-          : Column(
-              children: [
-                const _FilterBar(),
-                const Expanded(child: _EntryList()),
-              ],
-            ),
+      body: SafeArea(
+        bottom: false,
+        child: !hasFolder
+            ? const ChooseFolderPrompt()
+            : const Column(
+                children: [
+                  _FilterBar(),
+                  Expanded(child: _EntryList()),
+                ],
+              ),
+      ),
     );
   }
 }

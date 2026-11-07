@@ -46,9 +46,9 @@ Rules:
 
 ## UI
 
-Bottom tabs: Home, Entries, Settings.
+Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bottom bar names the screen. Only the Edit entry page, which is pushed over the tabs, has a header (it holds Save).
 
-### Home
+### Track
 
 1. Add section
    - Account field: prefilled with last used account; dropdown history sorted by frecency; free text allowed.
@@ -58,18 +58,20 @@ Bottom tabs: Home, Entries, Settings.
 2. Running section
    - List of running entries: account, start, live elapsed time.
    - Each has Stop button (clock-out at now) and option to stop at custom time.
-3. Last 3 entries (finished, most recent first): account, start, end, duration.
-4. Metrics
-   - Three groups: Today, This week, This month.
-   - Each lists sum of durations per account truncated to configured level, sorted desc, plus total.
-   - Running entries count up to now.
-   - Entries crossing period boundary counted only for portion inside period.
+
+### Metrics
+
+- Level control (integer >= 1, default 1): totals are grouped by account depth. Level 2 turns `work:acme:dev` into `work:acme`.
+- Three groups: Today, This week, This month.
+- Each lists sum of durations per account truncated to the level, sorted desc, plus total.
+- Running entries count up to now.
+- Entries crossing period boundary counted only for portion inside period.
 
 ### Notification
 
 - One ongoing notification while at least one entry is running, shared by all running entries.
 - Title: the account, or "N running" when several. Chronometer counts from the oldest running entry. Inbox lines list each account with its start time.
-- Stop action per running entry (clock-out at now), at most 3 (Android limit). Entries beyond 3 are stopped from the app. Tapping the notification opens Home.
+- Stop action per running entry (clock-out at now), at most 3 (Android limit). Entries beyond 3 are stopped from the app. Tapping the notification opens the app.
 - Stop works with the app process dead.
 - No foreground service. On Android 14+ users can swipe the notification away; the app re-posts it immediately (dismiss callback), and again on app open.
 - Notification disappears when the last running entry stops.
@@ -88,8 +90,7 @@ Bottom tabs: Home, Entries, Settings.
 - Files directory (picker).
 - File split method: none | day | week | month.
 - Filename format (template, live preview of example filename).
-- Home metrics level: integer >= 1, default 1.
-- Week start day: Monday (default) | Sunday.
+- Week start day: Monday (default) | Sunday (used by the Metrics week).
 
 ## Edge cases
 
@@ -104,13 +105,13 @@ Bottom tabs: Home, Entries, Settings.
 ## Acceptance criteria
 
 - Starting entry appends `i` line to correct file; stopping appends matching `o` line with account.
-- `hledger -f <file> bal` on produced files returns same totals as Home metrics for same period and depth (excluding files with overlapping same-account sessions).
+- `hledger -f <file> bal` on produced files returns same totals as the Metrics tab for the same period and depth (excluding files with overlapping same-account sessions).
 - Starting an entry whose account is already running shows a warning about hledger incompatibility and proceeds only on confirmation.
 - Notification lists running entries, each with a Stop action that clocks out at now; notification disappears when no entry is running.
 - Two concurrent entries both stopped independently produce valid file for hledger.
 - Editing/removing entry rewrites file, preserving untouched lines byte for byte.
 - Account history suggestions ordered by frecency.
-- Changing metrics level in Settings updates Home grouping immediately.
+- Changing the level on the Metrics tab regroups the totals immediately.
 
 ## Technical considerations
 

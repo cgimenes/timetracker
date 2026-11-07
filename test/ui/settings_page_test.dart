@@ -83,7 +83,6 @@ void main() {
       expect(find.text('Not chosen yet'), findsOneWidget);
       expect(find.text('Choose'), findsOneWidget);
       expect(find.text('Example: 2026-10.timeclock'), findsOneWidget);
-      expect(find.text('1'), findsOneWidget); // metrics level
     });
 
     settingsTest(
@@ -144,21 +143,12 @@ void main() {
       expect(find.text('Example: hours-10-2026.timeclock'), findsOneWidget);
     });
 
-    settingsTest('metrics level stepper stays at 1 or more', (tester, c) async {
-      final minus = find.byKey(const Key('level-minus'));
-      expect(tester.widget<IconButton>(minus).onPressed, isNull);
-
-      await tester.tap(find.byKey(const Key('level-plus')));
-      await tester.pump();
-      await tester.tap(find.byKey(const Key('level-plus')));
-      await tester.pump();
-      expect(c.read(settingsProvider).metricsLevel, 3);
-      expect(find.textContaining('is work:acme:dev'), findsOneWidget);
-
-      await tester.tap(minus);
-      await tester.pump();
-      expect(c.read(settingsProvider).metricsLevel, 2);
-      expect(find.textContaining('is work:acme.'), findsOneWidget);
+    settingsTest('has no header and no metrics level any more', (
+      tester,
+      c,
+    ) async {
+      expect(find.byType(AppBar), findsNothing);
+      expect(find.byKey(const Key('level-plus')), findsNothing);
     });
 
     settingsTest('week start', (tester, c) async {

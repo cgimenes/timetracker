@@ -15,11 +15,6 @@ final runningProvider = Provider<List<StoredEntry>>(
   (ref) => _entries(ref).where((e) => e.entry.isRunning).toList(),
 );
 
-/// The three most recent finished entries.
-final lastFinishedProvider = Provider<List<StoredEntry>>(
-  (ref) => _entries(ref).where((e) => !e.entry.isRunning).take(3).toList(),
-);
-
 /// Time per account at the configured level, for Today, This week and This
 /// month.
 final metricsProvider = Provider.family<Metrics, PeriodKind>((ref, kind) {
