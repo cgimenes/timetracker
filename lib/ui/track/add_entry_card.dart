@@ -125,8 +125,6 @@ class _AddEntryCardState extends ConsumerState<AddEntryCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Start', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
             AccountField(
               controller: _account,
               focusNode: _accountFocus,

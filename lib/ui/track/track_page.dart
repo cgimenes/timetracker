@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/providers.dart';
 import '../../state/entries.dart';
 import '../choose_folder.dart';
+import '../load_error.dart';
 import 'add_entry_card.dart';
 import 'running_section.dart';
 
@@ -28,7 +29,7 @@ class TrackPage extends ConsumerWidget {
                   padding: const EdgeInsets.all(12),
                   children: [
                     if (entries!.hasError && !entries.hasValue)
-                      _LoadError('${entries.error}')
+                      LoadErrorCard(entries.error)
                     else ...[
                       const AddEntryCard(),
                       const RunningSection(),
@@ -39,19 +40,4 @@ class TrackPage extends ConsumerWidget {
       ),
     );
   }
-}
-
-class _LoadError extends StatelessWidget {
-  const _LoadError(this.message);
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) => Card(
-    color: Theme.of(context).colorScheme.errorContainer,
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Text('Could not read the files: $message'),
-    ),
-  );
 }

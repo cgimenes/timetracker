@@ -101,7 +101,7 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 - Clock-out before clock-in: reject.
 - Orphan clock-out in file (no matching clock-in): show warning, ignore in metrics.
 - Running entry left open for days: shown normally; metrics clip to period.
-- Directory permission revoked or unavailable: banner, block writes, keep data in memory until resolved.
+- Directory permission revoked or unavailable: if access was removed the app asks for a folder again; if the folder cannot be read (moved, deleted), Track, Entries and Metrics show a card with the error, "Try again" and "Choose another folder". Nothing is written until the files can be read.
 - DST change: store local time as written; durations computed with timezone aware conversion.
 
 ## Acceptance criteria

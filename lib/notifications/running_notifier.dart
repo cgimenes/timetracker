@@ -23,7 +23,7 @@ final _plugin = FlutterLocalNotificationsPlugin();
 Future<void> initRunningNotifications() async {
   await _plugin.initialize(
     settings: const InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      android: AndroidInitializationSettings('@drawable/ic_stat_timer'),
     ),
     onDidReceiveNotificationResponse: handleNotificationResponse,
     onDidReceiveBackgroundNotificationResponse: handleNotificationResponse,

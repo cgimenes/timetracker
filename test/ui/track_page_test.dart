@@ -86,6 +86,8 @@ void main() {
       storage,
     ) async {
       expect(find.byType(AppBar), findsNothing);
+      // "Start" is only the button label: the card has no title of its own.
+      expect(find.text('Start'), findsOneWidget);
       expect(find.text('Last entries'), findsNothing);
       expect(find.text('Today'), findsNothing);
     });

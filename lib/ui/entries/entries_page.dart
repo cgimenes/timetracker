@@ -8,6 +8,7 @@ import '../../state/derived.dart';
 import '../../state/entries.dart';
 import '../../state/entries_filter.dart';
 import '../choose_folder.dart';
+import '../load_error.dart';
 import '../format.dart';
 import '../ui_actions.dart';
 import 'edit_entry_page.dart';
@@ -112,7 +113,10 @@ class _EntryList extends ConsumerWidget {
     final now = ref.watch(nowProvider);
 
     if (entries.hasError && !entries.hasValue) {
-      return Center(child: Text('Could not read the files: ${entries.error}'));
+      return ListView(
+        padding: const EdgeInsets.all(12),
+        children: [LoadErrorCard(entries.error)],
+      );
     }
 
     final rows = <_Row>[

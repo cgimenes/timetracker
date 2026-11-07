@@ -8,6 +8,7 @@ import '../../settings/app_settings.dart';
 import '../../state/derived.dart';
 import '../../state/entries.dart';
 import '../choose_folder.dart';
+import '../load_error.dart';
 import '../format.dart';
 
 /// Time per account for Today, This week and This month, grouped at the
@@ -24,6 +25,7 @@ class MetricsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasFolder = ref.watch(treeUriProvider) != null;
+    final entries = hasFolder ? ref.watch(entriesProvider) : null;
 
     return Scaffold(
       body: SafeArea(
@@ -35,6 +37,8 @@ class MetricsPage extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.all(12),
                   children: [
+                    if (entries!.hasError && !entries.hasValue)
+                      LoadErrorCard(entries.error),
                     const _LevelCard(),
                     for (final (kind, title) in _periods)
                       _PeriodCard(kind, title),
