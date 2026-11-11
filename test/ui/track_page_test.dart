@@ -65,7 +65,7 @@ void main() {
   group('TrackPage', () {
     trackTest('asks for a folder when none is chosen', (tester, storage) async {
       expect(find.byKey(const Key('choose-folder')), findsOneWidget);
-      expect(find.text('Start'), findsNothing);
+      expect(find.text('Start now'), findsNothing);
     }, withFolder: false);
 
     trackTest('empty directory shows nothing running', (tester, storage) async {
@@ -86,8 +86,9 @@ void main() {
       storage,
     ) async {
       expect(find.byType(AppBar), findsNothing);
-      // "Start" is only the button label: the card has no title of its own.
-      expect(find.text('Start'), findsOneWidget);
+      // The card has no title of its own, only the two buttons.
+      expect(find.text('Start now'), findsOneWidget);
+      expect(find.text('Start at...'), findsOneWidget);
       expect(find.text('Last entries'), findsNothing);
       expect(find.text('Today'), findsNothing);
     });
@@ -142,6 +143,53 @@ void main() {
 
       expect(storage.text('2026-10.timeclock'), contains('personal:read'));
       expect(tester.widget<TextField>(field).focusNode!.hasFocus, isFalse);
+    });
+
+    trackTest('Start now and Start at sit side by side', (
+      tester,
+      storage,
+    ) async {
+      final now = tester.getCenter(find.byKey(const Key('start')));
+      final at = tester.getCenter(find.byKey(const Key('start-at')));
+      expect(at.dx, greaterThan(now.dx));
+      expect(at.dy, now.dy);
+    });
+
+    trackTest('Start at asks date and time in one dialog and starts', (
+      tester,
+      storage,
+    ) async {
+      await tester.enterText(find.byKey(const Key('account')), 'personal:read');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('start-at')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('dt-hour')), '10');
+      await tester.enterText(find.byKey(const Key('dt-minute')), '30');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('dt-ok')));
+      await tester.pumpAndSettle();
+
+      expect(
+        storage.text('2026-10.timeclock'),
+        endsWith('i 2026-10-30 10:30:00 personal:read\n'),
+      );
+    });
+
+    trackTest('Start at in the future shows the problem and writes nothing', (
+      tester,
+      storage,
+    ) async {
+      await tester.enterText(find.byKey(const Key('account')), 'personal:read');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('start-at')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('dt-hour')), '16');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('dt-ok')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Start is in the future'), findsOneWidget);
+      expect(storage.text('2026-10.timeclock'), _data);
     });
 
     trackTest('has no comment field', (tester, storage) async {

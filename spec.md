@@ -53,8 +53,10 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 
 1. Add section
    - Account field: prefilled with last used account; dropdown history sorted by frecency; free text allowed.
-   - Start time: prefilled with now, editable (date + time).
-   - Start button. Disabled if account invalid. Pressing it closes the keyboard.
+   - Two buttons side by side, both disabled if account invalid, both close the keyboard:
+     - Start now: clock-in at the current time.
+     - Start at...: one dialog asks date and time (calendar plus hour and minute), and OK starts the entry at that time. A time in the future is refused.
+   - Every date and time is asked in that one dialog (also Stop at... and Edit entry), never a date step followed by a time step.
    - No comment field. Comments already present in a file are kept when the app rewrites it, and shown on running entries.
 2. Running section
    - List of running entries: account, start, live elapsed time.
