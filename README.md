@@ -16,7 +16,7 @@ icons on wide screens.
   start) and see what is running. Several entries can run at once.
 - **Notification:** one ongoing notification lists the running entries, with a
   Stop button for each. Stop works with the app closed.
-- **Entries:** finished entries by day, searched by account or comment, with edit and
+- **Entries:** finished entries by day, searched by account, comment or day, with edit and
   remove.
 - **Calendar:** one day as a column of hours, like Google Calendar, with a day
   selector. Entries are blocks colored by account level 1, 2 or 3; tap one to start

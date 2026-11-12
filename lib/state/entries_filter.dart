@@ -16,14 +16,35 @@ class EntriesSearchNotifier extends Notifier<String> {
   void set(String query) => state = query;
 }
 
-/// True when every word of [query] is in the account or the comment, ignoring
-/// case. An empty query matches everything.
+const _weekdayNames = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+];
+
+/// True when every word of [query] is in the account, the comment or the day
+/// the entry starts on, ignoring case. An empty query matches everything.
+///
+/// The day is its date (`2026-10-29`, so `10-29` or `2026-10` work too) and
+/// its weekday name (`thursday`, so `thu` works).
 bool matchesSearch(Entry entry, String query) {
   final words = query
       .toLowerCase()
       .split(RegExp(r'\s+'))
       .where((w) => w.isNotEmpty);
-  final text = '${entry.account} ${entry.comment ?? ''}'.toLowerCase();
+  final s = entry.start;
+  final date =
+      '${s.year.toString().padLeft(4, '0')}-'
+      '${s.month.toString().padLeft(2, '0')}-'
+      '${s.day.toString().padLeft(2, '0')}';
+  final text =
+      '${entry.account} ${entry.comment ?? ''} $date '
+              '${_weekdayNames[s.weekday - 1]}'
+          .toLowerCase();
   return words.every(text.contains);
 }
 

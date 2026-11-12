@@ -135,7 +135,7 @@ The Goals screen is always in the side bar (between Metrics and Settings), and g
 ### Entries
 
 - List all finished entries, newest first, grouped by day. Running entries are not listed (they are on Track); day totals count finished entries only.
-- Search field above the list: keeps the entries whose account or comment contains every word typed, ignoring case. Day headers and totals follow the search. A clear button empties it.
+- Search field above the list: keeps the entries whose account, comment or day contains every word typed, ignoring case. The day is the date the entry starts on (`2026-10-29`, so `10-29` and `2026-10` work too) and its weekday name (`thursday`, so `thu` works). Day headers and totals follow the search. A clear button empties it.
 - Each entry has a menu button (three dots) at the end of its row. Pressing it shows the actions in the same row, in place of the duration: Start again, Edit, Remove (icons), and the row gets a highlighted background. Tapping the row itself does nothing. One row is open at a time; pressing the menu button again, running an action or changing the search closes it.
   - Start again: asks "Now" or "Pick time" (the one date and time dialog), then clocks in the same account and switches to the Track screen, where it is running. No comment is copied. If the account already runs, the same duplicate warning as in Track is shown first.
   - Edit: account, start, end (end empty = running). Validation: end > start, nothing in the future. The entry's comment is kept as it is.

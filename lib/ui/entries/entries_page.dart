@@ -88,7 +88,7 @@ class _SearchBarState extends ConsumerState<_SearchBar> {
         autocorrect: false,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
-          hintText: 'Search account or comment',
+          hintText: 'Search account, comment or day',
           prefixIcon: const Icon(Icons.search),
           border: const OutlineInputBorder(),
           isDense: true,

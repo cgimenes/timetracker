@@ -167,6 +167,62 @@ void main() {
       expect(find.text('personal:read'), findsNothing);
     });
 
+    entriesTest('searches by day: the date', (tester, _) async {
+      await tester.enterText(find.byKey(const Key('search')), '2026-10-29');
+      await tester.pump();
+      expect(find.text('work:acme:dev'), findsOneWidget);
+      expect(find.text('work:acme:meet'), findsNothing);
+      expect(find.text('personal:read'), findsNothing);
+      // The typed text and the day header.
+      expect(find.text('2026-10-29'), findsNWidgets(2));
+      expect(find.text('2026-10-30'), findsNothing);
+    });
+
+    entriesTest('a part of the date works: month and day', (tester, _) async {
+      await tester.enterText(find.byKey(const Key('search')), '10-28');
+      await tester.pump();
+      expect(find.text('personal:read'), findsOneWidget);
+      expect(find.text('work:acme:dev'), findsNothing);
+    });
+
+    entriesTest('searches by weekday name, short or long', (tester, _) async {
+      // 2026-10-28 is a Wednesday, 29 a Thursday, 30 a Friday.
+      await tester.enterText(find.byKey(const Key('search')), 'thursday');
+      await tester.pump();
+      expect(find.text('work:acme:dev'), findsOneWidget);
+      expect(find.text('personal:read'), findsNothing);
+
+      await tester.enterText(find.byKey(const Key('search')), 'FRI');
+      await tester.pump();
+      expect(find.text('work:acme:meet'), findsOneWidget);
+      expect(find.text('work:acme:dev'), findsNothing);
+
+      await tester.enterText(find.byKey(const Key('search')), 'wed');
+      await tester.pump();
+      expect(find.text('personal:read'), findsOneWidget);
+    });
+
+    entriesTest('a day and an account together', (tester, _) async {
+      await tester.enterText(find.byKey(const Key('search')), 'acme 10-30');
+      await tester.pump();
+      expect(find.text('work:acme:meet'), findsOneWidget);
+      expect(find.text('work:acme:dev'), findsNothing);
+
+      await tester.enterText(find.byKey(const Key('search')), 'personal 10-30');
+      await tester.pump();
+      expect(find.text('No entries'), findsOneWidget);
+    });
+
+    entriesTest('a day with no entries finds nothing', (tester, _) async {
+      await tester.enterText(find.byKey(const Key('search')), '2026-10-27');
+      await tester.pump();
+      expect(find.text('No entries'), findsOneWidget);
+    });
+
+    entriesTest('the search hint mentions the day', (tester, _) async {
+      expect(find.text('Search account, comment or day'), findsOneWidget);
+    });
+
     entriesTest('day headers and totals follow the search', (tester, _) async {
       await tester.enterText(find.byKey(const Key('search')), 'read');
       await tester.pump();
