@@ -65,7 +65,7 @@ Screens: Track, Entries, Calendar, Metrics, Goals, Settings. They are reached fr
    - Two buttons side by side, both disabled if account invalid, both close the keyboard:
      - Start now: clock-in at the current time.
      - Start at...: one dialog asks date and time (calendar plus hour and minute), and OK starts the entry at that time. A time in the future is refused.
-   - Every date and time is asked in that one dialog (also Stop at... and Edit entry), never a date step followed by a time step.
+   - Every date and time is asked in that one dialog (also Stop at..., Edit entry and Start again), never a date step followed by a time step. The dialog shows: day chips (Today, Yesterday, 2 days ago, only days in range) and an "Other date..." chip that opens a calendar (it closes when a day is picked); and a time tile that opens the Material clock dial (24 hour, with the keyboard toggle to type the time). It starts on the current date and time, so OK alone means now. A moment in the future, or for an end not after the start, is refused in the dialog with a message and OK is disabled.
    - No comment field. Comments already present in a file are kept when the app rewrites it, and shown on running entries.
    - Quick start: a section named "Quick start" under the form, listing the three accounts with the best frecency, one per row. Each row has a play button at its right end that starts that account now (the duplicate warning applies). Hidden when there is no history.
 2. Running section

@@ -54,6 +54,9 @@ class _EditEntryPageState extends ConsumerState<EditEntryPage> {
       initial: current,
       first: DateTime(now.year - 2),
       last: DateTime(now.year, now.month, now.day),
+      notAfter: now,
+      // An end must come after the start.
+      after: start ? null : _start,
     );
     if (picked == null) return;
     setState(() => start ? _start = picked : _end = picked);

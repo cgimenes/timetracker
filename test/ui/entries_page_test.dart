@@ -8,6 +8,7 @@ import 'package:timetracker/state/navigation.dart';
 import 'package:timetracker/ui/entries/entries_page.dart';
 
 import '../support/memory_storage.dart';
+import '../support/pick_time.dart';
 
 // Friday 2026-10-30, 15:00.
 final now = DateTime(2026, 10, 30, 15);
@@ -364,9 +365,7 @@ void main() {
       await rowAction(tester, 'personal:read', 'Start again');
       await tester.tap(find.byKey(const Key('restart-at')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('dt-hour')), '10');
-      await tester.enterText(find.byKey(const Key('dt-minute')), '15');
-      await tester.pump();
+      await pickTime(tester, 10, 15);
       await tester.tap(find.byKey(const Key('dt-ok')));
       await tester.pumpAndSettle();
 
@@ -541,5 +540,48 @@ void main() {
 
       expect(c.read(homeTabProvider), HomeTab.entries);
     }, files: const {'2026-10.timeclock': _withFinishedGlobex});
+
+    entriesTest('Edit: the end cannot be picked before the start', (
+      tester,
+      storage,
+    ) async {
+      await rowAction(tester, 'personal:read', 'Edit');
+      await tester.tap(find.byKey(const Key('edit-end')));
+      await tester.pumpAndSettle();
+      // 2026-10-28, 2 days ago: the chip for it is selected.
+      expect(
+        tester.widget<ChoiceChip>(find.byKey(const Key('dt-2days'))).selected,
+        isTrue,
+      );
+      await pickTime(tester, 8, 0);
+      expect(find.text('Must be after the start'), findsOneWidget);
+      expect(
+        tester.widget<FilledButton>(find.byKey(const Key('dt-ok'))).onPressed,
+        isNull,
+      );
+
+      await pickTime(tester, 11, 30);
+      await tester.tap(find.byKey(const Key('dt-ok')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('save')));
+      await tester.pumpAndSettle();
+      expect(
+        storage.text('2026-10.timeclock'),
+        contains('o 2026-10-28 11:30:00 personal:read\n'),
+      );
+    });
+
+    entriesTest('Edit: the start cannot be in the future', (
+      tester,
+      storage,
+    ) async {
+      await rowAction(tester, 'personal:read', 'Edit');
+      await tester.tap(find.byKey(const Key('edit-start')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('dt-today')));
+      await tester.pump();
+      await pickTime(tester, 16, 0);
+      expect(find.text('In the future'), findsOneWidget);
+    });
   });
 }

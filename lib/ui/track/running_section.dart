@@ -121,6 +121,8 @@ class RunningSection extends ConsumerWidget {
         stored.entry.start.day,
       ),
       last: DateTime(now.year, now.month, now.day),
+      notAfter: now,
+      after: stored.entry.start,
     );
     if (picked == null || !context.mounted) return;
     final error = validateEntry(

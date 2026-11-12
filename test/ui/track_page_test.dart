@@ -9,6 +9,7 @@ import 'package:timetracker/ui/palette.dart';
 import 'package:timetracker/ui/track/track_page.dart';
 
 import '../support/memory_storage.dart';
+import '../support/pick_time.dart';
 
 // Friday 2026-10-30, 15:00.
 final now = DateTime(2026, 10, 30, 15);
@@ -178,9 +179,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const Key('start-at')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('dt-hour')), '10');
-      await tester.enterText(find.byKey(const Key('dt-minute')), '30');
-      await tester.pump();
+      await pickTime(tester, 10, 30);
       await tester.tap(find.byKey(const Key('dt-ok')));
       await tester.pumpAndSettle();
 
@@ -190,7 +189,26 @@ void main() {
       );
     });
 
-    trackTest('Start at in the future shows the problem and writes nothing', (
+    trackTest('Start at yesterday, with the day chip', (tester, storage) async {
+      await tester.enterText(find.byKey(const Key('account')), 'personal:read');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('start-at')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('dt-yesterday')));
+      await tester.pump();
+      await pickTime(tester, 22, 15);
+      await tester.tap(find.byKey(const Key('dt-ok')));
+      await tester.pumpAndSettle();
+
+      // Yesterday evening is before the other entries: a running entry that
+      // starts there, written in the month file.
+      expect(
+        storage.text('2026-10.timeclock'),
+        contains('i 2026-10-29 22:15:00 personal:read\n'),
+      );
+    });
+
+    trackTest('Start at defaults to now, so OK alone starts right away', (
       tester,
       storage,
     ) async {
@@ -198,13 +216,58 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const Key('start-at')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('dt-hour')), '16');
-      await tester.pump();
       await tester.tap(find.byKey(const Key('dt-ok')));
       await tester.pumpAndSettle();
+      expect(
+        storage.text('2026-10.timeclock'),
+        endsWith('i 2026-10-30 15:00:00 personal:read\n'),
+      );
+    });
 
-      expect(find.text('Start is in the future'), findsOneWidget);
+    trackTest('Start at in the future is refused in the dialog', (
+      tester,
+      storage,
+    ) async {
+      await tester.enterText(find.byKey(const Key('account')), 'personal:read');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('start-at')));
+      await tester.pumpAndSettle();
+      await pickTime(tester, 16, 0);
+
+      // The dialog says so and OK does nothing: no snack bar needed.
+      expect(find.text('In the future'), findsOneWidget);
+      expect(
+        tester.widget<FilledButton>(find.byKey(const Key('dt-ok'))).onPressed,
+        isNull,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
       expect(storage.text('2026-10.timeclock'), _data);
+    });
+
+    trackTest('Stop at refuses a time before the start, in the dialog', (
+      tester,
+      storage,
+    ) async {
+      // work:acme:meet runs since 14:00.
+      await tester.tap(find.byKey(const Key('stop-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Stop at...'));
+      await tester.pumpAndSettle();
+      await pickTime(tester, 13, 0);
+      expect(find.text('Must be after the start'), findsOneWidget);
+      expect(
+        tester.widget<FilledButton>(find.byKey(const Key('dt-ok'))).onPressed,
+        isNull,
+      );
+
+      await pickTime(tester, 14, 45);
+      await tester.tap(find.byKey(const Key('dt-ok')));
+      await tester.pumpAndSettle();
+      expect(
+        storage.text('2026-10.timeclock'),
+        endsWith('o 2026-10-30 14:45:00 work:acme:meet\n'),
+      );
     });
 
     trackTest('has no comment field', (tester, storage) async {
