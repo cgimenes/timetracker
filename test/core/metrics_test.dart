@@ -189,4 +189,131 @@ void main() {
       expect(empty.total, Duration.zero);
     });
   });
+
+  group('bucketTotals', () {
+    DateTime d(int month, int day, [int h = 0, int m = 0]) =>
+        DateTime(2026, month, day, h, m);
+
+    test('days: 14 by default, oldest first, the last one holds now', () {
+      final b = bucketTotals([], Grouping.day, now, level: 1);
+      expect(b, hasLength(14));
+      expect(b.first.range.start, d(10, 17));
+      expect(b.last.range.start, d(10, 30));
+      expect(b.last.range.end, d(10, 31));
+      expect(b.map((x) => x.label).take(3), ['17', '18', '19']);
+    });
+
+    test('sums per account at the level, per day', () {
+      final b = bucketTotals(
+        [
+          entry('work:acme:dev', d(10, 30, 9), d(10, 30, 11)),
+          entry('work:globex', d(10, 30, 11), d(10, 30, 11, 30)),
+          entry('personal:read', d(10, 29, 9), d(10, 29, 10)),
+        ],
+        Grouping.day,
+        now,
+        level: 1,
+      );
+      expect(b.last.byAccount, {'work': const Duration(hours: 2, minutes: 30)});
+      expect(b.last.total, const Duration(hours: 2, minutes: 30));
+      expect(b[12].byAccount, {'personal': const Duration(hours: 1)});
+
+      final deep = bucketTotals(
+        [
+          entry('work:acme:dev', d(10, 30, 9), d(10, 30, 11)),
+          entry('work:globex', d(10, 30, 11), d(10, 30, 11, 30)),
+        ],
+        Grouping.day,
+        now,
+        level: 2,
+      );
+      expect(deep.last.byAccount.keys.toSet(), {'work:acme', 'work:globex'});
+    });
+
+    test('an entry across midnight counts in both days', () {
+      final b = bucketTotals(
+        [entry('a', d(10, 29, 23), d(10, 30, 2))],
+        Grouping.day,
+        now,
+        level: 1,
+      );
+      expect(b[12].total, const Duration(hours: 1));
+      expect(b[13].total, const Duration(hours: 2));
+    });
+
+    test('a running entry counts up to now', () {
+      final b = bucketTotals(
+        [entry('a', d(10, 30, 14))],
+        Grouping.day,
+        now,
+        level: 1,
+      );
+      expect(b.last.total, const Duration(hours: 1));
+    });
+
+    test('weeks: 12, starting on Monday, labeled by their first day', () {
+      final b = bucketTotals([], Grouping.week, now, level: 1);
+      expect(b, hasLength(12));
+      expect(b.last.range.start, d(10, 26));
+      expect(b.last.range.end, d(11, 2));
+      expect(b.last.label, '10-26');
+      expect(b[10].range.start, d(10, 19));
+    });
+
+    test('weeks can start on Sunday', () {
+      final b = bucketTotals(
+        [entry('a', d(10, 25, 9), d(10, 25, 10))],
+        Grouping.week,
+        now,
+        level: 1,
+        weekStart: WeekStart.sunday,
+      );
+      expect(b.last.range.start, d(10, 25));
+      expect(b.last.total, const Duration(hours: 1));
+    });
+
+    test('weeks cut an entry at the week boundary', () {
+      final b = bucketTotals(
+        [entry('a', d(10, 25, 23), d(10, 26, 1))],
+        Grouping.week,
+        now,
+        level: 1,
+        count: 2,
+      );
+      expect(b[0].total, const Duration(hours: 1));
+      expect(b[1].total, const Duration(hours: 1));
+    });
+
+    test('months: 12, across the year, with month names', () {
+      final b = bucketTotals([], Grouping.month, now, level: 1);
+      expect(b, hasLength(12));
+      expect(b.last.range.start, d(10, 1));
+      expect(b.last.range.end, d(11, 1));
+      expect(b.last.label, 'Oct');
+      expect(b.first.range.start, DateTime(2025, 11));
+      expect(b.first.label, 'Nov');
+    });
+
+    test('months sum the whole month', () {
+      final b = bucketTotals(
+        [
+          entry('a', d(10, 1, 9), d(10, 1, 10)),
+          entry('a', d(10, 20, 9), d(10, 20, 12)),
+          entry('a', d(9, 30, 9), d(9, 30, 10)),
+        ],
+        Grouping.month,
+        now,
+        level: 1,
+      );
+      expect(b.last.total, const Duration(hours: 4));
+      expect(b[10].total, const Duration(hours: 1));
+    });
+
+    test('count changes the number of buckets', () {
+      expect(
+        bucketTotals([], Grouping.day, now, level: 1, count: 3),
+        hasLength(3),
+      );
+    });
+  });
 }

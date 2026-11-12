@@ -85,6 +85,11 @@ One day as a column of hours, like Google Calendar.
 ### Metrics
 
 - Level control (integer >= 1, default 1): totals are grouped by account depth. Level 2 turns `work:acme:dev` into `work:acme`.
+- Chart at the top (below the Level control): stacked bars of tracked time, one bar per day, week or month, chosen with a Day / Week / Month selector (not saved, starts on Day).
+  - Day shows the last 14 days, Week the last 12 weeks (first day set by the week start setting, labeled by that day), Month the last 12 months. The last bar holds today.
+  - Each bar is stacked by account group at the Level above, with the same colors as the Calendar. At most 8 groups are drawn, the rest are merged into "Other". A legend lists them.
+  - Touching a bar shows its period, total and the time of each group. Entries crossing a boundary count only inside each bar; running entries count up to now.
+  - No time in the range: "No time tracked" instead of the chart.
 - Three groups: Today, This week, This month.
 - Each lists sum of durations per account truncated to the level, sorted desc, plus total.
 - Running entries count up to now.

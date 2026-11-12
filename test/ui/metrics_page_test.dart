@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -85,7 +86,8 @@ void main() {
     }, withFolder: false);
 
     metricsTest('empty directory', (tester, c, storage) async {
-      expect(find.text('No time tracked'), findsNWidgets(3));
+      // Three period cards and the chart.
+      expect(find.text('No time tracked'), findsNWidgets(4));
     }, files: const {});
 
     metricsTest('has no header', (tester, c, storage) async {
@@ -111,11 +113,12 @@ void main() {
     ) async {
       expect(find.byKey(const Key('level')), findsOneWidget);
       expect(tester.widget<Text>(find.byKey(const Key('level'))).data, '1');
-      expect(find.text('work'), findsNWidgets(3));
+      // Three period cards and the chart legend.
+      expect(find.text('work'), findsNWidgets(4));
       expect(
         find.text('personal'),
-        findsNWidgets(2),
-      ); // this week and this month
+        findsNWidgets(3),
+      ); // this week, this month and the chart legend
     });
 
     metricsTest('changing the level regroups the totals', (
@@ -127,13 +130,13 @@ void main() {
       await tester.pump();
       expect(c.read(settingsProvider).metricsLevel, 2);
       expect(find.textContaining('is work:acme.'), findsOneWidget);
-      expect(find.text('work:acme'), findsNWidgets(3));
-      expect(find.text('work:globex'), findsNWidgets(3));
+      expect(find.text('work:acme'), findsNWidgets(4));
+      expect(find.text('work:globex'), findsNWidgets(4));
 
       await tester.tap(find.byKey(const Key('level-plus')));
       await tester.pump();
-      expect(find.text('work:acme:dev'), findsNWidgets(3));
-      expect(find.text('work:acme:meet'), findsNWidgets(3));
+      expect(find.text('work:acme:dev'), findsNWidgets(4));
+      expect(find.text('work:acme:meet'), findsNWidgets(4));
 
       // The totals do not change, only the grouping.
       expect(total(tester, 'today'), '3:30');
@@ -229,5 +232,98 @@ void main() {
       },
       prefs: const {},
     );
+
+    group('chart', () {
+      BarChartData chart(WidgetTester tester) =>
+          tester.widget<BarChart>(find.byKey(const Key('chart'))).data;
+
+      metricsTest('shows days by default, stacked by project', (
+        tester,
+        container,
+        storage,
+      ) async {
+        expect(find.byKey(const Key('chart-grouping')), findsOneWidget);
+        final groups = chart(tester).barGroups;
+        expect(groups, hasLength(14));
+        // Today: work 3:30 (2:00 + 0:30 + 1:00 running).
+        final today = groups.last.barRods.single;
+        expect(today.toY, closeTo(3.5, 0.001));
+        expect(today.rodStackItems, hasLength(1));
+        // Oct 28: personal 1:00.
+        final oct28 = groups[11].barRods.single;
+        expect(oct28.toY, closeTo(1, 0.001));
+        // Legend: one entry per project.
+        final legend = find.byKey(const Key('chart-legend'));
+        expect(
+          find.descendant(of: legend, matching: find.text('work')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: legend, matching: find.text('personal')),
+          findsOneWidget,
+        );
+      });
+
+      metricsTest('the selector switches to weeks and months', (
+        tester,
+        container,
+        storage,
+      ) async {
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const Key('chart-grouping')),
+            matching: find.text('Week'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(chart(tester).barGroups, hasLength(12));
+        // This week (Mon 26): work 3:30; the earlier personal hour is Wed 28.
+        expect(
+          chart(tester).barGroups.last.barRods.single.toY,
+          closeTo(4.5, 0.001),
+        );
+
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const Key('chart-grouping')),
+            matching: find.text('Month'),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(chart(tester).barGroups, hasLength(12));
+        expect(
+          chart(tester).barGroups.last.barRods.single.toY,
+          closeTo(4.5, 0.001),
+        );
+      });
+
+      metricsTest('follows the Metrics level', (
+        tester,
+        container,
+        storage,
+      ) async {
+        await tester.tap(find.byKey(const Key('level-plus')));
+        await tester.pumpAndSettle();
+        final today = chart(tester).barGroups.last.barRods.single;
+        // work:acme (3:00) and work:globex (0:30).
+        expect(today.rodStackItems, hasLength(2));
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('chart-legend')),
+            matching: find.text('work:acme'),
+          ),
+          findsOneWidget,
+        );
+      });
+
+      metricsTest('without time tracked it says so', (
+        tester,
+        container,
+        storage,
+      ) async {
+        expect(find.byKey(const Key('chart')), findsNothing);
+        expect(find.text('No time tracked'), findsWidgets);
+      }, files: const {});
+    });
   });
 }

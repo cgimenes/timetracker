@@ -91,3 +91,100 @@ Metrics computeMetrics(
     });
   return Metrics(rows, total);
 }
+
+/// How the Metrics chart groups time.
+enum Grouping { day, week, month }
+
+/// Time tracked in one day, week or month, per account group.
+class Bucket {
+  const Bucket(this.range, this.label, this.byAccount);
+
+  final DateRange range;
+
+  /// Short label for the axis: `30`, `10-26` (first day of the week), `Oct`.
+  final String label;
+
+  /// Time per account cut to the chart level.
+  final Map<String, Duration> byAccount;
+
+  Duration get total =>
+      byAccount.values.fold(Duration.zero, (sum, d) => sum + d);
+}
+
+const _monthNames = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+String _two(int n) => n.toString().padLeft(2, '0');
+
+/// Time tracked per day, week or month, oldest first, the last one holding
+/// [now]. By default 14 days, 12 weeks or 12 months; [count] changes that.
+///
+/// Time is split per account cut to [level]. Entries crossing a boundary
+/// count only for the part inside each bucket, and running entries count up
+/// to [now].
+List<Bucket> bucketTotals(
+  Iterable<Entry> entries,
+  Grouping grouping,
+  DateTime now, {
+  required int level,
+  WeekStart weekStart = WeekStart.monday,
+  int? count,
+}) {
+  final n =
+      count ??
+      switch (grouping) {
+        Grouping.day => 14,
+        Grouping.week => 12,
+        Grouping.month => 12,
+      };
+  final list = entries.toList();
+  final thisWeek = periodRange(PeriodKind.week, now, weekStart: weekStart);
+
+  final buckets = <Bucket>[];
+  for (var i = n - 1; i >= 0; i--) {
+    final DateRange range;
+    final String label;
+    switch (grouping) {
+      case Grouping.day:
+        final d = DateTime(now.year, now.month, now.day - i);
+        range = DateRange(d, DateTime(d.year, d.month, d.day + 1));
+        label = '${d.day}';
+      case Grouping.week:
+        final start = DateTime(
+          thisWeek.start.year,
+          thisWeek.start.month,
+          thisWeek.start.day - 7 * i,
+        );
+        range = DateRange(
+          start,
+          DateTime(start.year, start.month, start.day + 7),
+        );
+        label = '${_two(start.month)}-${_two(start.day)}';
+      case Grouping.month:
+        final start = DateTime(now.year, now.month - i);
+        range = DateRange(start, DateTime(start.year, start.month + 1));
+        label = _monthNames[start.month - 1];
+    }
+    final sums = <String, Duration>{};
+    for (final e in list) {
+      final d = overlap(e, range, now);
+      if (d == Duration.zero) continue;
+      final key = truncateAccount(e.account, level);
+      sums[key] = (sums[key] ?? Duration.zero) + d;
+    }
+    buckets.add(Bucket(range, label, sums));
+  }
+  return buckets;
+}

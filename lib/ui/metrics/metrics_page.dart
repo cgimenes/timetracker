@@ -11,6 +11,7 @@ import '../../state/entries.dart';
 import '../choose_folder.dart';
 import '../load_error.dart';
 import '../format.dart';
+import 'metrics_chart.dart';
 
 /// Time per account for Today, This week and This month, grouped at the
 /// level chosen here.
@@ -44,6 +45,7 @@ class MetricsPage extends ConsumerWidget {
                     if (entries!.hasError && !entries.hasValue)
                       LoadErrorCard(entries.error),
                     const _LevelCard(),
+                    const MetricsChart(),
                     for (final (kind, title) in _periods)
                       _PeriodCard(kind, title),
                   ].expand((w) => [w, const SizedBox(height: 12)]).toList(),

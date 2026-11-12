@@ -107,3 +107,27 @@ final metricsBudgetsProvider =
           if (p.budget.period.kind == kind && p.budget.window.contains(now)) p,
       ]..sort((a, b) => a.project.compareTo(b.project));
     });
+
+/// How the Metrics chart groups time. Not saved: it starts on days.
+final chartGroupingProvider = NotifierProvider<ChartGroupingNotifier, Grouping>(
+  ChartGroupingNotifier.new,
+);
+
+class ChartGroupingNotifier extends Notifier<Grouping> {
+  @override
+  Grouping build() => Grouping.day;
+
+  void set(Grouping grouping) => state = grouping;
+}
+
+/// Time per day, week or month for the chart, at the Metrics level.
+final chartBucketsProvider = Provider<List<Bucket>>((ref) {
+  final settings = ref.watch(settingsProvider);
+  return bucketTotals(
+    _entries(ref).map((e) => e.entry),
+    ref.watch(chartGroupingProvider),
+    nowOf(ref),
+    level: settings.metricsLevel,
+    weekStart: settings.weekStart,
+  );
+});
