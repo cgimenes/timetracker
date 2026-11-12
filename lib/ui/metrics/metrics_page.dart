@@ -44,9 +44,9 @@ class MetricsPage extends ConsumerWidget {
                     if (entries!.hasError && !entries.hasValue)
                       LoadErrorCard(entries.error),
                     const _LevelCard(),
-                    const MetricsChart(),
                     for (final (kind, title) in _periods)
                       _PeriodCard(kind, title),
+                    const MetricsChart(),
                   ].expand((w) => [w, const SizedBox(height: 12)]).toList(),
                 ),
               ),
