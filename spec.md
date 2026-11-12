@@ -100,7 +100,7 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 
 - List all finished entries, newest first, grouped by day. Running entries are not listed (they are on Track); day totals count finished entries only.
 - Filter by level: select level, then account prefix at that level.
-- Each entry menu: Start again, Edit, Remove.
+- Tap an entry to show its actions in the same row, in place of the duration: Start again, Edit, Remove (icons). One row is open at a time; tapping it again, running an action or changing the filter closes it.
   - Start again: asks "Now" or "Pick time" (the one date and time dialog), then clocks in the same account. No comment is copied. If the account already runs, the same duplicate warning as in Track is shown first.
   - Edit: account, start, end (end empty = running). Validation: end > start, nothing in the future. The entry's comment is kept as it is.
   - Remove: confirmation dialog.

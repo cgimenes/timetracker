@@ -13,7 +13,24 @@ import '../format.dart';
 import '../ui_actions.dart';
 import 'edit_entry_page.dart';
 
-/// Every entry, newest first, grouped by day.
+/// Id of the entry whose actions are shown in its row, if any. One at a time.
+final _openEntryProvider = NotifierProvider<_OpenEntry, String?>(
+  _OpenEntry.new,
+);
+
+class _OpenEntry extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void toggle(String id) => state = state == id ? null : id;
+
+  void close() => state = null;
+}
+
+String _idOf(StoredEntry s) =>
+    '${s.fileName}:${s.entry.inIndex}:${s.entry.start.millisecondsSinceEpoch}';
+
+/// Finished entries, newest first, grouped by day.
 class EntriesPage extends ConsumerWidget {
   const EntriesPage({super.key});
 
@@ -111,6 +128,10 @@ class _EntryList extends ConsumerWidget {
     final filtered = ref.watch(filteredEntriesProvider);
     final warnings = ref.watch(warningsProvider);
     final now = ref.watch(nowProvider);
+    // The open row belongs to the old list when the filter changes.
+    ref.listen(entriesFilterProvider, (_, _) {
+      ref.read(_openEntryProvider.notifier).close();
+    });
 
     if (entries.hasError && !entries.hasValue) {
       return ListView(
@@ -202,33 +223,54 @@ class _EntryTile extends ConsumerWidget {
         '${formatTimeOfDay(entry.start)} to ${formatTimeOfDay(entry.end!)}'
         '${entry.end!.day == entry.start.day ? '' : ' (${formatDate(entry.end!)})'}';
 
+    final id = _idOf(stored);
+    final open = ref.watch(_openEntryProvider.select((o) => o == id));
+    final notifier = ref.read(_openEntryProvider.notifier);
+
     return ListTile(
+      key: ValueKey('entry-$id'),
+      selected: open,
       title: Text(entry.account),
       subtitle: Text(
         entry.comment == null ? range : '$range\n${entry.comment}',
       ),
       isThreeLine: entry.comment != null,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(formatHm(entry.duration(now))),
-          PopupMenuButton<String>(
-            key: ValueKey('menu-${stored.fileName}:${entry.inIndex}'),
-            onSelected: (action) => switch (action) {
-              'restart' => _restart(context, ref),
-              'edit' => Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => EditEntryPage(stored)),
-              ),
-              _ => _confirmRemove(context, ref),
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'restart', child: Text('Start again')),
-              PopupMenuItem(value: 'edit', child: Text('Edit')),
-              PopupMenuItem(value: 'remove', child: Text('Remove')),
-            ],
-          ),
-        ],
-      ),
+      onTap: () => notifier.toggle(id),
+      trailing: open
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Start again',
+                  icon: const Icon(Icons.replay),
+                  onPressed: () {
+                    notifier.close();
+                    _restart(context, ref);
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Edit',
+                  icon: const Icon(Icons.edit_outlined),
+                  onPressed: () {
+                    notifier.close();
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => EditEntryPage(stored),
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Remove',
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () {
+                    notifier.close();
+                    _confirmRemove(context, ref);
+                  },
+                ),
+              ],
+            )
+          : Text(formatHm(entry.duration(now))),
     );
   }
 

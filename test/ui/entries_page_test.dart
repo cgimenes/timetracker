@@ -70,10 +70,21 @@ void entriesTest(
 /// Position of a widget on screen, to check ordering.
 double top(WidgetTester tester, Finder finder) => tester.getTopLeft(finder).dy;
 
-Finder menuOf(String account) => find.descendant(
-  of: find.widgetWithText(ListTile, account),
-  matching: find.byType(PopupMenuButton<String>),
-);
+/// Taps the entry's row to show its actions, then taps the one with
+/// [tooltip].
+Future<void> rowAction(
+  WidgetTester tester,
+  String account,
+  String tooltip,
+) async {
+  final tile = find.widgetWithText(ListTile, account);
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
+  await tester.tap(
+    find.descendant(of: tile, matching: find.byTooltip(tooltip)),
+  );
+  await tester.pumpAndSettle();
+}
 
 void main() {
   group('EntriesPage', () {
@@ -165,20 +176,14 @@ void main() {
       tester,
       storage,
     ) async {
-      await tester.tap(menuOf('work:acme:dev'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Remove').last);
-      await tester.pumpAndSettle();
+      await rowAction(tester, 'work:acme:dev', 'Remove');
       expect(find.text('Remove entry?'), findsOneWidget);
 
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
       expect(storage.text('2026-10.timeclock'), _data);
 
-      await tester.tap(menuOf('work:acme:dev'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Remove').last);
-      await tester.pumpAndSettle();
+      await rowAction(tester, 'work:acme:dev', 'Remove');
       await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
       await tester.pumpAndSettle();
 
@@ -197,10 +202,7 @@ void main() {
       tester,
       storage,
     ) async {
-      await tester.tap(menuOf('work:acme:dev'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit'));
-      await tester.pumpAndSettle();
+      await rowAction(tester, 'work:acme:dev', 'Edit');
       expect(find.text('Edit entry'), findsOneWidget);
 
       await tester.enterText(
@@ -223,10 +225,7 @@ void main() {
     });
 
     entriesTest('Edit refuses an invalid account', (tester, storage) async {
-      await tester.tap(menuOf('personal:read'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit'));
-      await tester.pumpAndSettle();
+      await rowAction(tester, 'personal:read', 'Edit');
 
       await tester.enterText(find.byKey(const Key('account')), 'a  b');
       await tester.pump();
@@ -241,10 +240,7 @@ void main() {
       tester,
       storage,
     ) async {
-      await tester.tap(menuOf('personal:read'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit'));
-      await tester.pumpAndSettle();
+      await rowAction(tester, 'personal:read', 'Edit');
 
       await tester.tap(find.byKey(const Key('edit-running')));
       await tester.pump();
@@ -264,10 +260,7 @@ void main() {
       tester,
       storage,
     ) async {
-      await tester.tap(menuOf('personal:read'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Start again'));
-      await tester.pumpAndSettle();
+      await rowAction(tester, 'personal:read', 'Start again');
       await tester.tap(find.byKey(const Key('restart-now')));
       await tester.pumpAndSettle();
 
@@ -279,10 +272,7 @@ void main() {
     });
 
     entriesTest('Start again at a picked time', (tester, storage) async {
-      await tester.tap(menuOf('personal:read'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Start again'));
-      await tester.pumpAndSettle();
+      await rowAction(tester, 'personal:read', 'Start again');
       await tester.tap(find.byKey(const Key('restart-at')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byKey(const Key('dt-hour')), '10');
@@ -301,10 +291,7 @@ void main() {
       tester,
       storage,
     ) async {
-      await tester.tap(menuOf('personal:read'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Start again'));
-      await tester.pumpAndSettle();
+      await rowAction(tester, 'personal:read', 'Start again');
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
 
@@ -314,10 +301,7 @@ void main() {
     entriesTest(
       'Start again warns when the account already runs',
       (tester, storage) async {
-        await tester.tap(menuOf('work:globex:dev'));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Start again'));
-        await tester.pumpAndSettle();
+        await rowAction(tester, 'work:globex:dev', 'Start again');
         await tester.tap(find.byKey(const Key('restart-now')));
         await tester.pumpAndSettle();
         expect(find.text('Already running'), findsOneWidget);
@@ -329,5 +313,56 @@ void main() {
       // A finished globex session, plus the running one in _data.
       files: const {'2026-10.timeclock': _withFinishedGlobex},
     );
+
+    entriesTest('tap a row to show its actions in place of the duration', (
+      tester,
+      _,
+    ) async {
+      final read = find.widgetWithText(ListTile, 'personal:read');
+      final dev = find.widgetWithText(ListTile, 'work:acme:dev');
+      Finder icons(Finder tile) =>
+          find.descendant(of: tile, matching: find.byType(IconButton));
+      expect(icons(read), findsNothing);
+      expect(find.descendant(of: read, matching: find.text('1:00')), findsOne);
+
+      await tester.tap(read);
+      await tester.pumpAndSettle();
+      expect(icons(read), findsNWidgets(3));
+      expect(find.byTooltip('Start again'), findsOneWidget);
+      expect(find.byTooltip('Edit'), findsOneWidget);
+      expect(find.byTooltip('Remove'), findsOneWidget);
+      expect(
+        find.descendant(of: read, matching: find.text('1:00')),
+        findsNothing,
+      );
+      // The three icons sit in the row, level with each other.
+      final y = tester.getCenter(find.byTooltip('Edit')).dy;
+      expect(tester.getCenter(find.byTooltip('Start again')).dy, y);
+      expect(tester.getCenter(find.byTooltip('Remove')).dy, y);
+      expect(y, tester.getCenter(read).dy);
+
+      // Another row takes over.
+      await tester.tap(dev);
+      await tester.pumpAndSettle();
+      expect(icons(read), findsNothing);
+      expect(icons(dev), findsNWidgets(3));
+
+      // Tapping it again hides them.
+      await tester.tap(dev);
+      await tester.pumpAndSettle();
+      expect(find.byType(IconButton), findsNothing);
+    });
+
+    entriesTest('changing the filter closes the open row', (tester, _) async {
+      await tester.tap(find.widgetWithText(ListTile, 'personal:read'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Edit'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('filter-prefix')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('personal').last);
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Edit'), findsNothing);
+    });
   });
 }
