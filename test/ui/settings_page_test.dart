@@ -235,28 +235,18 @@ void main() {
       final version = find.byKey(const Key('version'));
       await tester.ensureVisible(version);
       expect(tester.widget<Text>(version).data, 'v1.3.0');
-      // Last thing in the list: below the Goals switch.
+      // Last thing in the list: below the week start control.
       expect(
         tester.getTopLeft(version).dy,
-        greaterThan(
-          tester.getTopLeft(find.byKey(const Key('budgets-enabled'))).dy,
-        ),
+        greaterThan(tester.getTopLeft(find.byKey(const Key('week-start'))).dy),
       );
     });
 
-    settingsTest('budgets switch is saved and off by default', (
+    settingsTest('has no Goals switch, the Goals screen is always there', (
       tester,
       c,
     ) async {
-      expect(c.read(settingsProvider).budgetsEnabled, isFalse);
-      await tester.ensureVisible(find.byKey(const Key('budgets-enabled')));
-      await tester.tap(find.byKey(const Key('budgets-enabled')));
-      await tester.pump();
-      expect(c.read(settingsProvider).budgetsEnabled, isTrue);
-      expect(
-        c.read(sharedPreferencesProvider).getBool('budgetsEnabled'),
-        isTrue,
-      );
+      expect(find.byKey(const Key('budgets-enabled')), findsNothing);
     });
 
     group('daily goals', () {

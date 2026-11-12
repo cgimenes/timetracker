@@ -24,7 +24,7 @@ void budgetsTest(
   String name,
   Future<void> Function(WidgetTester tester, MemoryStorage storage) body, {
   Map<String, String> files = const {'2026-10.timeclock': _data},
-  Map<String, Object> prefs = const {'budgetsEnabled': true},
+  Map<String, Object> prefs = const {},
   Widget home = const BudgetsPage(),
 }) {
   testWidgets(name, (tester) async {
@@ -281,41 +281,32 @@ void main() {
 
       expect(storage.text('budget.journal'), '~ weekly\n    (work)    10h\n');
       expect(find.byKey(const Key('window-Every week')), findsOneWidget);
-    }, prefs: const {'budgetsEnabled': true, 'split': 'none'});
+    }, prefs: const {'split': 'none'});
   });
 
   group('Goals tab', () {
     budgetsTest(
-      'is hidden until budgets are enabled',
+      'is always in the side bar and opens the goals',
       (tester, _) async {
-        expect(find.text('Goals'), findsNothing);
-        expect(find.text('Settings'), findsOneWidget);
+        expect(find.text('Goals'), findsWidgets);
+        await tester.tap(find.byIcon(Icons.flag_outlined));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('window-2026-10')), findsOneWidget);
       },
       prefs: const {},
       home: const HomeShell(),
     );
 
-    budgetsTest('shows up when enabled', (tester, _) async {
-      expect(find.text('Goals'), findsWidgets);
-      await tester.tap(find.byIcon(Icons.flag_outlined));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('window-2026-10')), findsOneWidget);
-    }, home: const HomeShell());
-
     budgetsTest(
-      'turning it on in Settings keeps the user on Settings',
+      'a fresh install has it too',
       (tester, _) async {
-        await tester.tap(find.byIcon(Icons.settings_outlined));
+        await tester.tap(find.byIcon(Icons.flag_outlined));
         await tester.pumpAndSettle();
-        await tester.ensureVisible(find.byKey(const Key('budgets-enabled')));
-        await tester.tap(find.byKey(const Key('budgets-enabled')));
-        await tester.pumpAndSettle();
-        // Goals tab appeared, Settings still shown.
-        expect(find.byIcon(Icons.flag_outlined), findsOneWidget);
-        expect(find.byKey(const Key('budgets-enabled')), findsOneWidget);
+        expect(find.text('No goals'), findsOneWidget);
       },
       prefs: const {},
       home: const HomeShell(),
+      files: const {},
     );
   });
 }

@@ -26,7 +26,7 @@ icons on wide screens.
   depth you choose.
 - **Daily goals:** set per project in Settings and shown with today's progress
   on the Track screen. Kept in the app, not in the files.
-- **Goals:** optional screen. Hours to reach per project for each day, week or
+- **Goals:** a screen of its own. Hours to reach per project for each day, week or
   month the files are split in, yellow while in progress and green once
   achieved. Kept in `budget.journal` so `hledger bal --budget` reads them too.
   Progress shows in Metrics.

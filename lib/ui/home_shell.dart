@@ -47,18 +47,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final budgets = ref.watch(settingsProvider.select((s) => s.budgetsEnabled));
     final expanded = ref.watch(
       settingsProvider.select((s) => s.sideBarExpanded),
     );
-    final tabs = [
-      for (final t in HomeTab.values)
-        if (t != HomeTab.budgets || budgets) t,
-    ];
-    // Selection is by tab, not position, so turning Budgets on or off keeps
-    // the user on the same screen (Settings, where the switch is).
-    final current = ref.watch(homeTabProvider);
-    final selected = tabs.contains(current) ? current : HomeTab.track;
+    const tabs = HomeTab.values;
+    final selected = ref.watch(homeTabProvider);
     final index = tabs.indexOf(selected);
 
     // Keeps every screen alive, so a half-typed form survives a switch.

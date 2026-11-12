@@ -51,7 +51,7 @@ Rules:
 
 ## UI
 
-Screens: Track, Entries, Calendar, Metrics, Goals (only when enabled), Settings. They are reached from a side bar on the left.
+Screens: Track, Entries, Calendar, Metrics, Goals, Settings. They are reached from a side bar on the left.
 
 - Narrow screens (under 600 dp): a top bar with a menu button and the screen name. The menu opens a drawer with the screens.
 - Wide screens and landscape: a rail stays on the left, with no top bar. A menu button at its top collapses it to icons and expands it to icons with names. The choice is remembered.
@@ -103,7 +103,7 @@ One day as a column of hours, like Google Calendar.
 
 ### Goals
 
-Off by default. The Goals switch in Settings adds a Goals screen to the side bar (between Metrics and Settings) and shows goals in Metrics.
+The Goals screen is always in the side bar (between Metrics and Settings), and goals show in Metrics.
 
 - A goal is the time to reach for one project (first account level) in one day, week or month. Goals follow the file split: with month files the screen holds monthly goals, with week files weekly ones, with day files daily ones.
 - Colors: a goal is yellow while in progress and green once achieved (time used reaches the target). An achieved goal also gets a check mark and green text, so the state does not depend on color alone. Going past the target is not a problem, so nothing turns red.
@@ -149,7 +149,6 @@ Off by default. The Goals switch in Settings adds a Goals screen to the side bar
 - Filename format (template, live preview of example filename).
 - Week start day: Monday (default) | Sunday (used by the Metrics week).
 - Daily goals: hours to reach every day, per project (add, edit, remove with a confirmation). Kept in the app preferences, never written to `budget.journal`. Shown in the Today section of Track.
-- Goals: on | off (adds the Goals screen).
 - App version (`v1.3.0`), small and centered, at the end of the list. Read from the installed app with `package_info_plus`.
 
 ## Edge cases

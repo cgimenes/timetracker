@@ -84,9 +84,6 @@ class BudgetProgress {
 /// Every budget with the time its project used inside the budget's window. A
 /// recurring budget is measured against the current day, week or month.
 final budgetProgressProvider = Provider<List<BudgetProgress>>((ref) {
-  if (!ref.watch(settingsProvider.select((s) => s.budgetsEnabled))) {
-    return const [];
-  }
   final budgets = ref.watch(budgetsProvider).value?.budgets ?? const [];
   if (budgets.isEmpty) return const [];
   final now = nowOf(ref);

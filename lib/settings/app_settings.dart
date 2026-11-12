@@ -13,7 +13,6 @@ const _projectSplitKey = 'projectSplit';
 const _templateKey = 'fileNameTemplate';
 const _levelKey = 'metricsLevel';
 const _weekStartKey = 'weekStart';
-const _budgetsKey = 'budgetsEnabled';
 const _sideBarKey = 'sideBarExpanded';
 const _calendarLevelKey = 'calendarLevel';
 const _hourHeightKey = 'calendarHourHeight';
@@ -31,7 +30,6 @@ class AppSettings {
     required this.fileNameTemplate,
     required this.metricsLevel,
     required this.weekStart,
-    this.budgetsEnabled = false,
     this.sideBarExpanded = false,
     this.calendarLevel = 1,
     this.calendarHourHeight = defaultHourHeight,
@@ -58,9 +56,6 @@ class AppSettings {
   /// Account depth used to group the Metrics totals, at least 1.
   final int metricsLevel;
   final WeekStart weekStart;
-
-  /// Shows the Budgets tab and the budgets in Metrics.
-  final bool budgetsEnabled;
 
   /// The side bar of wide screens shows labels, not only icons.
   final bool sideBarExpanded;
@@ -89,7 +84,6 @@ class AppSettings {
     String? fileNameTemplate,
     int? metricsLevel,
     WeekStart? weekStart,
-    bool? budgetsEnabled,
     bool? sideBarExpanded,
     int? calendarLevel,
     double? calendarHourHeight,
@@ -100,7 +94,6 @@ class AppSettings {
     fileNameTemplate: fileNameTemplate ?? this.fileNameTemplate,
     metricsLevel: metricsLevel ?? this.metricsLevel,
     weekStart: weekStart ?? this.weekStart,
-    budgetsEnabled: budgetsEnabled ?? this.budgetsEnabled,
     sideBarExpanded: sideBarExpanded ?? this.sideBarExpanded,
     calendarLevel: calendarLevel ?? this.calendarLevel,
     calendarHourHeight: calendarHourHeight ?? this.calendarHourHeight,
@@ -142,7 +135,6 @@ class SettingsNotifier extends Notifier<AppSettings> {
       weekStart:
           WeekStart.values.asNameMap()[prefs.getString(_weekStartKey)] ??
           defaults.weekStart,
-      budgetsEnabled: prefs.getBool(_budgetsKey) ?? false,
       sideBarExpanded: prefs.getBool(_sideBarKey) ?? false,
       calendarLevel: switch (prefs.getInt(_calendarLevelKey)) {
         2 => 2,
@@ -227,11 +219,6 @@ class SettingsNotifier extends Notifier<AppSettings> {
         .read(sharedPreferencesProvider)
         .setString(_weekStartKey, weekStart.name);
     state = state.copyWith(weekStart: weekStart);
-  }
-
-  Future<void> setBudgetsEnabled(bool enabled) async {
-    await ref.read(sharedPreferencesProvider).setBool(_budgetsKey, enabled);
-    state = state.copyWith(budgetsEnabled: enabled);
   }
 
   Future<void> setSideBarExpanded(bool expanded) async {

@@ -38,7 +38,7 @@ void alignTest(
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    SharedPreferences.setMockInitialValues({'budgetsEnabled': true, ...prefs});
+    SharedPreferences.setMockInitialValues(prefs);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -170,26 +170,6 @@ void main() {
         final week = find.byKey(const Key('week-start'));
         await tester.ensureVisible(week);
         expect(rightInset(tester, week, tileOf(week)), _aligned);
-      },
-    );
-
-    alignTest(
-      'Settings: switches line up with the other controls',
-      const SettingsPage(),
-      (tester) async {
-        final tile = find.byKey(const Key('budgets-enabled'));
-        await tester.ensureVisible(tile);
-        final switchRight = tester
-            .getRect(find.descendant(of: tile, matching: find.byType(Switch)))
-            .right;
-        final week = find.byKey(const Key('week-start'));
-        // The switch is drawn inside its own box, 8 dp short of its edge at
-        // most: it must not be further in than the segmented control.
-        expect(
-          tester.getRect(tile).right - switchRight,
-          lessThanOrEqualTo(_edge + 8),
-        );
-        expect(tester.getRect(week).right, greaterThanOrEqualTo(switchRight));
       },
     );
 

@@ -603,7 +603,6 @@ void main() {
           '2026-10.timeclock': _data,
           'budget.journal': '~ daily\n    (work)    3h\n',
         },
-        prefs: const {'budgetsEnabled': true},
       );
 
       trackTest('none set, no section', (tester, storage) async {
@@ -613,14 +612,6 @@ void main() {
       trackTest('never write to budget.journal', (tester, storage) async {
         expect(storage.names, {'2026-10.timeclock'});
       }, prefs: const {'dailyGoals': '{"work":28800}'});
-
-      trackTest(
-        'work with the Goals screen turned off',
-        (tester, storage) async {
-          expect(find.text('Daily goals'), findsOneWidget);
-        },
-        prefs: const {'budgetsEnabled': false, 'dailyGoals': '{"work":28800}'},
-      );
     });
   });
 }

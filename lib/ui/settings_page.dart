@@ -184,19 +184,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
             const Divider(height: 32),
             const DailyGoalsSection(),
-            const Divider(height: 32),
-            const _SectionTitle('Goals'),
-            SwitchListTile(
-              key: const Key('budgets-enabled'),
-              title: const Text('Goals'),
-              subtitle: const Text(
-                'Adds a Goals screen to set the hours to reach per project for '
-                'each period the files are split in, and shows them in '
-                'Metrics.',
-              ),
-              value: settings.budgetsEnabled,
-              onChanged: notifier.setBudgetsEnabled,
-            ),
             const _VersionLabel(),
           ],
         ),

@@ -73,6 +73,7 @@ void main() {
         'Entries',
         'Calendar',
         'Metrics',
+        'Goals',
         'Settings',
       ]) {
         expect(
@@ -80,11 +81,6 @@ void main() {
           findsOneWidget,
         );
       }
-      expect(
-        find.descendant(of: drawer, matching: find.text('Goals')),
-        findsNothing,
-      );
-
       await tester.tap(
         find.descendant(of: drawer, matching: find.text('Metrics')),
       );
@@ -99,18 +95,6 @@ void main() {
         findsOneWidget,
       );
     });
-
-    shellTest('Goals shows up in the drawer when enabled', (tester, _) async {
-      await tester.tap(find.byTooltip('Open navigation menu'));
-      await tester.pumpAndSettle();
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('side-drawer')),
-          matching: find.text('Goals'),
-        ),
-        findsOneWidget,
-      );
-    }, prefs: const {'budgetsEnabled': true});
   });
 
   group('wide screen', () {
