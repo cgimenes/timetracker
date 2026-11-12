@@ -91,22 +91,17 @@ class _Groups extends ConsumerWidget {
             w,
             (byWindow[w]!..sort((a, b) => a.project.compareTo(b.project))),
           ),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: split == SplitMethod.none
-              ? TextButton.icon(
-                  key: const Key('add-recurring'),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add goal'),
-                  onPressed: () => _edit(context, ref, window: null, old: null),
-                )
-              : TextButton.icon(
-                  key: const Key('add-period'),
-                  icon: const Icon(Icons.event),
-                  label: const Text('Goals for another period'),
-                  onPressed: () => _otherPeriod(context, ref, split, now),
-                ),
-        ),
+        // Without a file split there is no current period to add to.
+        if (split == SplitMethod.none)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              key: const Key('add-recurring'),
+              icon: const Icon(Icons.add),
+              label: const Text('Add goal'),
+              onPressed: () => _edit(context, ref, window: null, old: null),
+            ),
+          ),
         const Padding(
           padding: EdgeInsets.fromLTRB(4, 8, 4, 16),
           child: Text(
@@ -117,22 +112,6 @@ class _Groups extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _otherPeriod(
-    BuildContext context,
-    WidgetRef ref,
-    SplitMethod split,
-    DateTime now,
-  ) async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: now,
-      firstDate: DateTime(now.year - 2),
-      lastDate: DateTime(now.year + 1, 12, 31),
-    );
-    if (date == null || !context.mounted) return;
-    await _edit(context, ref, window: BudgetWindow.of(date, split), old: null);
   }
 }
 

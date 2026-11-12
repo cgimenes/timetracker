@@ -243,23 +243,12 @@ void main() {
       );
     });
 
-    budgetsTest('a budget for another period uses the picked date', (
-      tester,
-      storage,
-    ) async {
-      await tester.tap(find.byKey(const Key('add-period')));
-      await tester.pumpAndSettle();
-      // The picker opens on today; pick the 12th of the same month.
-      await tester.tap(find.text('12'));
-      await tester.tap(find.text('OK'));
-      await tester.pumpAndSettle();
-      expect(find.textContaining('2026-10'), findsWidgets);
-      await tester.enterText(find.byKey(const Key('budget-project')), 'work');
-      await tester.enterText(find.byKey(const Key('budget-hours')), '3');
-      await tester.pump();
-      await tester.tap(find.byKey(const Key('budget-save')));
-      await tester.pumpAndSettle();
-      expect(storage.text('budget.journal'), contains('(work)    3h'));
+    budgetsTest('there is no way to pick another period', (tester, _) async {
+      expect(find.byKey(const Key('add-period')), findsNothing);
+      expect(find.text('Goals for another period'), findsNothing);
+      expect(find.byIcon(Icons.event), findsNothing);
+      // Only the cards that exist, each with its own Add goal.
+      expect(find.byKey(const Key('add-budget-2026-10')), findsOneWidget);
     });
   });
 
