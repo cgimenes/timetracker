@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.4.0...timetracker-v1.5.0) (2026-11-12)
+
+
+### Features
+
+* edit or cancel a running entry from the track tab ([3a5b8de](https://github.com/cgimenes/timetracker/commit/3a5b8def1d74fb771d54ff4390db6888526c768d))
+* show the app version at the end of settings ([801e19d](https://github.com/cgimenes/timetracker/commit/801e19d2de9c6336331316f53093ee4378a729a7))
+
 ## [1.4.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.3.0...timetracker-v1.4.0) (2026-11-12)
 
 
