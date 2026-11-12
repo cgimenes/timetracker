@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.5.0...timetracker-v1.6.0) (2026-11-12)
+
+
+### Features
+
+* calendar screen with a day column ([fc214d7](https://github.com/cgimenes/timetracker/commit/fc214d712e9a9b2a959360d4656354c6f4a8248a))
+* chart of tracked time by day, week or month ([d0463fc](https://github.com/cgimenes/timetracker/commit/d0463fc162631f9b7666bac47a56277ef5774a49))
+* replace the tabs with a collapsible side bar ([4148bc5](https://github.com/cgimenes/timetracker/commit/4148bc50f96fe4f5807273600b4a97c6cf8009ab))
+
 ## [1.5.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.4.0...timetracker-v1.5.0) (2026-11-12)
 
 
