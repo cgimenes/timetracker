@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../theme.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/account.dart';
@@ -66,6 +69,7 @@ class _LevelCard extends ConsumerWidget {
 
     return Card(
       child: ListTile(
+        contentPadding: trailingButtonTilePadding,
         title: const Text('Level'),
         subtitle: Text(
           'Totals are grouped by account depth. '

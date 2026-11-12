@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../theme.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/validation.dart';
@@ -41,6 +44,7 @@ class RunningSection extends ConsumerWidget {
             for (final stored in running)
               ListTile(
                 key: ValueKey('${stored.fileName}:${stored.entry.inIndex}'),
+                contentPadding: trailingButtonTilePadding,
                 title: Text(stored.entry.account),
                 subtitle: Text(
                   'since ${formatDateTime(stored.entry.start)}'

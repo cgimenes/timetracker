@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../theme.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/providers.dart';
@@ -237,6 +240,7 @@ class _EntryTile extends ConsumerWidget {
 
     return ListTile(
       key: ValueKey('entry-$id'),
+      contentPadding: trailingButtonTilePadding,
       selected: open,
       // The row with its actions open stands out from the others.
       selectedTileColor: Theme.of(context).colorScheme.secondaryContainer,

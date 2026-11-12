@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../theme.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../state/clock.dart';
@@ -37,6 +40,7 @@ class QuickStart extends ConsumerWidget {
             ),
             for (final account in accounts)
               ListTile(
+                contentPadding: trailingFilledButtonTilePadding,
                 title: Text(account),
                 trailing: IconButton.filledTonal(
                   key: Key('quick-$account'),

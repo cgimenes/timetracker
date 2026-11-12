@@ -8,6 +8,7 @@ import '../data/providers.dart';
 import '../settings/app_settings.dart';
 import '../state/clock.dart';
 import 'folder_name.dart';
+import 'theme.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -69,6 +70,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           children: [
             ListTile(
+              contentPadding: trailingButtonTilePadding,
               leading: const Icon(Icons.folder_outlined),
               title: const Text('Files directory'),
               subtitle: Text(

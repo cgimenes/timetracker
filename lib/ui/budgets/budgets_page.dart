@@ -13,6 +13,7 @@ import '../../state/derived.dart';
 import '../../state/entries.dart';
 import '../choose_folder.dart';
 import '../format.dart';
+import '../theme.dart';
 import '../palette.dart';
 import '../ui_actions.dart';
 
@@ -211,6 +212,7 @@ class _BudgetTile extends ConsumerWidget {
 
     return ListTile(
       key: Key('budget-$label-${b.project}'),
+      contentPadding: trailingButtonTilePadding,
       onTap: () => _edit(context, ref, window: b.window, old: b),
       title: Row(
         children: [
