@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.9.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.8.0...timetracker-v1.9.0) (2026-11-12)
+
+
+### Features
+
+* daily goals per project, shown on the track screen ([6630acd](https://github.com/cgimenes/timetracker/commit/6630acde427e3caeb375c1a5f6d5fe8eb4285324))
+* show today by project on the track screen ([9ee7715](https://github.com/cgimenes/timetracker/commit/9ee77158dfda9d6c4378fa85b02bd6ab62fd0359))
+* use a stop icon for the stop button on running entries ([2edfd0d](https://github.com/cgimenes/timetracker/commit/2edfd0d31394dbec5e7a54e6216c55c95f0b544b))
+
+
+### Bug Fixes
+
+* align right-hand controls with the content on the left ([864d2ad](https://github.com/cgimenes/timetracker/commit/864d2ad790534e9d783b987d377fe214b0642030))
+
 ## [1.8.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.7.0...timetracker-v1.8.0) (2026-11-12)
 
 
