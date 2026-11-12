@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.2.0...timetracker-v1.3.0) (2026-11-12)
+
+
+### Features
+
+* budgets per file period, set in a new Budgets tab ([e5bcd50](https://github.com/cgimenes/timetracker/commit/e5bcd50b7aff2992a5fbb13c97b209fc85d2aa55))
+* hide running entries from the entries tab ([e851906](https://github.com/cgimenes/timetracker/commit/e851906c6013406c223bc44090e3de4de0222f46))
+* option to split projects into folders instead of file names ([63ff15a](https://github.com/cgimenes/timetracker/commit/63ff15a0efffaf469fcddd02c8d28f2da528e3c7))
+* show entry actions inline when a row is tapped ([bd7af0c](https://github.com/cgimenes/timetracker/commit/bd7af0cdb4702958d0d5f296f09e7c50bb6f8d12))
+
 ## [1.2.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.1.0...timetracker-v1.2.0) (2026-11-12)
 
 
