@@ -45,7 +45,7 @@ class EntriesPage extends ConsumerWidget {
             ? const ChooseFolderPrompt()
             : const Column(
                 children: [
-                  _FilterBar(),
+                  _SearchBar(),
                   Expanded(child: _EntryList()),
                 ],
               ),
@@ -54,46 +54,54 @@ class EntriesPage extends ConsumerWidget {
   }
 }
 
-class _FilterBar extends ConsumerWidget {
-  const _FilterBar();
+class _SearchBar extends ConsumerStatefulWidget {
+  const _SearchBar();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final filter = ref.watch(entriesFilterProvider);
-    final notifier = ref.read(entriesFilterProvider.notifier);
-    final maxDepth = ref.watch(maxAccountDepthProvider);
-    final options = ref.watch(filterPrefixOptionsProvider);
-    // Keep the selected level reachable even if the data got shallower.
-    final depth = maxDepth < filter.level ? filter.level : maxDepth;
+  ConsumerState<_SearchBar> createState() => _SearchBarState();
+}
 
+class _SearchBarState extends ConsumerState<_SearchBar> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _set(String query) {
+    ref.read(entriesSearchProvider.notifier).set(query);
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: Row(
-        children: [
-          DropdownButton<int>(
-            key: const Key('filter-level'),
-            value: filter.level,
-            items: [
-              for (var l = 1; l <= depth; l++)
-                DropdownMenuItem(value: l, child: Text('Level $l')),
-            ],
-            onChanged: (l) => l == null ? null : notifier.setLevel(l),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: DropdownButton<String?>(
-              key: const Key('filter-prefix'),
-              isExpanded: true,
-              value: filter.prefix,
-              items: [
-                const DropdownMenuItem(value: null, child: Text('All')),
-                for (final o in options)
-                  DropdownMenuItem(value: o, child: Text(o)),
-              ],
-              onChanged: notifier.setPrefix,
-            ),
-          ),
-        ],
+      child: TextField(
+        key: const Key('search'),
+        controller: _controller,
+        autocorrect: false,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: 'Search account or comment',
+          prefixIcon: const Icon(Icons.search),
+          border: const OutlineInputBorder(),
+          isDense: true,
+          suffixIcon: _controller.text.isEmpty
+              ? null
+              : IconButton(
+                  key: const Key('search-clear'),
+                  tooltip: 'Clear',
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    _controller.clear();
+                    _set('');
+                  },
+                ),
+        ),
+        onChanged: _set,
       ),
     );
   }
@@ -128,8 +136,8 @@ class _EntryList extends ConsumerWidget {
     final filtered = ref.watch(filteredEntriesProvider);
     final warnings = ref.watch(warningsProvider);
     final now = ref.watch(nowProvider);
-    // The open row belongs to the old list when the filter changes.
-    ref.listen(entriesFilterProvider, (_, _) {
+    // The open row belongs to the old list when the search changes.
+    ref.listen(entriesSearchProvider, (_, _) {
       ref.read(_openEntryProvider.notifier).close();
     });
 

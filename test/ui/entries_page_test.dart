@@ -133,29 +133,59 @@ void main() {
       expect(find.textContaining('running'), findsNothing);
     });
 
-    entriesTest('filters by level and account prefix', (tester, _) async {
-      // Level 1: work / personal.
-      await tester.tap(find.byKey(const Key('filter-prefix')));
-      await tester.pumpAndSettle();
-      expect(find.text('personal').last, findsOneWidget);
-      await tester.tap(find.text('work').last);
-      await tester.pumpAndSettle();
-      expect(find.text('personal:read'), findsNothing);
-      expect(find.text('work:acme:dev'), findsOneWidget);
+    entriesTest('has a search field and no level or prefix selects', (
+      tester,
+      _,
+    ) async {
+      expect(find.byKey(const Key('search')), findsOneWidget);
+      expect(find.byKey(const Key('filter-level')), findsNothing);
+      expect(find.byKey(const Key('filter-prefix')), findsNothing);
+    });
 
-      // Level 2: work:acme / work:globex; the prefix resets.
-      await tester.tap(find.byKey(const Key('filter-level')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Level 2').last);
-      await tester.pumpAndSettle();
-      expect(find.text('personal:read'), findsOneWidget); // prefix cleared
+    entriesTest('searches the account, ignoring case', (tester, _) async {
+      await tester.enterText(find.byKey(const Key('search')), 'ACME');
+      await tester.pump();
+      expect(find.text('work:acme:dev'), findsOneWidget);
+      expect(find.text('work:acme:meet'), findsOneWidget);
+      expect(find.text('personal:read'), findsNothing);
+    });
 
-      await tester.tap(find.byKey(const Key('filter-prefix')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('work:acme').last);
-      await tester.pumpAndSettle();
+    entriesTest('every word must match, in any order', (tester, _) async {
+      await tester.enterText(find.byKey(const Key('search')), 'dev acme');
+      await tester.pump();
+      expect(find.text('work:acme:dev'), findsOneWidget);
+      expect(find.text('work:acme:meet'), findsNothing);
+    });
+
+    entriesTest('searches the comment too', (tester, _) async {
+      await tester.enterText(find.byKey(const Key('search')), 'login');
+      await tester.pump();
       expect(find.text('work:acme:dev'), findsOneWidget);
       expect(find.text('personal:read'), findsNothing);
+    });
+
+    entriesTest('day headers and totals follow the search', (tester, _) async {
+      await tester.enterText(find.byKey(const Key('search')), 'read');
+      await tester.pump();
+      expect(find.text('2026-10-28'), findsOneWidget);
+      expect(find.text('2026-10-29'), findsNothing);
+      expect(find.text('2026-10-30'), findsNothing);
+    });
+
+    entriesTest('no match shows an empty list and clear brings it back', (
+      tester,
+      _,
+    ) async {
+      expect(find.byKey(const Key('search-clear')), findsNothing);
+      await tester.enterText(find.byKey(const Key('search')), 'zzz');
+      await tester.pump();
+      expect(find.text('No entries'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('search-clear')));
+      await tester.pump();
+      expect(find.text('No entries'), findsNothing);
+      expect(find.text('personal:read'), findsOneWidget);
+      expect(find.byKey(const Key('search-clear')), findsNothing);
     });
 
     entriesTest(
@@ -353,15 +383,13 @@ void main() {
       expect(find.byType(IconButton), findsNothing);
     });
 
-    entriesTest('changing the filter closes the open row', (tester, _) async {
+    entriesTest('changing the search closes the open row', (tester, _) async {
       await tester.tap(find.widgetWithText(ListTile, 'personal:read'));
       await tester.pumpAndSettle();
       expect(find.byTooltip('Edit'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('filter-prefix')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('personal').last);
-      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('search')), 'read');
+      await tester.pump();
       expect(find.byTooltip('Edit'), findsNothing);
     });
   });
