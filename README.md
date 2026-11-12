@@ -18,6 +18,9 @@ icons on wide screens.
   Stop button for each. Stop works with the app closed.
 - **Entries:** finished entries by day, searched by account or comment, with edit and
   remove.
+- **Calendar:** one day as a column of hours, like Google Calendar, with a day
+  selector. Entries are blocks colored by account level 1 or 2; tap one to start
+  it again, edit or remove it.
 - **Metrics:** time per account for today, this week and this month, grouped
   at the account depth you choose.
 - **Budgets:** optional tab. Hours per project for each day, week or month the

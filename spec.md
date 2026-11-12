@@ -51,7 +51,7 @@ Rules:
 
 ## UI
 
-Screens: Track, Entries, Metrics, Budgets (only when enabled), Settings. They are reached from a side bar on the left.
+Screens: Track, Entries, Calendar, Metrics, Budgets (only when enabled), Settings. They are reached from a side bar on the left.
 
 - Narrow screens (under 600 dp): a top bar with a menu button and the screen name. The menu opens a drawer with the screens.
 - Wide screens and landscape: a rail stays on the left, with no top bar. A menu button at its top collapses it to icons and expands it to icons with names. The choice is remembered.
@@ -69,6 +69,18 @@ Screens: Track, Entries, Metrics, Budgets (only when enabled), Settings. They ar
 2. Running section
    - List of running entries: account, start, live elapsed time.
    - Each has Stop button (clock-out at now) and a menu: Stop at... (custom time), Edit (the Edit entry page) and Cancel entry (after a confirmation, removes the entry and records no time).
+
+### Calendar
+
+One day as a column of hours, like Google Calendar.
+
+- Day selector: previous and next day arrows (next is off on today), the date (tap it to pick a day, nothing after today) and a Today button.
+- 24 hour rows, scrolled to an hour above the first entry of the day (or above now on an empty today, or the morning). A red line marks the current time on today.
+- Each entry is a block placed by time. Entries are clipped to the day, so one that crosses midnight shows on both days. A running entry ends at now. Entries that overlap share the width of the column evenly side by side.
+- A block shows the account, the time range and the duration (account and duration only when it is short).
+- Colors: a "Color by" control picks account level 1 or level 2 (saved). Entries of the same group (`work` at level 1, `work:acme` at level 2) share a color, and a legend above the column lists the groups of the day. The same group has the same color on every day.
+- Tap a block: a sheet with the entry details and its actions: Start again, Edit, Remove. A running entry has Edit and Cancel entry instead, like on Track.
+- An empty day says "No entries".
 
 ### Metrics
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../settings/app_settings.dart';
 import 'budgets/budgets_page.dart';
+import 'calendar/calendar_page.dart';
 import 'entries/entries_page.dart';
 import 'metrics/metrics_page.dart';
 import 'settings_page.dart';
@@ -17,7 +18,7 @@ class HomeShell extends ConsumerStatefulWidget {
   ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-enum _Tab { track, entries, metrics, budgets, settings }
+enum _Tab { track, entries, calendar, metrics, budgets, settings }
 
 /// Width from which the side bar stays on screen.
 const _wideBreakpoint = 600.0;
@@ -28,6 +29,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   static const _pages = {
     _Tab.track: TrackPage(),
     _Tab.entries: EntriesPage(),
+    _Tab.calendar: CalendarPage(),
     _Tab.metrics: MetricsPage(),
     _Tab.budgets: BudgetsPage(),
     _Tab.settings: SettingsPage(),
@@ -36,6 +38,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   static const _items = {
     _Tab.track: (Icons.timer_outlined, Icons.timer, 'Track'),
     _Tab.entries: (Icons.list_alt_outlined, Icons.list_alt, 'Entries'),
+    _Tab.calendar: (
+      Icons.calendar_today_outlined,
+      Icons.calendar_today,
+      'Calendar',
+    ),
     _Tab.metrics: (Icons.bar_chart_outlined, Icons.bar_chart, 'Metrics'),
     _Tab.budgets: (Icons.savings_outlined, Icons.savings, 'Budgets'),
     _Tab.settings: (Icons.settings_outlined, Icons.settings, 'Settings'),

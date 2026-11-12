@@ -68,7 +68,13 @@ void main() {
       await tester.tap(find.byTooltip('Open navigation menu'));
       await tester.pumpAndSettle();
       final drawer = find.byKey(const Key('side-drawer'));
-      for (final label in ['Track', 'Entries', 'Metrics', 'Settings']) {
+      for (final label in [
+        'Track',
+        'Entries',
+        'Calendar',
+        'Metrics',
+        'Settings',
+      ]) {
         expect(
           find.descendant(of: drawer, matching: find.text(label)),
           findsOneWidget,

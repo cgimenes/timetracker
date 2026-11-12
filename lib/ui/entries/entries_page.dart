@@ -10,7 +10,7 @@ import '../../state/entries_filter.dart';
 import '../choose_folder.dart';
 import '../load_error.dart';
 import '../format.dart';
-import '../ui_actions.dart';
+import '../entry_actions.dart';
 import 'edit_entry_page.dart';
 
 /// Id of the entry whose actions are shown in its row, if any. One at a time.
@@ -253,7 +253,7 @@ class _EntryTile extends ConsumerWidget {
                   icon: const Icon(Icons.replay),
                   onPressed: () {
                     notifier.close();
-                    _restart(context, ref);
+                    restartEntry(context, ref, stored);
                   },
                 ),
                 IconButton(
@@ -273,79 +273,12 @@ class _EntryTile extends ConsumerWidget {
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () {
                     notifier.close();
-                    _confirmRemove(context, ref);
+                    confirmRemoveEntry(context, ref, stored);
                   },
                 ),
               ],
             )
           : Text(formatHm(entry.duration(now))),
-    );
-  }
-
-  /// Starts the same account again, now or at a time the user picks.
-  Future<void> _restart(BuildContext context, WidgetRef ref) async {
-    final account = stored.entry.account;
-    final choice = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Start again?'),
-        content: Text(account),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            key: const Key('restart-at'),
-            onPressed: () => Navigator.pop(context, 'at'),
-            child: const Text('Pick time'),
-          ),
-          FilledButton(
-            key: const Key('restart-now'),
-            onPressed: () => Navigator.pop(context, 'now'),
-            child: const Text('Now'),
-          ),
-        ],
-      ),
-    );
-    if (choice == null || !context.mounted) return;
-    final start = choice == 'now'
-        ? ref.read(clockProvider)()
-        : await askStartTime(context, ref, account: account);
-    if (start == null || !context.mounted) return;
-    final started = await startEntry(context, ref, account, start);
-    if (started && context.mounted) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('Started $account')));
-    }
-  }
-
-  Future<void> _confirmRemove(BuildContext context, WidgetRef ref) async {
-    final entry = stored.entry;
-    final yes = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove entry?'),
-        content: Text(
-          '${entry.account}\n${formatRange(entry.start, entry.end!)}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
-    );
-    if (yes != true || !context.mounted) return;
-    await guard(
-      context,
-      () => ref.read(entriesProvider.notifier).remove(stored),
     );
   }
 }

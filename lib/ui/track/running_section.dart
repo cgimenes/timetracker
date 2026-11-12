@@ -7,6 +7,7 @@ import '../../state/clock.dart';
 import '../../state/derived.dart';
 import '../../state/entries.dart';
 import '../entries/edit_entry_page.dart';
+import '../entry_actions.dart';
 import '../format.dart';
 import '../ui_actions.dart';
 
@@ -80,7 +81,7 @@ class RunningSection extends ConsumerWidget {
                             builder: (_) => EditEntryPage(stored),
                           ),
                         ),
-                        _ => _confirmCancel(context, ref, stored),
+                        _ => cancelRunningEntry(context, ref, stored),
                       },
                       itemBuilder: (_) => const [
                         PopupMenuItem(value: 'at', child: Text('Stop at...')),
@@ -97,42 +98,6 @@ class RunningSection extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  /// Throws the running entry away, as if it never started.
-  Future<void> _confirmCancel(
-    BuildContext context,
-    WidgetRef ref,
-    StoredEntry stored,
-  ) async {
-    final entry = stored.entry;
-    final yes = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel entry?'),
-        content: Text(
-          '${entry.account}\nsince ${formatDateTime(entry.start)}\n\n'
-          'The entry is removed and no time is recorded.',
-        ),
-        actions: [
-          TextButton(
-            key: const Key('keep-running'),
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep running'),
-          ),
-          FilledButton(
-            key: const Key('cancel-confirm'),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Cancel entry'),
-          ),
-        ],
-      ),
-    );
-    if (yes != true || !context.mounted) return;
-    await guard(
-      context,
-      () => ref.read(entriesProvider.notifier).remove(stored),
     );
   }
 
