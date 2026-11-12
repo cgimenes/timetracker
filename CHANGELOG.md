@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.7.0...timetracker-v1.8.0) (2026-11-12)
+
+
+### Features
+
+* rename budgets to goals, yellow in progress and green achieved ([e9ee427](https://github.com/cgimenes/timetracker/commit/e9ee4278c3a402f169bfa46b0e4ce5bdea27fb79))
+* show quick start as a named list with a play button per row ([7dbd82f](https://github.com/cgimenes/timetracker/commit/7dbd82f1a15931fd9cd676beddb70fdc904a64fa))
+
 ## [1.7.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.6.0...timetracker-v1.7.0) (2026-11-12)
 
 
