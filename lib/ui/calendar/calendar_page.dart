@@ -118,6 +118,7 @@ class _DayBar extends ConsumerWidget {
                 segments: const [
                   ButtonSegment(value: 1, label: Text('Level 1')),
                   ButtonSegment(value: 2, label: Text('Level 2')),
+                  ButtonSegment(value: 3, label: Text('Level 3')),
                 ],
                 selected: {level},
                 onSelectionChanged: (s) => ref

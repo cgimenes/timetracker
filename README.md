@@ -19,7 +19,7 @@ icons on wide screens.
 - **Entries:** finished entries by day, searched by account or comment, with edit and
   remove.
 - **Calendar:** one day as a column of hours, like Google Calendar, with a day
-  selector. Entries are blocks colored by account level 1 or 2; tap one to start
+  selector. Entries are blocks colored by account level 1, 2 or 3; tap one to start
   it again, edit or remove it.
 - **Metrics:** a chart of time per day, week or month stacked by project, and
   time per account for today, this week and this month, grouped at the account

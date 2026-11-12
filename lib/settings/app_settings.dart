@@ -54,7 +54,7 @@ class AppSettings {
   /// The side bar of wide screens shows labels, not only icons.
   final bool sideBarExpanded;
 
-  /// Account level (1 or 2) the Calendar colors entries by.
+  /// Account level (1 to 3) the Calendar colors entries by.
   final int calendarLevel;
 
   FileSettings get fileSettings => FileSettings(
@@ -121,7 +121,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
           defaults.weekStart,
       budgetsEnabled: prefs.getBool(_budgetsKey) ?? false,
       sideBarExpanded: prefs.getBool(_sideBarKey) ?? false,
-      calendarLevel: prefs.getInt(_calendarLevelKey) == 2 ? 2 : 1,
+      calendarLevel: switch (prefs.getInt(_calendarLevelKey)) {
+        2 => 2,
+        3 => 3,
+        _ => 1,
+      },
     );
   }
 
@@ -209,9 +213,9 @@ class SettingsNotifier extends Notifier<AppSettings> {
     state = state.copyWith(sideBarExpanded: expanded);
   }
 
-  /// 1 or 2: how many account levels name a color in the Calendar.
+  /// 1 to 3: how many account levels name a color in the Calendar.
   Future<void> setCalendarLevel(int level) async {
-    final value = level == 2 ? 2 : 1;
+    final value = level.clamp(1, 3);
     await ref.read(sharedPreferencesProvider).setInt(_calendarLevelKey, value);
     state = state.copyWith(calendarLevel: value);
   }

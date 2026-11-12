@@ -222,6 +222,55 @@ void main() {
       expect(colorOf('work:acme:dev'), colorOf('work:acme:meet'));
     });
 
+    calendarTest('level 3 gives every account of three levels its own color', (
+      tester,
+      c,
+      storage,
+    ) async {
+      Finder legend(String name) => find.descendant(
+        of: find.byKey(const Key('cal-legend')),
+        matching: find.text(name),
+      );
+      Color colorOf(String account) {
+        final material = tester.widget<Material>(
+          find
+              .ancestor(of: block(account), matching: find.byType(Material))
+              .first,
+        );
+        return material.color!;
+      }
+
+      // Level 2: dev and meet are both work:acme, one color.
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('cal-level')),
+          matching: find.text('Level 2'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(colorOf('work:acme:dev'), colorOf('work:acme:meet'));
+
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('cal-level')),
+          matching: find.text('Level 3'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(c.read(settingsProvider).calendarLevel, 3);
+      expect(c.read(sharedPreferencesProvider).getInt('calendarLevel'), 3);
+      expect(legend('work:acme:dev'), findsOneWidget);
+      expect(legend('work:acme:meet'), findsOneWidget);
+      expect(legend('work:globex:dev'), findsOneWidget);
+      expect(colorOf('work:acme:dev'), isNot(colorOf('work:acme:meet')));
+      expect(colorOf('work:acme:dev'), isNot(colorOf('work:globex:dev')));
+    });
+
+    calendarTest('level 3 is remembered', (tester, c, storage) async {
+      expect(c.read(settingsProvider).calendarLevel, 3);
+      expect(find.byKey(const Key('cal-legend')), findsOneWidget);
+    }, prefs: const {'calendarLevel': 3});
+
     calendarTest('the level is remembered', (tester, c, noS) async {
       expect(c.read(settingsProvider).calendarLevel, 2);
       expect(find.byKey(const Key('cal-legend')), findsOneWidget);
