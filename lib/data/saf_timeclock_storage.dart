@@ -20,19 +20,29 @@ class SafTimeclockStorage implements TimeclockStorage {
   static const _mime = 'application/octet-stream';
 
   @override
-  Future<List<StoredFile>> list() async => [
-    for (final f in await _util.list(treeUri))
-      if (!f.isDir)
-        StoredFile(
-          f.name,
-          f.length,
-          DateTime.fromMillisecondsSinceEpoch(f.lastModified),
-        ),
-  ];
+  Future<List<StoredFile>> list() async {
+    final files = <StoredFile>[];
+    StoredFile stored(String name, int length, int modified) =>
+        StoredFile(name, length, DateTime.fromMillisecondsSinceEpoch(modified));
+    for (final f in await _util.list(treeUri)) {
+      if (!f.isDir) {
+        files.add(stored(f.name, f.length, f.lastModified));
+        continue;
+      }
+      // One level of project folders.
+      for (final inner in await _util.list(f.uri)) {
+        if (inner.isDir) continue;
+        files.add(
+          stored('${f.name}/${inner.name}', inner.length, inner.lastModified),
+        );
+      }
+    }
+    return files;
+  }
 
   @override
   Future<String?> read(String name) async {
-    final file = await _util.child(treeUri, [name]);
+    final file = await _util.child(treeUri, name.split('/'));
     if (file == null || file.isDir) return null;
     return utf8.decode(await _stream.readFileBytes(file.uri));
   }
@@ -51,9 +61,15 @@ class SafTimeclockStorage implements TimeclockStorage {
     bool overwrite = false,
     bool append = false,
   }) async {
+    final parts = name.split('/');
+    final fileName = parts.last;
+    // Project folder, created when missing.
+    final parent = parts.length > 1
+        ? (await _util.mkdirp(treeUri, parts.sublist(0, parts.length - 1))).uri
+        : treeUri;
     final saved = await _stream.writeFileBytes(
-      treeUri,
-      name,
+      parent,
+      fileName,
       _mime,
       Uint8List.fromList(utf8.encode(content)),
       overwrite: overwrite,
@@ -61,8 +77,8 @@ class SafTimeclockStorage implements TimeclockStorage {
     );
     // The provider renames on conflict; we would then lose track of the file.
     final savedAs = saved.fileName;
-    if (savedAs != null && savedAs != name) {
-      throw StateError('Provider saved "$name" as "$savedAs"');
+    if (savedAs != null && savedAs != fileName) {
+      throw StateError('Provider saved "$fileName" as "$savedAs"');
     }
   }
 }

@@ -21,7 +21,7 @@ The full behavior is in [spec.md](spec.md).
   `budget.journal` so `hledger bal --budget` reads them too. Progress shows in
   Metrics.
 - **Settings:** the folder, how files are split (by day, week or month, and
-  optionally by project) and the week start day.
+  optionally by project, in the file name or in folders) and the week start day.
 
 ## File format
 

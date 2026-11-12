@@ -38,10 +38,14 @@ Rules:
 
 - Directory chosen via Android storage picker; permission persisted.
 - Split method: `none`, `day`, `week`, `month`.
-- Split by project (switch, default off): also one file per project, the first level of the account (`work` in `work:acme:dev`). It combines with the split method: month and project give `work-2026-10.timeclock`. Files stay in the one directory (no subdirectories); characters that are not safe in a file name (`/ \ : * ? " < > |`, control characters, a leading dot) are replaced by `_` in the project part.
-- Filename format: template with tokens `{yyyy}`, `{MM}`, `{dd}`, `{ww}` (ISO week) and `{project}`, extension `.timeclock`. When the template contains `{ww}`, `{yyyy}` is the ISO week year, so days at the turn of the year land in the right file (2027-01-01 is `2026-W53`). The template must contain every token needed to tell periods apart (day: `{yyyy}`, `{MM}`, `{dd}`; week: `{yyyy}`, `{ww}`; month: `{yyyy}`, `{MM}`), plus `{project}` when splitting by project. `{project}` is refused when the switch is off. Default per split: `none` -> `time.timeclock`, `month` -> `{yyyy}-{MM}.timeclock`, etc.; with split by project the default starts with `{project}-` (`none` -> `{project}.timeclock`). A template that is still the default follows the split method and the switch; a custom one is kept only if it is valid for the new choice, otherwise it goes back to the default.
-- Entry lives in file of its clock-in date (and project, when splitting by project). Clock-out written to same file even if crossing split boundary. Editing an entry moves it to another file when its start leaves the period, or its first account level changes project.
-- Changing split method, project split or format affects new entries only; existing files not migrated (v1). App reads all files in directory matching any `*.timeclock`.
+- Projects (default Together): how the first account level (`work` in `work:acme:dev`) is told apart on disk.
+  - Together: all projects share the same files.
+  - File name: one file per project, combined with the split method: month gives `work-2026-10.timeclock`. Files stay in the one directory.
+  - Folders: one folder per project, one level below the chosen directory: `work/2026-10.timeclock`. The folder is created when the first entry of the project is written. The file name template has no `{project}`.
+  - Characters that are not safe in a file or folder name (`/ \ : * ? " < > |`, control characters, a leading dot) are replaced by `_` in the project part.
+- Filename format: template with tokens `{yyyy}`, `{MM}`, `{dd}`, `{ww}` (ISO week) and `{project}`, extension `.timeclock`. When the template contains `{ww}`, `{yyyy}` is the ISO week year, so days at the turn of the year land in the right file (2027-01-01 is `2026-W53`). The template must contain every token needed to tell periods apart (day: `{yyyy}`, `{MM}`, `{dd}`; week: `{yyyy}`, `{ww}`; month: `{yyyy}`, `{MM}`), plus `{project}` when projects are in the file name. `{project}` is refused in the other modes. Default per split: `none` -> `time.timeclock`, `month` -> `{yyyy}-{MM}.timeclock`, etc.; with projects in the file name the default starts with `{project}-` (`none` -> `{project}.timeclock`). A template that is still the default follows the split method and the Projects setting; a custom one is kept only if it is valid for the new choice, otherwise it goes back to the default.
+- Entry lives in file of its clock-in date (and project, when projects are split by file name or folder). Clock-out written to same file even if crossing split boundary. Editing an entry moves it to another file when its start leaves the period, or its first account level changes project (with project folders, to the other folder).
+- Changing split method, project split or format affects new entries only; existing files not migrated (v1). App reads all `*.timeclock` files in the directory and in its folders (one level), whatever the current setting, so files written under an older layout stay visible.
 - External edits (sync) detected on resume/focus; app reloads.
 - Files are created with MIME type `application/octet-stream`. With `text/plain`, Android document providers append `.txt` (`time.timeclock` becomes `time.timeclock.txt`), and the app then fails to find its own files by name.
 
@@ -109,7 +113,7 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 
 - Files directory (picker).
 - File split method: none | day | week | month.
-- Split by project: on | off.
+- Projects: together | file name | folders.
 - Filename format (template, live preview of example filename).
 - Week start day: Monday (default) | Sunday (used by the Metrics week).
 - Budgets: list with add, edit and remove (only when a folder is chosen).

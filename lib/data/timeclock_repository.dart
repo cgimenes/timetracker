@@ -5,15 +5,22 @@ import 'timeclock_storage.dart';
 
 /// How entries are spread over files (Settings).
 class FileSettings {
-  const FileSettings(this.split, this.template, {this.splitByProject = false});
+  const FileSettings(
+    this.split,
+    this.template, {
+    this.splitByProject = false,
+    this.projectFolders = false,
+  });
 
   factory FileSettings.defaults(
     SplitMethod split, {
     bool splitByProject = false,
+    bool projectFolders = false,
   }) => FileSettings(
     split,
     defaultFileNameTemplate(split, byProject: splitByProject),
     splitByProject: splitByProject,
+    projectFolders: projectFolders,
   );
 
   final SplitMethod split;
@@ -23,9 +30,18 @@ class FileSettings {
   /// files. The template then has `{project}`.
   final bool splitByProject;
 
-  /// File that holds an entry of [account] that starts on [date].
-  String nameFor(DateTime date, String account) =>
-      fileNameFor(date, split, template, project: projectOf(account));
+  /// Entries of different projects go to different folders, one level below
+  /// the chosen directory. The template has no `{project}` then.
+  final bool projectFolders;
+
+  /// File that holds an entry of [account] that starts on [date], as a path
+  /// relative to the chosen directory (`work/2026-10.timeclock` with project
+  /// folders).
+  String nameFor(DateTime date, String account) {
+    final project = projectOf(account);
+    final name = fileNameFor(date, split, template, project: project);
+    return projectFolders ? '${safeFileNamePart(project)}/$name' : name;
+  }
 }
 
 /// An entry together with the file it lives in.

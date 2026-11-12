@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timetracker/core/file_naming.dart';
 import 'package:timetracker/data/providers.dart';
 import 'package:timetracker/settings/app_settings.dart';
 import 'package:timetracker/state/clock.dart';
@@ -50,6 +51,11 @@ void settingsTest(
     }
   });
 }
+
+Finder segment(String label) => find.descendant(
+  of: find.byKey(const Key('project-split')),
+  matching: find.text(label),
+);
 
 void main() {
   group('friendlyFolderName', () {
@@ -148,13 +154,13 @@ void main() {
       expect(find.text('Example: hours-10-2026.timeclock'), findsOneWidget);
     });
 
-    settingsTest('split by project switch changes the file name and example', (
+    settingsTest('projects setting changes the file name and example', (
       tester,
       c,
     ) async {
       expect(find.text('Example: 2026-10.timeclock'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('split-by-project')));
+      await tester.tap(segment('File name'));
       await tester.pump();
 
       expect(c.read(settingsProvider).splitByProject, isTrue);
@@ -167,15 +173,31 @@ void main() {
       );
       expect(find.text('Example: work-2026-10.timeclock'), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('split-by-project')));
+      await tester.tap(segment('Together'));
       await tester.pump();
       expect(find.text('Example: 2026-10.timeclock'), findsOneWidget);
     });
 
     settingsTest(
-      'with split by project on, a name without {project} is refused',
+      'folders keep the template and show the folder in the example',
       (tester, c) async {
-        await tester.tap(find.byKey(const Key('split-by-project')));
+        await tester.tap(segment('Folders'));
+        await tester.pump();
+
+        expect(c.read(settingsProvider).projects, ProjectSplit.folder);
+        expect(c.read(settingsProvider).fileSettings.projectFolders, isTrue);
+        expect(
+          c.read(settingsProvider).fileNameTemplate,
+          '{yyyy}-{MM}.timeclock',
+        );
+        expect(find.text('Example: work/2026-10.timeclock'), findsOneWidget);
+      },
+    );
+
+    settingsTest(
+      'with projects in the file name, a name without {project} is refused',
+      (tester, c) async {
+        await tester.tap(segment('File name'));
         await tester.pump();
         await tester.enterText(
           find.byKey(const Key('template')),

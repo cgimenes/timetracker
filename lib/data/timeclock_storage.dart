@@ -20,10 +20,16 @@ class StoredFile {
   String toString() => '$name ($size bytes, $modified)';
 }
 
-/// Flat directory of text files. The Android implementation sits on top of the
-/// Storage Access Framework; tests use an in-memory one.
+/// Directory of text files, with files one level down in project folders. The
+/// Android implementation sits on top of the Storage Access Framework; tests
+/// use an in-memory one.
+///
+/// A file is named by its path relative to the directory, with `/` between
+/// the folder and the file: `time.timeclock` or `work/2026-10.timeclock`.
+/// Writing a file creates its folder.
 abstract interface class TimeclockStorage {
-  /// Every file in the directory, whatever its extension.
+  /// Every file in the directory and in its folders (one level), whatever
+  /// its extension.
   Future<List<StoredFile>> list();
 
   /// Text of the file, or null when it does not exist.

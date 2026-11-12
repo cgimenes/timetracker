@@ -410,6 +410,48 @@ void main() {
       await c.read(entriesProvider.notifier).reload();
       expect(c.read(warningsProvider).single.fileName, '2026-11.timeclock');
     });
+
+    test('project folders are saved and keep the plain template', () async {
+      final c = await makeContainer(MemoryStorage());
+      final settings = c.read(settingsProvider.notifier);
+      await settings.setProjects(ProjectSplit.folder);
+      expect(c.read(settingsProvider).projects, ProjectSplit.folder);
+      expect(c.read(settingsProvider).splitByProject, isFalse);
+      expect(c.read(settingsProvider).fileSettings.projectFolders, isTrue);
+      expect(
+        c.read(settingsProvider).fileNameTemplate,
+        '{yyyy}-{MM}.timeclock',
+      );
+
+      final again = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(
+            c.read(sharedPreferencesProvider),
+          ),
+        ],
+      );
+      addTearDown(again.dispose);
+      expect(again.read(settingsProvider).projects, ProjectSplit.folder);
+    });
+
+    test('the old split by project preference still applies', () async {
+      final c = await makeContainer(
+        MemoryStorage(),
+        prefs: {
+          'splitByProject': true,
+          'fileNameTemplate': '{project}-{yyyy}-{MM}.timeclock',
+        },
+      );
+      expect(c.read(settingsProvider).projects, ProjectSplit.fileName);
+    });
+
+    test('entries are written to project folders', () async {
+      final storage = MemoryStorage();
+      final c = await makeContainer(storage);
+      await c.read(settingsProvider.notifier).setProjects(ProjectSplit.folder);
+      await c.read(entriesProvider.notifier).start('work:a', at(30, 9));
+      expect(storage.names, {'work/2026-10.timeclock'});
+    });
   });
 }
 

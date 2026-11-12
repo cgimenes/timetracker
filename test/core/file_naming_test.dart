@@ -152,7 +152,7 @@ void main() {
           '{project}-{yyyy}-{MM}.timeclock',
           SplitMethod.month,
         ),
-        contains('Split by project'),
+        contains('File name'),
       );
     });
 

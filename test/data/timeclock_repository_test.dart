@@ -407,4 +407,71 @@ void main() {
     await repository.startEntry('a', d(10, 1, 9), settings: monthly);
     expect(storage.text('2026-10.timeclock'), 'i 2026-10-01 09:00:00 a\n');
   });
+
+  group('project folders', () {
+    final folders = FileSettings.defaults(
+      SplitMethod.month,
+      projectFolders: true,
+    );
+
+    test('each project gets its own folder', () async {
+      await repo.startEntry('work:acme:dev', d(10, 1, 9), settings: folders);
+      await repo.startEntry('personal:read', d(10, 1, 10), settings: folders);
+      await repo.startEntry('work:globex', d(10, 2, 9), settings: folders);
+
+      expect(storage.names, {
+        'work/2026-10.timeclock',
+        'personal/2026-10.timeclock',
+      });
+      expect(
+        storage.text('work/2026-10.timeclock'),
+        'i 2026-10-01 09:00:00 work:acme:dev\ni 2026-10-02 09:00:00 work:globex\n',
+      );
+    });
+
+    test(
+      'unsafe characters in the project are replaced in the folder',
+      () async {
+        await repo.startEntry('a/b:c', d(10, 1, 9), settings: folders);
+        expect(storage.names, {'a_b/2026-10.timeclock'});
+      },
+    );
+
+    test('loads files from the root and from folders', () async {
+      storage.externalWrite(
+        '2026-09.timeclock',
+        'i 2026-09-01 09:00:00 old\no 2026-09-01 10:00:00 old\n',
+      );
+      await repo.startEntry('work:a', d(10, 1, 9), settings: folders);
+      storage.externalWrite('notes/readme.txt', 'ignored');
+
+      final load = await repo.load();
+      expect(load.entries.map((e) => '${e.fileName} ${e.entry.account}'), [
+        'work/2026-10.timeclock work:a',
+        '2026-09.timeclock old',
+      ]);
+    });
+
+    test('stop writes the clock-out in the entry folder', () async {
+      await repo.startEntry('work:acme', d(10, 31, 23), settings: folders);
+      expect(await repo.stopOldestRunning('work:acme', d(11, 1, 1)), isTrue);
+      expect(storage.names, {'work/2026-10.timeclock'});
+    });
+
+    test('changing the project moves the entry to the other folder', () async {
+      await repo.startEntry('work:a', d(10, 1, 9), settings: folders);
+      final stored = (await repo.load()).entries.single;
+      await repo.replaceEntry(
+        stored,
+        account: 'personal:a',
+        start: d(10, 1, 9),
+        settings: folders,
+      );
+      expect(storage.text('work/2026-10.timeclock'), '');
+      expect(
+        storage.text('personal/2026-10.timeclock'),
+        'i 2026-10-01 09:00:00 personal:a\n',
+      );
+    });
+  });
 }

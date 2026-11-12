@@ -54,9 +54,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       settings.split,
       byProject: settings.splitByProject,
     );
-    final example = templateError == null
+    final fileExample = templateError == null
         ? fileNameFor(now, settings.split, _template.text, project: 'work')
         : null;
+    final example = fileExample == null
+        ? null
+        : settings.projects == ProjectSplit.folder
+        ? 'work/$fileExample'
+        : fileExample;
 
     return Scaffold(
       body: SafeArea(
@@ -100,14 +105,37 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 'Starts a new file for each period. Existing files stay as they are.',
               ),
             ),
-            SwitchListTile(
-              key: const Key('split-by-project'),
-              title: const Text('Split by project'),
+            ListTile(
+              title: const Text('Projects'),
               subtitle: const Text(
-                'One file per first account level, for example work and personal.',
+                'First account level, for example work and personal. '
+                'Together: all in the same files. File name: one file per '
+                'project. Folders: one folder per project.',
               ),
-              value: settings.splitByProject,
-              onChanged: notifier.setSplitByProject,
+              isThreeLine: true,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: SegmentedButton<ProjectSplit>(
+                key: const Key('project-split'),
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(
+                    value: ProjectSplit.none,
+                    label: Text('Together'),
+                  ),
+                  ButtonSegment(
+                    value: ProjectSplit.fileName,
+                    label: Text('File name'),
+                  ),
+                  ButtonSegment(
+                    value: ProjectSplit.folder,
+                    label: Text('Folders'),
+                  ),
+                ],
+                selected: {settings.projects},
+                onSelectionChanged: (s) => notifier.setProjects(s.first),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),

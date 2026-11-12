@@ -1,5 +1,17 @@
 enum SplitMethod { none, day, week, month }
 
+/// How projects (first account level) are told apart on disk.
+enum ProjectSplit {
+  /// All projects share the same files.
+  none,
+
+  /// One file per project: `work-2026-10.timeclock`.
+  fileName,
+
+  /// One folder per project: `work/2026-10.timeclock`.
+  folder,
+}
+
 const timeclockExtension = '.timeclock';
 
 const projectToken = '{project}';
@@ -53,10 +65,10 @@ String? validateFileNameTemplate(
     }
   }
   if (byProject && !template.contains(projectToken)) {
-    return 'File name must contain $projectToken to split by project';
+    return 'File name must contain $projectToken to split projects by file name';
   }
   if (!byProject && template.contains(projectToken)) {
-    return '$projectToken needs "Split by project" to be on';
+    return '$projectToken needs Projects set to "File name"';
   }
   return null;
 }

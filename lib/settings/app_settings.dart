@@ -6,7 +6,8 @@ import '../data/providers.dart';
 import '../data/timeclock_repository.dart';
 
 const _splitKey = 'split';
-const _byProjectKey = 'splitByProject';
+const _byProjectKey = 'splitByProject'; // before projectSplit existed
+const _projectSplitKey = 'projectSplit';
 const _templateKey = 'fileNameTemplate';
 const _levelKey = 'metricsLevel';
 const _weekStartKey = 'weekStart';
@@ -14,7 +15,7 @@ const _weekStartKey = 'weekStart';
 class AppSettings {
   const AppSettings({
     required this.split,
-    required this.splitByProject,
+    required this.projects,
     required this.fileNameTemplate,
     required this.metricsLevel,
     required this.weekStart,
@@ -22,7 +23,7 @@ class AppSettings {
 
   factory AppSettings.defaults() => AppSettings(
     split: SplitMethod.month,
-    splitByProject: false,
+    projects: ProjectSplit.none,
     fileNameTemplate: defaultFileNameTemplate(SplitMethod.month),
     metricsLevel: 1,
     weekStart: WeekStart.monday,
@@ -30,26 +31,33 @@ class AppSettings {
 
   final SplitMethod split;
 
-  /// Also one file per project (first account level), on top of [split].
-  final bool splitByProject;
+  /// How projects (first account level) are told apart, on top of [split].
+  final ProjectSplit projects;
+
+  /// Project in the file name: the template then has `{project}`.
+  bool get splitByProject => projects == ProjectSplit.fileName;
   final String fileNameTemplate;
 
   /// Account depth used to group the Metrics totals, at least 1.
   final int metricsLevel;
   final WeekStart weekStart;
 
-  FileSettings get fileSettings =>
-      FileSettings(split, fileNameTemplate, splitByProject: splitByProject);
+  FileSettings get fileSettings => FileSettings(
+    split,
+    fileNameTemplate,
+    splitByProject: splitByProject,
+    projectFolders: projects == ProjectSplit.folder,
+  );
 
   AppSettings copyWith({
     SplitMethod? split,
-    bool? splitByProject,
+    ProjectSplit? projects,
     String? fileNameTemplate,
     int? metricsLevel,
     WeekStart? weekStart,
   }) => AppSettings(
     split: split ?? this.split,
-    splitByProject: splitByProject ?? this.splitByProject,
+    projects: projects ?? this.projects,
     fileNameTemplate: fileNameTemplate ?? this.fileNameTemplate,
     metricsLevel: metricsLevel ?? this.metricsLevel,
     weekStart: weekStart ?? this.weekStart,
@@ -69,7 +77,12 @@ class SettingsNotifier extends Notifier<AppSettings> {
     final split =
         SplitMethod.values.asNameMap()[prefs.getString(_splitKey)] ??
         defaults.split;
-    final byProject = prefs.getBool(_byProjectKey) ?? defaults.splitByProject;
+    final projects =
+        ProjectSplit.values.asNameMap()[prefs.getString(_projectSplitKey)] ??
+        (prefs.getBool(_byProjectKey) == true
+            ? ProjectSplit.fileName
+            : defaults.projects);
+    final byProject = projects == ProjectSplit.fileName;
     var template = prefs.getString(_templateKey);
     if (template == null ||
         validateFileNameTemplate(template, split, byProject: byProject) !=
@@ -79,7 +92,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
     final level = prefs.getInt(_levelKey);
     return AppSettings(
       split: split,
-      splitByProject: byProject,
+      projects: projects,
       fileNameTemplate: template,
       metricsLevel: level != null && level >= 1 ? level : defaults.metricsLevel,
       weekStart:
@@ -95,15 +108,20 @@ class SettingsNotifier extends Notifier<AppSettings> {
   /// one. A custom one is kept when it works for the new choice, otherwise it
   /// goes back to the default.
   Future<void> setSplit(SplitMethod split) =>
-      _setSplitting(split, state.splitByProject);
+      _setSplitting(split, state.projects);
 
-  /// Also splits files by project (first level of the account). Same rule for
+  /// How projects (first level of the account) are told apart. Same rule for
   /// the template as [setSplit].
-  Future<void> setSplitByProject(bool byProject) =>
-      _setSplitting(state.split, byProject);
+  Future<void> setProjects(ProjectSplit projects) =>
+      _setSplitting(state.split, projects);
 
-  Future<void> _setSplitting(SplitMethod split, bool byProject) async {
+  /// Shortcut for [setProjects]: project in the file name, or together.
+  Future<void> setSplitByProject(bool byProject) =>
+      setProjects(byProject ? ProjectSplit.fileName : ProjectSplit.none);
+
+  Future<void> _setSplitting(SplitMethod split, ProjectSplit projects) async {
     final old = state;
+    final byProject = projects == ProjectSplit.fileName;
     final followsDefault =
         old.fileNameTemplate ==
         defaultFileNameTemplate(old.split, byProject: old.splitByProject);
@@ -120,11 +138,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_splitKey, split.name);
-    await prefs.setBool(_byProjectKey, byProject);
+    await prefs.setString(_projectSplitKey, projects.name);
     await prefs.setString(_templateKey, template);
     state = old.copyWith(
       split: split,
-      splitByProject: byProject,
+      projects: projects,
       fileNameTemplate: template,
     );
   }
