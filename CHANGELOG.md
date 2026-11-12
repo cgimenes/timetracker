@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.3.0...timetracker-v1.4.0) (2026-11-12)
+
+
+### Features
+
+* search entries instead of filtering by level and prefix ([e3cd827](https://github.com/cgimenes/timetracker/commit/e3cd82742fe0e2920837574b8af549b34c44550f))
+
+
+### Bug Fixes
+
+* ask before removing a budget ([4d8235a](https://github.com/cgimenes/timetracker/commit/4d8235a52561a3bc9e5306d64c12d926c88284f7))
+* remove the placeholders from the budget dialog ([e3401eb](https://github.com/cgimenes/timetracker/commit/e3401ebefe45584379154f4d4ed1394fd3531e8c))
+* spacing in the date and time dialog ([dfce0eb](https://github.com/cgimenes/timetracker/commit/dfce0eb004b386c51ca89544eb98442b1e537c46))
+
 ## [1.3.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.2.0...timetracker-v1.3.0) (2026-11-12)
 
 
