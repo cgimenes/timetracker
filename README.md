@@ -17,6 +17,9 @@ The full behavior is in [spec.md](spec.md).
   remove.
 - **Metrics:** time per account for today, this week and this month, grouped
   at the account depth you choose.
+- **Budgets:** hours per project for a day, week or month, kept in
+  `budget.journal` so `hledger bal --budget` reads them too. Progress shows in
+  Metrics.
 - **Settings:** the folder, how files are split (by day, week or month, and
   optionally by project) and the week start day.
 
@@ -30,6 +33,17 @@ o 2026-10-30 12:30:00 work:acme:dev
 The account is a colon separated path. A clock-out always repeats the account,
 which is what lets entries overlap. Lines the app does not understand, comments
 and blank lines are kept exactly as they are when it rewrites a file.
+
+Budgets live next to them in `budget.journal`:
+
+```
+~ monthly
+    (work)    40h
+```
+
+```sh
+hledger -f budget.journal -f '*.timeclock' bal --budget -M --depth 1
+```
 
 ## Development
 

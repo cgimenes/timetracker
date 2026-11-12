@@ -70,6 +70,22 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 - Running entries count up to now.
 - Entries crossing period boundary counted only for portion inside period.
 
+### Budgets
+
+- A budget is the time allowed for one project (first account level) in a period: daily, weekly or monthly. One budget per project and period.
+- Stored in `budget.journal`, in the same folder, as hledger periodic transactions:
+
+      ~ monthly
+          (work)    40h
+
+      ~ weekly
+          (personal)    5h
+
+  hledger reads it with `hledger -f budget.journal -f '*.timeclock' bal --budget`. Weeks start on Monday in hledger; the Metrics week start setting does not change that.
+- The app only understands `~ daily|weekly|monthly` blocks with `(project)  Nh` postings (N up to 2 decimals). Every other line is kept untouched when the app rewrites the file. Budgets for sub-accounts are left alone.
+- Edited in Settings: add, edit, remove. External edits are picked up on resume or pull to refresh.
+- Metrics: each period card lists the budgets of that period under "Budgets", with used / allowed time and a progress bar; over budget turns red. Independent of the Metrics level. Today uses daily budgets, This week weekly, This month monthly.
+
 ### Notification
 
 - One ongoing notification while at least one entry is running, shared by all running entries.
@@ -96,6 +112,7 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 - Split by project: on | off.
 - Filename format (template, live preview of example filename).
 - Week start day: Monday (default) | Sunday (used by the Metrics week).
+- Budgets: list with add, edit and remove (only when a folder is chosen).
 
 ## Edge cases
 

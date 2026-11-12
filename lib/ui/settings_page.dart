@@ -6,6 +6,7 @@ import '../core/metrics.dart';
 import '../data/providers.dart';
 import '../settings/app_settings.dart';
 import '../state/clock.dart';
+import 'budgets_section.dart';
 import 'folder_name.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -149,6 +150,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 onSelectionChanged: (s) => notifier.setWeekStart(s.first),
               ),
             ),
+            if (treeUri != null) ...[
+              const Divider(height: 32),
+              const BudgetsSection(),
+            ],
           ],
         ),
       ),

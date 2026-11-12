@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'data/providers.dart';
 import 'notifications/providers.dart';
+import 'state/budgets.dart';
 import 'state/entries.dart';
 
 /// Things that must keep running whatever screen is open: keeping the
@@ -37,6 +38,7 @@ class _AppLifecycleState extends ConsumerState<AppLifecycle>
     if (state == AppLifecycleState.resumed &&
         ref.read(treeUriProvider) != null) {
       ref.read(entriesProvider.notifier).reloadIfChanged();
+      ref.read(budgetsProvider.notifier).reloadIfChanged();
     }
   }
 

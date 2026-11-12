@@ -157,5 +157,44 @@ void main() {
       await tester.pump();
       expect(c.read(sharedPreferencesProvider).getInt('metricsLevel'), 2);
     });
+
+    metricsTest(
+      'shows budgets with used and allowed time, over budget in error color',
+      (tester, container, storage) async {
+        // Work today: 2:00 + 0:30 + 1:00 running.
+        final daily = find.byKey(const Key('budget-today-work'));
+        expect(daily, findsOneWidget);
+        expect(
+          find.descendant(of: daily, matching: find.text('3:30 / 3:00')),
+          findsOneWidget,
+        );
+        final over = tester.widget<Text>(
+          find.descendant(of: daily, matching: find.text('3:30 / 3:00')),
+        );
+        final scheme = Theme.of(tester.element(daily)).colorScheme;
+        expect(over.style?.color, scheme.error);
+
+        final monthly = find.byKey(const Key('budget-month-work'));
+        expect(
+          find.descendant(of: monthly, matching: find.text('3:30 / 40:00')),
+          findsOneWidget,
+        );
+        // No weekly budget: nothing for the week.
+        expect(find.byKey(const Key('budget-week-work')), findsNothing);
+      },
+      files: const {
+        '2026-10.timeclock': _data,
+        'budget.journal':
+            '~ daily\n    (work)    3h\n\n~ monthly\n    (work)    40h\n',
+      },
+    );
+
+    metricsTest('without a budget file there is no Budgets section', (
+      tester,
+      container,
+      storage,
+    ) async {
+      expect(find.text('Budgets'), findsNothing);
+    });
   });
 }

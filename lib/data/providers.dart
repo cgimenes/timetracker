@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:saf_util/saf_util.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'budget_repository.dart';
 import 'saf_timeclock_storage.dart';
 import 'timeclock_repository.dart';
 import 'timeclock_storage.dart';
@@ -61,4 +62,8 @@ final timeclockStorageProvider = Provider<TimeclockStorage>((ref) {
 
 final timeclockRepositoryProvider = Provider<TimeclockRepository>(
   (ref) => TimeclockRepository(ref.watch(timeclockStorageProvider)),
+);
+
+final budgetRepositoryProvider = Provider<BudgetRepository>(
+  (ref) => BudgetRepository(ref.watch(timeclockStorageProvider)),
 );

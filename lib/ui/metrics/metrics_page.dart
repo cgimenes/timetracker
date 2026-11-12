@@ -5,6 +5,7 @@ import '../../core/account.dart';
 import '../../core/metrics.dart';
 import '../../data/providers.dart';
 import '../../settings/app_settings.dart';
+import '../../state/budgets.dart';
 import '../../state/derived.dart';
 import '../../state/entries.dart';
 import '../choose_folder.dart';
@@ -33,7 +34,10 @@ class MetricsPage extends ConsumerWidget {
         child: !hasFolder
             ? const ChooseFolderPrompt()
             : RefreshIndicator(
-                onRefresh: () => ref.read(entriesProvider.notifier).reload(),
+                onRefresh: () => Future.wait([
+                  ref.read(entriesProvider.notifier).reload(),
+                  ref.read(budgetsProvider.notifier).reload(),
+                ]),
                 child: ListView(
                   padding: const EdgeInsets.all(12),
                   children: [
@@ -99,6 +103,7 @@ class _PeriodCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final metrics = ref.watch(metricsProvider(kind));
+    final budgets = ref.watch(budgetProgressProvider(kind));
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
@@ -132,8 +137,51 @@ class _PeriodCard extends ConsumerWidget {
                   ],
                 ),
               ),
+            if (budgets.isNotEmpty) ...[
+              const Divider(height: 24),
+              Text('Budgets', style: textTheme.titleSmall),
+              for (final b in budgets) _BudgetRow(kind, b),
+            ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _BudgetRow extends StatelessWidget {
+  const _BudgetRow(this.kind, this.progress);
+
+  final PeriodKind kind;
+  final BudgetProgress progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final over = progress.over;
+    final style = over ? TextStyle(color: scheme.error) : null;
+
+    return Padding(
+      key: Key('budget-${kind.name}-${progress.project}'),
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(progress.project)),
+              Text(
+                '${formatHm(progress.used)} / ${formatHm(progress.budget)}',
+                style: style,
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          LinearProgressIndicator(
+            value: progress.fraction,
+            color: over ? scheme.error : null,
+          ),
+        ],
       ),
     );
   }

@@ -8,6 +8,8 @@ import 'package:timetracker/state/clock.dart';
 import 'package:timetracker/ui/folder_name.dart';
 import 'package:timetracker/ui/settings_page.dart';
 
+import '../support/memory_storage.dart';
+
 /// Runs [body] with the Settings page mounted. The widget tree owns the
 /// container and is unmounted at the end, which stops the clock timer.
 void settingsTest(
@@ -16,6 +18,7 @@ void settingsTest(
   body, {
   String? treeUri,
   Map<String, Object> prefs = const {},
+  MemoryStorage? storage,
 }) {
   testWidgets(name, (tester) async {
     // Phone-sized screen, so the whole list is on screen.
@@ -30,6 +33,8 @@ void settingsTest(
             await SharedPreferences.getInstance(),
           ),
           initialTreeUriProvider.overrideWithValue(treeUri),
+          if (storage != null)
+            timeclockStorageProvider.overrideWithValue(storage),
           clockProvider.overrideWithValue(() => DateTime(2026, 10, 30, 15)),
         ],
         child: const MaterialApp(home: SettingsPage()),
@@ -198,6 +203,101 @@ void main() {
       await tester.tap(find.text('Sun'));
       await tester.pump();
       expect(c.read(settingsProvider).weekStart.name, 'sunday');
+    });
+
+    group('budgets', () {
+      const tree =
+          'content://com.android.externalstorage.documents/tree/primary%3Atime';
+
+      settingsTest('hidden until a folder is chosen', (tester, c) async {
+        expect(find.byKey(const Key('add-budget')), findsNothing);
+      });
+
+      final storage = MemoryStorage();
+      settingsTest(
+        'add writes budget.journal',
+        (tester, c) async {
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(find.byKey(const Key('add-budget')));
+          await tester.tap(find.byKey(const Key('add-budget')));
+          await tester.pumpAndSettle();
+          await tester.enterText(
+            find.byKey(const Key('budget-project')),
+            'work',
+          );
+          await tester.enterText(find.byKey(const Key('budget-hours')), '40');
+          await tester.tap(
+            find.descendant(
+              of: find.byKey(const Key('budget-period')),
+              matching: find.text('Week'),
+            ),
+          );
+          await tester.pump();
+          await tester.tap(find.byKey(const Key('budget-save')));
+          await tester.pumpAndSettle();
+
+          expect(
+            storage.text('budget.journal'),
+            '~ weekly\n    (work)    40h\n',
+          );
+          expect(find.byKey(const Key('budget-weekly-work')), findsOneWidget);
+        },
+        treeUri: tree,
+        storage: storage,
+      );
+
+      final existing = MemoryStorage({
+        'budget.journal': '~ monthly\n    (work)    40h\n',
+      });
+      settingsTest(
+        'edit and remove',
+        (tester, c) async {
+          await tester.pumpAndSettle();
+          await tester.ensureVisible(
+            find.byKey(const Key('budget-monthly-work')),
+          );
+          await tester.tap(find.byKey(const Key('budget-monthly-work')));
+          await tester.pumpAndSettle();
+          await tester.enterText(find.byKey(const Key('budget-hours')), '32.5');
+          await tester.pump();
+          await tester.tap(find.byKey(const Key('budget-save')));
+          await tester.pumpAndSettle();
+          expect(
+            existing.text('budget.journal'),
+            '~ monthly\n    (work)    32.5h\n',
+          );
+
+          await tester.tap(find.byKey(const Key('budget-remove-monthly-work')));
+          await tester.pumpAndSettle();
+          expect(existing.text('budget.journal'), '');
+          expect(find.text('No budgets'), findsOneWidget);
+        },
+        treeUri: tree,
+        storage: existing,
+      );
+
+      settingsTest(
+        'Save is disabled for a bad budget',
+        (tester, c) async {
+          await tester.ensureVisible(find.byKey(const Key('add-budget')));
+          await tester.tap(find.byKey(const Key('add-budget')));
+          await tester.pumpAndSettle();
+          await tester.enterText(
+            find.byKey(const Key('budget-project')),
+            'a:b',
+          );
+          await tester.enterText(find.byKey(const Key('budget-hours')), '5');
+          await tester.pump();
+          expect(
+            tester
+                .widget<FilledButton>(find.byKey(const Key('budget-save')))
+                .onPressed,
+            isNull,
+          );
+        },
+        treeUri: tree,
+        storage: MemoryStorage(),
+      );
     });
   });
 }
