@@ -142,6 +142,18 @@ void main() {
       );
     });
 
+    alignTest('Settings: daily goal delete button', const SettingsPage(), (
+      tester,
+    ) async {
+      final tile = find.byKey(const Key('daily-goal-work'));
+      await tester.ensureVisible(tile);
+      expect(
+        rightInset(tester, icon(Icons.delete_outline, tile), tile),
+        _aligned,
+      );
+      expect(leftInset(tester, find.text('work'), tile), _aligned);
+    }, prefs: const {'dailyGoals': '{"work":28800}'});
+
     alignTest(
       'Settings: the Change button and the week start control',
       const SettingsPage(),

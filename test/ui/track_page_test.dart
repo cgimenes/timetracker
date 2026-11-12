@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/data/providers.dart';
 import 'package:timetracker/state/clock.dart';
+import 'package:timetracker/ui/palette.dart';
 import 'package:timetracker/ui/track/track_page.dart';
 
 import '../support/memory_storage.dart';
@@ -517,6 +518,109 @@ void main() {
       expect(find.text('Stop'), findsNothing);
       // Still named for screen readers and long press.
       expect(find.byTooltip('Stop'), findsOneWidget);
+    });
+
+    group('daily goals', () {
+      Finder card() => find.ancestor(
+        of: find.byKey(const Key('track-total-today')),
+        matching: find.byType(Card),
+      );
+
+      trackTest('show in Today with progress, yellow while in progress', (
+        tester,
+        storage,
+      ) async {
+        // work did 3:00 today; the goal is 8h.
+        expect(find.text('Daily goals'), findsOneWidget);
+        final row = find.byKey(const Key('track-budget-today-work'));
+        expect(
+          find.descendant(of: row, matching: find.text('3:00 / 8:00')),
+          findsOneWidget,
+        );
+        final brightness = Theme.of(tester.element(row)).brightness;
+        expect(
+          tester
+              .widget<LinearProgressIndicator>(
+                find.byKey(const Key('track-goal-bar-today-work')),
+              )
+              .color,
+          goalBarColor(achieved: false, brightness: brightness),
+        );
+        expect(
+          find.byKey(const Key('track-goal-achieved-today-work')),
+          findsNothing,
+        );
+      }, prefs: const {'dailyGoals': '{"work":28800}'});
+
+      trackTest('turn green with a check once reached', (
+        tester,
+        storage,
+      ) async {
+        final brightness = Theme.of(tester.element(card())).brightness;
+        expect(
+          find.byKey(const Key('track-goal-achieved-today-work')),
+          findsOneWidget,
+        );
+        expect(
+          tester
+              .widget<LinearProgressIndicator>(
+                find.byKey(const Key('track-goal-bar-today-work')),
+              )
+              .color,
+          goalBarColor(achieved: true, brightness: brightness),
+        );
+      }, prefs: const {'dailyGoals': '{"work":10800}'});
+
+      trackTest('one per project, projects with no time show 0:00', (
+        tester,
+        storage,
+      ) async {
+        expect(
+          find.byKey(const Key('track-budget-today-personal')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('track-budget-today-personal')),
+            matching: find.text('0:00 / 1:00'),
+          ),
+          findsOneWidget,
+        );
+      }, prefs: const {'dailyGoals': '{"work":28800,"personal":3600}'});
+
+      trackTest(
+        'are not the goals of budget.journal',
+        (tester, storage) async {
+          // The journal has a daily goal for work; Track shows only Settings.
+          expect(find.text('Daily goals'), findsNothing);
+          expect(
+            find.byKey(const Key('track-budget-today-work')),
+            findsNothing,
+          );
+          expect(storage.text('budget.journal'), isNotNull);
+        },
+        files: const {
+          '2026-10.timeclock': _data,
+          'budget.journal': '~ daily\n    (work)    3h\n',
+        },
+        prefs: const {'budgetsEnabled': true},
+      );
+
+      trackTest('none set, no section', (tester, storage) async {
+        expect(find.text('Daily goals'), findsNothing);
+      });
+
+      trackTest('never write to budget.journal', (tester, storage) async {
+        expect(storage.names, {'2026-10.timeclock'});
+      }, prefs: const {'dailyGoals': '{"work":28800}'});
+
+      trackTest(
+        'work with the Goals screen turned off',
+        (tester, storage) async {
+          expect(find.text('Daily goals'), findsOneWidget);
+        },
+        prefs: const {'budgetsEnabled': false, 'dailyGoals': '{"work":28800}'},
+      );
     });
   });
 }

@@ -41,6 +41,7 @@ class TrackPage extends ConsumerWidget {
                         'Today',
                         level: 1,
                         keyPrefix: 'track-',
+                        dailyGoals: true,
                       ),
                     ],
                   ].expand((w) => [w, const SizedBox(height: 12)]).toList(),

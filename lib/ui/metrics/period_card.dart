@@ -17,6 +17,7 @@ class PeriodCard extends ConsumerWidget {
     this.title, {
     this.level,
     this.keyPrefix = '',
+    this.dailyGoals = false,
     super.key,
   });
 
@@ -25,12 +26,18 @@ class PeriodCard extends ConsumerWidget {
   final int? level;
   final String keyPrefix;
 
+  /// Show the daily goals of Settings instead of the goals of
+  /// `budget.journal`.
+  final bool dailyGoals;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final metrics = level == null
         ? ref.watch(metricsProvider(kind))
         : ref.watch(levelMetricsProvider((kind, level!)));
-    final budgets = ref.watch(metricsBudgetsProvider(kind));
+    final budgets = dailyGoals
+        ? ref.watch(dailyGoalProgressProvider)
+        : ref.watch(metricsBudgetsProvider(kind));
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
@@ -66,7 +73,10 @@ class PeriodCard extends ConsumerWidget {
               ),
             if (budgets.isNotEmpty) ...[
               const Divider(height: 24),
-              Text('Goals', style: textTheme.titleSmall),
+              Text(
+                dailyGoals ? 'Daily goals' : 'Goals',
+                style: textTheme.titleSmall,
+              ),
               for (final b in budgets) _BudgetRow(kind, b, keyPrefix),
             ],
           ],

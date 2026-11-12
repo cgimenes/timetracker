@@ -56,6 +56,7 @@ Screens: Track, Entries, Calendar, Metrics, Goals (only when enabled), Settings.
 - Narrow screens (under 600 dp): a top bar with a menu button and the screen name. The menu opens a drawer with the screens.
 - Wide screens and landscape: a rail stays on the left, with no top bar. A menu button at its top collapses it to icons and expands it to icons with names. The choice is remembered.
 - Only the Edit entry page, which is pushed over the screens, has its own header (it holds Save).
+- Spacing: content sits 16 dp from the screen edges on both sides. Buttons and icons at the right end of a row are aligned so their visible edge is 16 dp from the edge, like the text on the left.
 
 ### Track
 
@@ -72,6 +73,7 @@ Screens: Track, Entries, Calendar, Metrics, Goals (only when enabled), Settings.
    - Each has a Stop icon button (a stop symbol, no label; clock-out at now) and a menu: Stop at... (custom time), Edit (the Edit entry page) and Cancel entry (after a confirmation, removes the entry and records no time).
 3. Today section
    - Same as the Today group of Metrics (time per account today, total, running entries counted up to now), but always grouped at level 1 (by project), whatever the Metrics level is.
+   - Daily goals: under the total, the daily goals set in Settings, one per project, with time done today / goal and a progress bar (yellow, green with a check once reached). They are not the goals of `budget.journal`, and show whether or not the Goals screen is on. None set: no section.
 
 ### Calendar
 
@@ -146,6 +148,7 @@ Off by default. The Goals switch in Settings adds a Goals screen to the side bar
 - Projects: together | file name | folders.
 - Filename format (template, live preview of example filename).
 - Week start day: Monday (default) | Sunday (used by the Metrics week).
+- Daily goals: hours to reach every day, per project (add, edit, remove with a confirmation). Kept in the app preferences, never written to `budget.journal`. Shown in the Today section of Track.
 - Goals: on | off (adds the Goals screen).
 - App version (`v1.3.0`), small and centered, at the end of the list. Read from the installed app with `package_info_plus`.
 

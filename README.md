@@ -24,6 +24,8 @@ icons on wide screens.
 - **Metrics:** a chart of time per day, week or month stacked by project, and
   time per account for today, this week and this month, grouped at the account
   depth you choose.
+- **Daily goals:** set per project in Settings and shown with today's progress
+  on the Track screen. Kept in the app, not in the files.
 - **Goals:** optional screen. Hours to reach per project for each day, week or
   month the files are split in, yellow while in progress and green once
   achieved. Kept in `budget.journal` so `hledger bal --budget` reads them too.

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import 'theme.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -7,8 +10,8 @@ import '../core/metrics.dart';
 import '../data/providers.dart';
 import '../settings/app_settings.dart';
 import '../state/clock.dart';
+import 'daily_goals_section.dart';
 import 'folder_name.dart';
-import 'theme.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -179,6 +182,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 onSelectionChanged: (s) => notifier.setWeekStart(s.first),
               ),
             ),
+            const Divider(height: 32),
+            const DailyGoalsSection(),
             const Divider(height: 32),
             const _SectionTitle('Goals'),
             SwitchListTile(

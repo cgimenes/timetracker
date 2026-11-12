@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
+import '../theme.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/account.dart';
 import '../../core/budget.dart';
 import '../../core/file_naming.dart';
 import '../../data/budget_repository.dart';
@@ -13,7 +15,7 @@ import '../../state/derived.dart';
 import '../../state/entries.dart';
 import '../choose_folder.dart';
 import '../format.dart';
-import '../theme.dart';
+import '../goal_dialog.dart';
 import '../palette.dart';
 import '../ui_actions.dart';
 
@@ -136,7 +138,7 @@ Future<void> _edit(
 }) async {
   final result = await showDialog<Budget>(
     context: context,
-    builder: (_) => _BudgetDialog(window: window, old: old),
+    builder: (_) => GoalDialog(window: window, old: old),
   );
   if (result == null || !context.mounted) return;
   await guard(context, () async {
@@ -277,152 +279,6 @@ class _BudgetTile extends ConsumerWidget {
     await guard(
       context,
       () => ref.read(budgetsProvider.notifier).remove(b.project, b.window),
-    );
-  }
-}
-
-class _BudgetDialog extends ConsumerStatefulWidget {
-  const _BudgetDialog({required this.window, required this.old});
-
-  /// Where the budget applies. Null for a new recurring one.
-  final BudgetWindow? window;
-  final Budget? old;
-
-  @override
-  ConsumerState<_BudgetDialog> createState() => _BudgetDialogState();
-}
-
-class _BudgetDialogState extends ConsumerState<_BudgetDialog> {
-  late final _project = TextEditingController(text: widget.old?.project ?? '');
-  late final _hours = TextEditingController(
-    text: widget.old == null ? '' : formatHours(widget.old!.amount),
-  );
-  late var _period = widget.window?.period ?? BudgetPeriod.monthly;
-
-  /// The period only is a choice for budgets that repeat.
-  bool get _asksPeriod => widget.window == null || widget.window!.recurring;
-
-  BudgetWindow get _window =>
-      _asksPeriod ? BudgetWindow.recurring(_period) : widget.window!;
-
-  @override
-  void dispose() {
-    _project.dispose();
-    _hours.dispose();
-    super.dispose();
-  }
-
-  double? get _hoursValue =>
-      double.tryParse(_hours.text.trim().replaceAll(',', '.'));
-
-  String? get _error {
-    final hours = _hoursValue;
-    if (_hours.text.trim().isNotEmpty && hours == null) {
-      return 'Hours is not a number';
-    }
-    return validateBudget(project: _project.text.trim(), hours: hours ?? 0);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final projects = <String>{
-      for (final a in ref.watch(accountSuggestionsProvider)) projectOf(a),
-    }.take(6);
-    final error = _error;
-    final shown = _project.text.trim().isNotEmpty && _hours.text.isNotEmpty;
-
-    return AlertDialog(
-      title: Text(
-        widget.old == null
-            ? 'Add goal, ${_window.label}'
-            : 'Edit goal, ${_window.label}',
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              key: const Key('budget-project'),
-              controller: _project,
-              autocorrect: false,
-              decoration: const InputDecoration(
-                labelText: 'Project',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-            if (projects.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Wrap(
-                  spacing: 8,
-                  children: [
-                    for (final p in projects)
-                      ActionChip(
-                        label: Text(p),
-                        onPressed: () => setState(() => _project.text = p),
-                      ),
-                  ],
-                ),
-              ),
-            if (_asksPeriod) ...[
-              const SizedBox(height: 12),
-              SegmentedButton<BudgetPeriod>(
-                key: const Key('budget-period'),
-                showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(value: BudgetPeriod.daily, label: Text('Day')),
-                  ButtonSegment(
-                    value: BudgetPeriod.weekly,
-                    label: Text('Week'),
-                  ),
-                  ButtonSegment(
-                    value: BudgetPeriod.monthly,
-                    label: Text('Month'),
-                  ),
-                ],
-                selected: {_period},
-                onSelectionChanged: (s) => setState(() => _period = s.first),
-              ),
-            ],
-            const SizedBox(height: 12),
-            TextField(
-              key: const Key('budget-hours'),
-              controller: _hours,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: InputDecoration(
-                labelText: 'Hours',
-                border: const OutlineInputBorder(),
-                errorText: shown ? error : null,
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          key: const Key('budget-save'),
-          onPressed: error == null
-              ? () => Navigator.pop(
-                  context,
-                  Budget(
-                    _project.text.trim(),
-                    _window,
-                    Duration(seconds: (_hoursValue! * 3600).round()),
-                  ),
-                )
-              : null,
-          child: const Text('Save'),
-        ),
-      ],
     );
   }
 }

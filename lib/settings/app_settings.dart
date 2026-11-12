@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/file_naming.dart';
@@ -15,6 +17,7 @@ const _budgetsKey = 'budgetsEnabled';
 const _sideBarKey = 'sideBarExpanded';
 const _calendarLevelKey = 'calendarLevel';
 const _hourHeightKey = 'calendarHourHeight';
+const _dailyGoalsKey = 'dailyGoals';
 
 /// Height of one hour in the Calendar, in logical pixels: the zoom range.
 const minHourHeight = 28.0;
@@ -32,6 +35,7 @@ class AppSettings {
     this.sideBarExpanded = false,
     this.calendarLevel = 1,
     this.calendarHourHeight = defaultHourHeight,
+    this.dailyGoals = const {},
   });
 
   factory AppSettings.defaults() => AppSettings(
@@ -68,6 +72,10 @@ class AppSettings {
   /// [maxHourHeight].
   final double calendarHourHeight;
 
+  /// Time to reach every day, per project. Saved here, not in
+  /// `budget.journal`, and shown on the Track screen.
+  final Map<String, Duration> dailyGoals;
+
   FileSettings get fileSettings => FileSettings(
     split,
     fileNameTemplate,
@@ -85,6 +93,7 @@ class AppSettings {
     bool? sideBarExpanded,
     int? calendarLevel,
     double? calendarHourHeight,
+    Map<String, Duration>? dailyGoals,
   }) => AppSettings(
     split: split ?? this.split,
     projects: projects ?? this.projects,
@@ -95,6 +104,7 @@ class AppSettings {
     sideBarExpanded: sideBarExpanded ?? this.sideBarExpanded,
     calendarLevel: calendarLevel ?? this.calendarLevel,
     calendarHourHeight: calendarHourHeight ?? this.calendarHourHeight,
+    dailyGoals: dailyGoals ?? this.dailyGoals,
   );
 }
 
@@ -141,6 +151,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
       },
       calendarHourHeight: (prefs.getDouble(_hourHeightKey) ?? defaultHourHeight)
           .clamp(minHourHeight, maxHourHeight),
+      dailyGoals: _readDailyGoals(prefs.getString(_dailyGoalsKey)),
     );
   }
 
@@ -241,5 +252,39 @@ class SettingsNotifier extends Notifier<AppSettings> {
     if (value == state.calendarHourHeight) return;
     state = state.copyWith(calendarHourHeight: value);
     await ref.read(sharedPreferencesProvider).setDouble(_hourHeightKey, value);
+  }
+
+  /// Sets the daily goal of [project], in minutes of precision.
+  Future<void> setDailyGoal(String project, Duration amount) =>
+      _saveDailyGoals({...state.dailyGoals, project: amount});
+
+  Future<void> removeDailyGoal(String project) =>
+      _saveDailyGoals({...state.dailyGoals}..remove(project));
+
+  Future<void> _saveDailyGoals(Map<String, Duration> goals) async {
+    state = state.copyWith(dailyGoals: Map.unmodifiable(goals));
+    await ref
+        .read(sharedPreferencesProvider)
+        .setString(
+          _dailyGoalsKey,
+          jsonEncode({for (final e in goals.entries) e.key: e.value.inSeconds}),
+        );
+  }
+}
+
+/// Daily goals as saved: JSON of project to seconds. Anything unreadable is
+/// dropped.
+Map<String, Duration> _readDailyGoals(String? json) {
+  if (json == null) return const {};
+  try {
+    final decoded = jsonDecode(json);
+    if (decoded is! Map) return const {};
+    return Map.unmodifiable({
+      for (final e in decoded.entries)
+        if (e.key is String && e.value is int && (e.value as int) > 0)
+          e.key as String: Duration(seconds: e.value as int),
+    });
+  } on FormatException {
+    return const {};
   }
 }

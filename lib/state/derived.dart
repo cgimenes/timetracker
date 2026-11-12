@@ -149,3 +149,25 @@ final chartBucketsProvider = Provider<List<Bucket>>((ref) {
     weekStart: settings.weekStart,
   );
 });
+
+/// The daily goals of Settings with the time each project did today. Not the
+/// goals of `budget.journal`. Sorted by project.
+final dailyGoalProgressProvider = Provider<List<BudgetProgress>>((ref) {
+  final goals = ref.watch(settingsProvider.select((s) => s.dailyGoals));
+  if (goals.isEmpty) return const [];
+  final today = ref.watch(levelMetricsProvider((PeriodKind.today, 1)));
+  Duration usedBy(String project) => today.rows
+      .where((r) => r.account == project)
+      .fold(Duration.zero, (sum, r) => sum + r.duration);
+  return [
+    for (final e in goals.entries)
+      BudgetProgress(
+        Budget(
+          e.key,
+          const BudgetWindow.recurring(BudgetPeriod.daily),
+          e.value,
+        ),
+        usedBy(e.key),
+      ),
+  ]..sort((a, b) => a.project.compareTo(b.project));
+});
