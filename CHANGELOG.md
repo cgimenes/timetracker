@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.1.0...timetracker-v1.2.0) (2026-11-12)
+
+
+### Features
+
+* per project budgets stored as hledger periodic transactions ([4d62691](https://github.com/cgimenes/timetracker/commit/4d626916d5d5fcb77ac7740f8e4420c65dac574b))
+* pick date and time in one dialog ([7396c40](https://github.com/cgimenes/timetracker/commit/7396c402cee1b350a590cb26624f751583bbc193))
+* start an entry again from the entries page ([76a0e58](https://github.com/cgimenes/timetracker/commit/76a0e58c603a7e29abf651ce7e7cd5bb1bef3a0a))
+* start now or at a custom time from side by side buttons ([8f05a02](https://github.com/cgimenes/timetracker/commit/8f05a02ac2c92932b74d7429f233a5ec7a82e3d9))
+
 ## [1.1.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.0.0...timetracker-v1.1.0) (2026-11-07)
 
 
