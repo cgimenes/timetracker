@@ -103,7 +103,7 @@ class _PeriodCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final metrics = ref.watch(metricsProvider(kind));
-    final budgets = ref.watch(budgetProgressProvider(kind));
+    final budgets = ref.watch(metricsBudgetsProvider(kind));
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
@@ -171,7 +171,7 @@ class _BudgetRow extends StatelessWidget {
             children: [
               Expanded(child: Text(progress.project)),
               Text(
-                '${formatHm(progress.used)} / ${formatHm(progress.budget)}',
+                '${formatHm(progress.used)} / ${formatHm(progress.allowed)}',
                 style: style,
               ),
             ],

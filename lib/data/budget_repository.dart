@@ -49,11 +49,11 @@ class BudgetRepository {
   Future<bool> hasChanged(BudgetLoad previous) async =>
       (await _stat()) != previous.file;
 
-  Future<void> set(String project, BudgetPeriod period, Duration amount) =>
-      _update((doc) => doc.setBudget(project, period, amount));
+  Future<void> set(String project, BudgetWindow window, Duration amount) =>
+      _update((doc) => doc.setBudget(project, window, amount));
 
-  Future<void> remove(String project, BudgetPeriod period) =>
-      _update((doc) => doc.removeBudget(project, period));
+  Future<void> remove(String project, BudgetWindow window) =>
+      _update((doc) => doc.removeBudget(project, window));
 
   Future<void> _update(void Function(BudgetDocument doc) change) async {
     final old = await _storage.read(budgetFileName) ?? '';

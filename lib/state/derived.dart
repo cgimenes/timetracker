@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/budget.dart';
 import '../core/frecency.dart';
 import '../core/metrics.dart';
+import '../core/timeclock.dart';
 import '../data/timeclock_repository.dart';
 import '../settings/app_settings.dart';
 import 'budgets.dart';
@@ -46,41 +48,62 @@ final warningsProvider = Provider<List<FileWarning>>(
 
 /// How much of a budget is used.
 class BudgetProgress {
-  const BudgetProgress(this.project, this.used, this.budget);
+  const BudgetProgress(this.budget, this.used);
 
-  final String project;
+  final Budget budget;
   final Duration used;
-  final Duration budget;
 
-  bool get over => used > budget;
+  String get project => budget.project;
+  Duration get allowed => budget.amount;
+  bool get over => used > allowed;
 
   /// 0 to 1, for a progress bar.
-  double get fraction => budget == Duration.zero
+  double get fraction => allowed == Duration.zero
       ? 0
-      : (used.inSeconds / budget.inSeconds).clamp(0, 1);
+      : (used.inSeconds / allowed.inSeconds).clamp(0, 1);
 }
 
-/// Budgets of the period of [kind], with the time used so far by each project.
-/// Independent of the Metrics level: a budget is always for a project.
-final budgetProgressProvider =
+/// Every budget with the time its project used inside the budget's window. A
+/// recurring budget is measured against the current day, week or month.
+final budgetProgressProvider = Provider<List<BudgetProgress>>((ref) {
+  if (!ref.watch(settingsProvider.select((s) => s.budgetsEnabled))) {
+    return const [];
+  }
+  final budgets = ref.watch(budgetsProvider).value?.budgets ?? const [];
+  if (budgets.isEmpty) return const [];
+  final now = nowOf(ref);
+  final weekStart = ref.watch(settingsProvider.select((s) => s.weekStart));
+  final entries = _entries(ref).map((e) => e.entry).toList();
+
+  return [
+    for (final b in budgets)
+      BudgetProgress(b, _usedBy(entries, b, now, weekStart)),
+  ];
+});
+
+Duration _usedBy(
+  List<Entry> entries,
+  Budget b,
+  DateTime now,
+  WeekStart weekStart,
+) {
+  final w = b.window;
+  final range = w.recurring
+      ? periodRange(w.period.kind, now, weekStart: weekStart)
+      : DateRange(w.from!, w.to!);
+  final metrics = computeMetrics(entries, range, level: 1, now: now);
+  return metrics.rows
+      .where((r) => r.account == b.project)
+      .fold(Duration.zero, (sum, r) => sum + r.duration);
+}
+
+/// Budgets that apply now to the period of [kind], for the Metrics cards: the
+/// recurring ones, and the one for the current day, week or month.
+final metricsBudgetsProvider =
     Provider.family<List<BudgetProgress>, PeriodKind>((ref, kind) {
-      final budgets = (ref.watch(budgetsProvider).value?.budgets ?? const [])
-          .where((b) => b.period.kind == kind)
-          .toList();
-      if (budgets.isEmpty) return const [];
       final now = nowOf(ref);
-      final settings = ref.watch(settingsProvider);
-      final used = computeMetrics(
-        _entries(ref).map((e) => e.entry),
-        periodRange(kind, now, weekStart: settings.weekStart),
-        level: 1,
-        now: now,
-      );
-      Duration usedBy(String project) => used.rows
-          .where((r) => r.account == project)
-          .fold(Duration.zero, (sum, r) => sum + r.duration);
       return [
-        for (final b in budgets)
-          BudgetProgress(b.project, usedBy(b.project), b.amount),
+        for (final p in ref.watch(budgetProgressProvider))
+          if (p.budget.period.kind == kind && p.budget.window.contains(now)) p,
       ]..sort((a, b) => a.project.compareTo(b.project));
     });

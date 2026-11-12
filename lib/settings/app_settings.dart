@@ -11,6 +11,7 @@ const _projectSplitKey = 'projectSplit';
 const _templateKey = 'fileNameTemplate';
 const _levelKey = 'metricsLevel';
 const _weekStartKey = 'weekStart';
+const _budgetsKey = 'budgetsEnabled';
 
 class AppSettings {
   const AppSettings({
@@ -19,6 +20,7 @@ class AppSettings {
     required this.fileNameTemplate,
     required this.metricsLevel,
     required this.weekStart,
+    this.budgetsEnabled = false,
   });
 
   factory AppSettings.defaults() => AppSettings(
@@ -42,6 +44,9 @@ class AppSettings {
   final int metricsLevel;
   final WeekStart weekStart;
 
+  /// Shows the Budgets tab and the budgets in Metrics.
+  final bool budgetsEnabled;
+
   FileSettings get fileSettings => FileSettings(
     split,
     fileNameTemplate,
@@ -55,12 +60,14 @@ class AppSettings {
     String? fileNameTemplate,
     int? metricsLevel,
     WeekStart? weekStart,
+    bool? budgetsEnabled,
   }) => AppSettings(
     split: split ?? this.split,
     projects: projects ?? this.projects,
     fileNameTemplate: fileNameTemplate ?? this.fileNameTemplate,
     metricsLevel: metricsLevel ?? this.metricsLevel,
     weekStart: weekStart ?? this.weekStart,
+    budgetsEnabled: budgetsEnabled ?? this.budgetsEnabled,
   );
 }
 
@@ -98,6 +105,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
       weekStart:
           WeekStart.values.asNameMap()[prefs.getString(_weekStartKey)] ??
           defaults.weekStart,
+      budgetsEnabled: prefs.getBool(_budgetsKey) ?? false,
     );
   }
 
@@ -173,5 +181,10 @@ class SettingsNotifier extends Notifier<AppSettings> {
         .read(sharedPreferencesProvider)
         .setString(_weekStartKey, weekStart.name);
     state = state.copyWith(weekStart: weekStart);
+  }
+
+  Future<void> setBudgetsEnabled(bool enabled) async {
+    await ref.read(sharedPreferencesProvider).setBool(_budgetsKey, enabled);
+    state = state.copyWith(budgetsEnabled: enabled);
   }
 }

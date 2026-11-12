@@ -17,9 +17,9 @@ The full behavior is in [spec.md](spec.md).
   remove.
 - **Metrics:** time per account for today, this week and this month, grouped
   at the account depth you choose.
-- **Budgets:** hours per project for a day, week or month, kept in
-  `budget.journal` so `hledger bal --budget` reads them too. Progress shows in
-  Metrics.
+- **Budgets:** optional tab. Hours per project for each day, week or month the
+  files are split in, kept in `budget.journal` so `hledger bal --budget` reads
+  them too. Progress shows in Metrics.
 - **Settings:** the folder, how files are split (by day, week or month, and
   optionally by project, in the file name or in folders) and the week start day.
 
@@ -37,7 +37,7 @@ and blank lines are kept exactly as they are when it rewrites a file.
 Budgets live next to them in `budget.journal`:
 
 ```
-~ monthly
+~ monthly from 2026-10-01 to 2026-11-01
     (work)    40h
 ```
 

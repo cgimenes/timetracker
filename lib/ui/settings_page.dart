@@ -6,7 +6,6 @@ import '../core/metrics.dart';
 import '../data/providers.dart';
 import '../settings/app_settings.dart';
 import '../state/clock.dart';
-import 'budgets_section.dart';
 import 'folder_name.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -178,10 +177,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 onSelectionChanged: (s) => notifier.setWeekStart(s.first),
               ),
             ),
-            if (treeUri != null) ...[
-              const Divider(height: 32),
-              const BudgetsSection(),
-            ],
+            const Divider(height: 32),
+            const _SectionTitle('Budgets'),
+            SwitchListTile(
+              key: const Key('budgets-enabled'),
+              title: const Text('Budgets'),
+              subtitle: const Text(
+                'Adds a Budgets tab to set hours per project for each period '
+                'the files are split in, and shows them in Metrics.',
+              ),
+              value: settings.budgetsEnabled,
+              onChanged: notifier.setBudgetsEnabled,
+            ),
           ],
         ),
       ),

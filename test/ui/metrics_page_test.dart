@@ -33,6 +33,7 @@ void metricsTest(
   body, {
   Map<String, String> files = const {'2026-10.timeclock': _data},
   bool withFolder = true,
+  Map<String, Object> prefs = const {'budgetsEnabled': true},
 }) {
   testWidgets(name, (tester) async {
     tester.view.physicalSize = const Size(800, 2400);
@@ -40,7 +41,7 @@ void metricsTest(
     addTearDown(tester.view.reset);
 
     final storage = MemoryStorage(files);
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues(prefs);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -196,5 +197,37 @@ void main() {
     ) async {
       expect(find.text('Budgets'), findsNothing);
     });
+
+    metricsTest(
+      'a dated budget counts only its own window, other months are ignored',
+      (tester, container, storage) async {
+        // October window: all of the month's work, 3:30.
+        final monthly = find.byKey(const Key('budget-month-work'));
+        expect(
+          find.descendant(of: monthly, matching: find.text('3:30 / 20:00')),
+          findsOneWidget,
+        );
+        // A September budget is not for this month.
+        expect(find.text('0:00 / 99:00'), findsNothing);
+      },
+      files: const {
+        '2026-10.timeclock': _data,
+        'budget.journal':
+            '~ monthly from 2026-10-01 to 2026-11-01\n    (work)    20h\n\n'
+            '~ monthly from 2026-09-01 to 2026-10-01\n    (work)    99h\n',
+      },
+    );
+
+    metricsTest(
+      'budgets are hidden until enabled in Settings',
+      (tester, container, storage) async {
+        expect(find.text('Budgets'), findsNothing);
+      },
+      files: const {
+        '2026-10.timeclock': _data,
+        'budget.journal': '~ monthly\n    (work)    40h\n',
+      },
+      prefs: const {},
+    );
   });
 }

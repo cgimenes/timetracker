@@ -88,7 +88,7 @@ String fileNameFor(
   String template, {
   String? project,
 }) {
-  final iso = _isoWeek(date);
+  final iso = isoWeek(date);
   final year = template.contains('{ww}') ? iso.year : date.year;
   String p(int n, [int w = 2]) => n.toString().padLeft(w, '0');
   return template
@@ -106,7 +106,8 @@ String safeFileNamePart(String text) => text
     .replaceFirst(RegExp(r'^\.+'), '_')
     .trim();
 
-({int year, int week}) _isoWeek(DateTime date) {
+/// ISO 8601 week of [date]; the year can differ from the calendar year.
+({int year, int week}) isoWeek(DateTime date) {
   // The Thursday of the same week decides the ISO year. UTC avoids DST gaps.
   final thursday = DateTime.utc(
     date.year,

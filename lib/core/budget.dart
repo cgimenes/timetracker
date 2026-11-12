@@ -1,4 +1,5 @@
 import 'account.dart';
+import 'file_naming.dart';
 import 'metrics.dart';
 
 /// Period of a budget. Maps to the hledger periodic transaction keyword and
@@ -12,26 +13,136 @@ enum BudgetPeriod {
   final PeriodKind kind;
 }
 
-/// Time allowed for one project (first account level) in one period.
+String _ymd(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-'
+    '${d.month.toString().padLeft(2, '0')}-'
+    '${d.day.toString().padLeft(2, '0')}';
+
+/// Where a budget applies: every [period] (recurring), or one day, week or
+/// month, `[from, to)`, matching a slice of the files.
+///
+/// Written as the hledger rule header: `~ monthly` or
+/// `~ monthly from 2026-10-01 to 2026-11-01`.
+class BudgetWindow {
+  const BudgetWindow(this.period, {this.from, this.to})
+    : assert((from == null) == (to == null));
+
+  /// Every day, week or month.
+  const BudgetWindow.recurring(this.period) : from = null, to = null;
+
+  /// The slice of [split] that holds [date]. Null when files are not split.
+  static BudgetWindow? of(DateTime date, SplitMethod split) {
+    final day = DateTime(date.year, date.month, date.day);
+    switch (split) {
+      case SplitMethod.none:
+        return null;
+      case SplitMethod.day:
+        return BudgetWindow(
+          BudgetPeriod.daily,
+          from: day,
+          to: DateTime(day.year, day.month, day.day + 1),
+        );
+      case SplitMethod.week:
+        final monday = DateTime(
+          day.year,
+          day.month,
+          day.day - (day.weekday - 1),
+        );
+        return BudgetWindow(
+          BudgetPeriod.weekly,
+          from: monday,
+          to: DateTime(monday.year, monday.month, monday.day + 7),
+        );
+      case SplitMethod.month:
+        return BudgetWindow(
+          BudgetPeriod.monthly,
+          from: DateTime(day.year, day.month),
+          to: DateTime(day.year, day.month + 1),
+        );
+    }
+  }
+
+  final BudgetPeriod period;
+  final DateTime? from;
+
+  /// Exclusive.
+  final DateTime? to;
+
+  bool get recurring => from == null;
+
+  bool contains(DateTime t) =>
+      recurring || (!t.isBefore(from!) && t.isBefore(to!));
+
+  /// The hledger header line.
+  String get header => recurring
+      ? '~ ${period.name}'
+      : '~ ${period.name} from ${_ymd(from!)} to ${_ymd(to!)}';
+
+  /// Short name for lists: `2026-W44`, `2026-10`, `2026-10-30`, or the dates
+  /// when the window is not one of those.
+  String get label {
+    if (recurring) {
+      return switch (period) {
+        BudgetPeriod.daily => 'Every day',
+        BudgetPeriod.weekly => 'Every week',
+        BudgetPeriod.monthly => 'Every month',
+      };
+    }
+    final f = from!;
+    final t = to!;
+    switch (period) {
+      case BudgetPeriod.daily:
+        if (t == DateTime(f.year, f.month, f.day + 1)) return _ymd(f);
+      case BudgetPeriod.weekly:
+        if (f.weekday == DateTime.monday &&
+            t == DateTime(f.year, f.month, f.day + 7)) {
+          final w = isoWeek(f);
+          return '${w.year}-W${w.week.toString().padLeft(2, '0')}';
+        }
+      case BudgetPeriod.monthly:
+        if (f.day == 1 && t == DateTime(f.year, f.month + 1)) {
+          return _ymd(f).substring(0, 7);
+        }
+    }
+    return '${_ymd(f)} to ${_ymd(t)}';
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is BudgetWindow &&
+      other.period == period &&
+      other.from == from &&
+      other.to == to;
+
+  @override
+  int get hashCode => Object.hash(period, from, to);
+
+  @override
+  String toString() => header;
+}
+
+/// Time allowed for one project (first account level) in a [window].
 class Budget {
-  const Budget(this.project, this.period, this.amount);
+  const Budget(this.project, this.window, this.amount);
 
   final String project;
-  final BudgetPeriod period;
+  final BudgetWindow window;
   final Duration amount;
+
+  BudgetPeriod get period => window.period;
 
   @override
   bool operator ==(Object other) =>
       other is Budget &&
       other.project == project &&
-      other.period == period &&
+      other.window == window &&
       other.amount == amount;
 
   @override
-  int get hashCode => Object.hash(project, period, amount);
+  int get hashCode => Object.hash(project, window, amount);
 
   @override
-  String toString() => '$project $period ${formatHours(amount)}h';
+  String toString() => '$project $window ${formatHours(amount)}h';
 }
 
 /// `40`, `1.5` or `0.25`: hours with at most two decimals, no trailing zeros.
@@ -66,51 +177,65 @@ class BudgetWarning {
 }
 
 final _header = RegExp(
-  r'^~\s+(daily|weekly|monthly)\s*$',
+  r'^~\s+(daily|weekly|monthly)'
+  r'(?:\s+from\s+(\d{4}-\d{2}-\d{2})\s+to\s+(\d{4}-\d{2}-\d{2}))?\s*$',
   caseSensitive: false,
 );
 final _posting = RegExp(r'^\s+\(([^()]+)\)\s{2,}(\d+(?:\.\d+)?)\s*h\s*$');
 
+DateTime _date(String s) {
+  final p = s.split('-').map(int.parse).toList();
+  return DateTime(p[0], p[1], p[2]);
+}
+
 class _Posting {
   _Posting(this.line, this.budget);
-  int line;
+  final int line;
   final Budget budget;
 }
 
 /// The text of `budget.journal`: hledger periodic transactions such as
 ///
-///     ~ monthly
+///     ~ monthly from 2026-10-01 to 2026-11-01
 ///         (work)    40h
 ///
-/// Only `~ daily|weekly|monthly` blocks with `(project)  Nh` postings are
-/// understood. Every other line is kept exactly as it is.
+/// A block without dates applies every day, week or month. Only
+/// `~ daily|weekly|monthly` blocks (with optional `from` and `to` dates)
+/// holding `(project)  Nh` postings are understood. Every other line is kept
+/// exactly as it is.
 class BudgetDocument {
   BudgetDocument._(this._lines);
 
   factory BudgetDocument.parse(String text) =>
       BudgetDocument._(text.isEmpty ? <String>[] : text.split('\n'));
 
-  /// Lines without the empty piece after a final newline.
+  /// Lines, with an empty last piece after a final newline.
   final List<String> _lines;
 
-  List<_Posting> _postings() => _scan().$1;
+  bool _indented(String line) => line.startsWith(' ') || line.startsWith('\t');
 
-  /// Postings plus the header line index of each period block (last wins).
-  (List<_Posting>, Map<BudgetPeriod, int>, List<BudgetWarning>) _scan() {
+  /// Postings, the header line of each block (last one wins), and warnings.
+  (List<_Posting>, Map<BudgetWindow, int>, List<BudgetWarning>) _scan() {
     final postings = <_Posting>[];
-    final headers = <BudgetPeriod, int>{};
+    final headers = <BudgetWindow, int>{};
     final warnings = <BudgetWarning>[];
-    BudgetPeriod? current;
+    BudgetWindow? current;
     for (var i = 0; i < _lines.length; i++) {
       final line = _lines[i];
       final h = _header.firstMatch(line);
       if (h != null) {
-        current = BudgetPeriod.values.byName(h.group(1)!.toLowerCase());
+        final period = BudgetPeriod.values.byName(h.group(1)!.toLowerCase());
+        current = h.group(2) == null
+            ? BudgetWindow.recurring(period)
+            : BudgetWindow(
+                period,
+                from: _date(h.group(2)!),
+                to: _date(h.group(3)!),
+              );
         headers[current] = i;
         continue;
       }
-      final indented = line.startsWith(' ') || line.startsWith('\t');
-      if (!indented || line.trim().isEmpty) {
+      if (!_indented(line) || line.trim().isEmpty) {
         current = null;
         continue;
       }
@@ -134,28 +259,28 @@ class BudgetDocument {
     return (postings, headers, warnings);
   }
 
-  List<Budget> get budgets => [for (final p in _postings()) p.budget];
+  List<Budget> get budgets => [for (final p in _scan().$1) p.budget];
 
   List<BudgetWarning> get warnings => _scan().$3;
 
   String _line(String project, Duration amount) =>
       '    ($project)    ${formatHours(amount)}h';
 
-  /// Sets the budget of [project] for [period], replacing the old amount.
-  void setBudget(String project, BudgetPeriod period, Duration amount) {
+  /// Sets the budget of [project] in [window], replacing the old amount.
+  void setBudget(String project, BudgetWindow window, Duration amount) {
     final (postings, headers, _) = _scan();
     for (final p in postings) {
-      if (p.budget.project == project && p.budget.period == period) {
+      if (p.budget.project == project && p.budget.window == window) {
         _lines[p.line] = _line(project, amount);
         return;
       }
     }
-    final header = headers[period];
+    final header = headers[window];
     if (header != null) {
       var at = header;
       while (at + 1 < _lines.length &&
           _lines[at + 1].trim().isNotEmpty &&
-          (_lines[at + 1].startsWith(' ') || _lines[at + 1].startsWith('\t'))) {
+          _indented(_lines[at + 1])) {
         at++;
       }
       _lines.insert(at + 1, _line(project, amount));
@@ -164,25 +289,25 @@ class BudgetDocument {
     if (_lines.isNotEmpty && _lines.last.isEmpty) _lines.removeLast();
     if (_lines.isNotEmpty) _lines.add('');
     _lines
-      ..add('~ ${period.name}')
+      ..add(window.header)
       ..add(_line(project, amount));
   }
 
   /// Removes the budget; its block goes too when nothing else is in it.
-  void removeBudget(String project, BudgetPeriod period) {
+  void removeBudget(String project, BudgetWindow window) {
     final (postings, headers, _) = _scan();
     final match = postings.where(
-      (p) => p.budget.project == project && p.budget.period == period,
+      (p) => p.budget.project == project && p.budget.window == window,
     );
     if (match.isEmpty) return;
-    _lines.removeAt(match.first.line);
-    final header = headers[period]!;
+    final at = match.first.line;
+    _lines.removeAt(at);
+    final header = headers[window]!;
     final empty =
         header + 1 >= _lines.length ||
-        !(_lines[header + 1].startsWith(' ') ||
-            _lines[header + 1].startsWith('\t')) ||
+        !_indented(_lines[header + 1]) ||
         _lines[header + 1].trim().isEmpty;
-    if (empty && header < match.first.line) {
+    if (empty && header < at) {
       _lines.removeAt(header);
       if (header < _lines.length && _lines[header].isEmpty) {
         _lines.removeAt(header);

@@ -51,7 +51,7 @@ Rules:
 
 ## UI
 
-Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bottom bar names the screen. Only the Edit entry page, which is pushed over the tabs, has a header (it holds Save).
+Bottom tabs: Track, Entries, Metrics, Budgets (only when enabled), Settings. Tabs have no top header; the bottom bar names the screen. Only the Edit entry page, which is pushed over the tabs, has a header (it holds Save).
 
 ### Track
 
@@ -76,19 +76,23 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 
 ### Budgets
 
-- A budget is the time allowed for one project (first account level) in a period: daily, weekly or monthly. One budget per project and period.
-- Stored in `budget.journal`, in the same folder, as hledger periodic transactions:
+Off by default. The Budgets switch in Settings adds a Budgets tab (between Metrics and Settings) and shows budgets in Metrics.
 
-      ~ monthly
+- A budget is the time allowed for one project (first account level) in one day, week or month. Budgets follow the file split: with month files the tab holds monthly budgets, with week files weekly ones, with day files daily ones.
+- Stored in `budget.journal`, in the same folder, as hledger periodic transactions bounded to their period (`to` is exclusive):
+
+      ~ monthly from 2026-10-01 to 2026-11-01
           (work)    40h
 
-      ~ weekly
-          (personal)    5h
+      ~ weekly from 2026-10-26 to 2026-11-02
+          (work)    10h
 
-  hledger reads it with `hledger -f budget.journal -f '*.timeclock' bal --budget`. Weeks start on Monday in hledger; the Metrics week start setting does not change that.
-- The app only understands `~ daily|weekly|monthly` blocks with `(project)  Nh` postings (N up to 2 decimals). Every other line is kept untouched when the app rewrites the file. Budgets for sub-accounts are left alone.
-- Edited in Settings: add, edit, remove. External edits are picked up on resume or pull to refresh.
-- Metrics: each period card lists the budgets of that period under "Budgets", with used / allowed time and a progress bar; over budget turns red. Independent of the Metrics level. Today uses daily budgets, This week weekly, This month monthly.
+  hledger reads it with `hledger -f budget.journal -f '*.timeclock' bal --budget`. hledger weeks start on Monday, like the ISO weeks of the files, whatever the Metrics week start setting says.
+- Blocks without dates (`~ monthly`) repeat every day, week or month. They are shown in "Every day / week / month" cards. With Split None there is no period to follow, so budgets are only these repeating ones, and the period is chosen per budget.
+- The app only understands `~ daily|weekly|monthly [from D to D]` blocks with `(project)  Nh` postings (N up to 2 decimals). Every other line is kept untouched when the app rewrites the file. Budgets for sub-accounts are left alone. The file is not a timeclock file, so the app never reads it as entries.
+- Budgets tab: one card per window, newest first, plus the current one even when empty. Each card lists its budgets with used / allowed time and a progress bar (red when over). Tap a budget to edit it, use the trash icon to remove it, and "Add budget" to add one to that window. "Budgets for another period" picks a date and adds to the slice that holds it. This tab is the only place budgets are configured.
+- Used time is what the project tracked inside the window (running entries count up to now). A repeating budget is measured against the current day, week or month.
+- Metrics: each period card lists the budgets that apply now (the repeating ones and the one for the current slice) under "Budgets". External edits are picked up on resume or pull to refresh.
 
 ### Notification
 
@@ -116,7 +120,7 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 - Projects: together | file name | folders.
 - Filename format (template, live preview of example filename).
 - Week start day: Monday (default) | Sunday (used by the Metrics week).
-- Budgets: list with add, edit and remove (only when a folder is chosen).
+- Budgets: on | off (adds the Budgets tab).
 
 ## Edge cases
 

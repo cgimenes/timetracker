@@ -4,6 +4,9 @@ import 'package:timetracker/data/budget_repository.dart';
 
 import '../support/memory_storage.dart';
 
+const _daily = BudgetWindow.recurring(BudgetPeriod.daily);
+const _monthly = BudgetWindow.recurring(BudgetPeriod.monthly);
+
 void main() {
   late MemoryStorage storage;
   late BudgetRepository repo;
@@ -20,24 +23,22 @@ void main() {
   });
 
   test('set creates the file and load reads it back', () async {
-    await repo.set('work', BudgetPeriod.monthly, const Duration(hours: 40));
+    await repo.set('work', _monthly, const Duration(hours: 40));
     expect(storage.text(budgetFileName), '~ monthly\n    (work)    40h\n');
     final load = await repo.load();
-    expect(load.budgets, [
-      const Budget('work', BudgetPeriod.monthly, Duration(hours: 40)),
-    ]);
+    expect(load.budgets, [const Budget('work', _monthly, Duration(hours: 40))]);
   });
 
   test('keeps lines it does not understand', () async {
     const text = '; mine\n2026-01-01 tx\n    a  1\n    b\n';
     storage.externalWrite(budgetFileName, text);
-    await repo.set('work', BudgetPeriod.daily, const Duration(hours: 8));
+    await repo.set('work', _daily, const Duration(hours: 8));
     expect(storage.text(budgetFileName), '$text\n~ daily\n    (work)    8h\n');
   });
 
   test('remove deletes the budget', () async {
-    await repo.set('work', BudgetPeriod.monthly, const Duration(hours: 40));
-    await repo.remove('work', BudgetPeriod.monthly);
+    await repo.set('work', _monthly, const Duration(hours: 40));
+    await repo.remove('work', _monthly);
     expect((await repo.load()).budgets, isEmpty);
   });
 
