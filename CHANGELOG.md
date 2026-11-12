@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.11.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.10.0...timetracker-v1.11.0) (2026-11-12)
+
+
+### Features
+
+* remove goals for another period ([156cd7e](https://github.com/cgimenes/timetracker/commit/156cd7ee6d073c3cbb9463cd982d8ec4483c929e))
+* remove the legend from the calendar ([1b47d8b](https://github.com/cgimenes/timetracker/commit/1b47d8b059732c19ab557ce22c8dd7555b6b13fc))
+
 ## [1.10.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.9.0...timetracker-v1.10.0) (2026-11-12)
 
 
