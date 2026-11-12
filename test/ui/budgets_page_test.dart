@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/data/providers.dart';
+import 'package:timetracker/settings/app_settings.dart';
 import 'package:timetracker/state/clock.dart';
 import 'package:timetracker/ui/budgets/budgets_page.dart';
 import 'package:timetracker/ui/home_shell.dart';
@@ -57,6 +58,9 @@ void budgetsTest(
     }
   });
 }
+
+ProviderContainer containerOf(WidgetTester tester) =>
+    ProviderScope.containerOf(tester.element(find.byType(BudgetsPage)));
 
 void main() {
   group('BudgetsPage (split by month)', () {
@@ -282,6 +286,140 @@ void main() {
       expect(storage.text('budget.journal'), '~ weekly\n    (work)    10h\n');
       expect(find.byKey(const Key('window-Every week')), findsOneWidget);
     }, prefs: const {'split': 'none'});
+  });
+
+  group('daily goals (in the Goals screen)', () {
+    Future<void> addGoal(
+      WidgetTester tester,
+      String project,
+      String hours,
+    ) async {
+      await tester.ensureVisible(find.byKey(const Key('add-daily-goal')));
+      await tester.tap(find.byKey(const Key('add-daily-goal')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('budget-project')), project);
+      await tester.enterText(find.byKey(const Key('budget-hours')), hours);
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('budget-save')));
+      await tester.pumpAndSettle();
+    }
+
+    budgetsTest('starts empty', (tester, storage) async {
+      final c = containerOf(tester);
+      await tester.ensureVisible(find.byKey(const Key('add-daily-goal')));
+      expect(find.text('No daily goals'), findsOneWidget);
+      expect(c.read(settingsProvider).dailyGoals, isEmpty);
+    });
+
+    budgetsTest('add saves the goal in the settings', (tester, storage) async {
+      final c = containerOf(tester);
+      await addGoal(tester, 'work', '8');
+      expect(c.read(settingsProvider).dailyGoals, {
+        'work': const Duration(hours: 8),
+      });
+      expect(find.text('8h a day'), findsOneWidget);
+      expect(find.text('No daily goals'), findsNothing);
+      // Kept in the app preferences, as JSON of seconds.
+      expect(
+        c.read(sharedPreferencesProvider).getString('dailyGoals'),
+        '{"work":28800}',
+      );
+    });
+
+    budgetsTest('the dialog does not ask for a period', (
+      tester,
+      storage,
+    ) async {
+      await tester.ensureVisible(find.byKey(const Key('add-daily-goal')));
+      await tester.tap(find.byKey(const Key('add-daily-goal')));
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Add daily goal'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('budget-period')), findsNothing);
+    });
+
+    budgetsTest('goals are per project', (tester, storage) async {
+      final c = containerOf(tester);
+      await addGoal(tester, 'work', '6');
+      await addGoal(tester, 'personal', '1.5');
+      expect(c.read(settingsProvider).dailyGoals, {
+        'work': const Duration(hours: 6),
+        'personal': const Duration(hours: 1, minutes: 30),
+      });
+      expect(find.byKey(const Key('daily-goal-work')), findsOneWidget);
+      expect(find.byKey(const Key('daily-goal-personal')), findsOneWidget);
+    });
+
+    budgetsTest('edit changes the hours, remove asks first', (
+      tester,
+      storage,
+    ) async {
+      final c = containerOf(tester);
+      await tester.ensureVisible(find.byKey(const Key('daily-goal-work')));
+      await tester.tap(find.byKey(const Key('daily-goal-work')));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit daily goal'), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('budget-hours')), '7.5');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('budget-save')));
+      await tester.pumpAndSettle();
+      expect(c.read(settingsProvider).dailyGoals, {
+        'work': const Duration(hours: 7, minutes: 30),
+      });
+
+      await tester.tap(find.byKey(const Key('daily-goal-remove-work')));
+      await tester.pumpAndSettle();
+      expect(find.text('Remove daily goal?'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(c.read(settingsProvider).dailyGoals, isNotEmpty);
+
+      await tester.tap(find.byKey(const Key('daily-goal-remove-work')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('daily-goal-remove-confirm')));
+      await tester.pumpAndSettle();
+      expect(c.read(settingsProvider).dailyGoals, isEmpty);
+      expect(c.read(sharedPreferencesProvider).getString('dailyGoals'), '{}');
+    }, prefs: const {'dailyGoals': '{"work":28800}'});
+
+    budgetsTest('a bad project or hours cannot be saved', (
+      tester,
+      storage,
+    ) async {
+      await tester.ensureVisible(find.byKey(const Key('add-daily-goal')));
+      await tester.tap(find.byKey(const Key('add-daily-goal')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('budget-project')), 'a:b');
+      await tester.enterText(find.byKey(const Key('budget-hours')), '2');
+      await tester.pump();
+      expect(
+        tester
+            .widget<FilledButton>(find.byKey(const Key('budget-save')))
+            .onPressed,
+        isNull,
+      );
+    });
+
+    budgetsTest(
+      'saved goals are read back, junk is ignored',
+      (tester, storage) async {
+        final c = containerOf(tester);
+        expect(c.read(settingsProvider).dailyGoals, {
+          'work': const Duration(hours: 2),
+        });
+      },
+      prefs: const {'dailyGoals': '{"work":7200,"bad":"x","zero":0,"neg":-5}'},
+    );
+
+    budgetsTest('unreadable saved goals mean none', (tester, storage) async {
+      final c = containerOf(tester);
+      expect(c.read(settingsProvider).dailyGoals, isEmpty);
+    }, prefs: const {'dailyGoals': 'not json'});
   });
 
   group('Goals tab', () {

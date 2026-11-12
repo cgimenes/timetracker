@@ -14,6 +14,7 @@ import '../../state/clock.dart';
 import '../../state/derived.dart';
 import '../../state/entries.dart';
 import '../choose_folder.dart';
+import '../daily_goals_section.dart';
 import '../format.dart';
 import '../goal_dialog.dart';
 import '../palette.dart';
@@ -73,6 +74,13 @@ class _Groups extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: [
+        const Card(
+          margin: EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: DailyGoalsSection(),
+          ),
+        ),
         if (load.hasError && !load.hasValue)
           Padding(
             padding: const EdgeInsets.all(16),

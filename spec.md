@@ -118,7 +118,8 @@ The Goals screen is always in the side bar (between Metrics and Settings), and g
   hledger reads it with `hledger -f budget.journal -f '*.timeclock' bal --budget`. hledger weeks start on Monday, like the ISO weeks of the files, whatever the Metrics week start setting says.
 - Blocks without dates (`~ monthly`) repeat every day, week or month. They are shown in "Every day / week / month" cards. With Split None there is no period to follow, so goals are only these repeating ones, and the period is chosen per goal.
 - The app only understands `~ daily|weekly|monthly [from D to D]` blocks with `(project)  Nh` postings (N up to 2 decimals). Every other line is kept untouched when the app rewrites the file. Goals for sub-accounts are left alone. The file is not a timeclock file, so the app never reads it as entries.
-- Goals screen: one card per window, newest first, plus the current one even when empty. Each card lists its goals with used / allowed time and a progress bar (yellow, or green when achieved). Tap a goal to edit it, use the trash icon to remove it (after a confirmation), and "Add goal" to add one to that window. "Goals for another period" picks a date and adds to the slice that holds it. This screen is the only place goals are configured.
+- Daily goals: the first card of the Goals screen, "Daily goals". Hours to reach every day, one per project: add, edit, or remove (after a confirmation). Kept in the app preferences, never written to `budget.journal`, and shown on the Track screen.
+- Goals screen: below it, one card per window, newest first, plus the current one even when empty. Each card lists its goals with used / allowed time and a progress bar (yellow, or green when achieved). Tap a goal to edit it, use the trash icon to remove it (after a confirmation), and "Add goal" to add one to that window. "Goals for another period" picks a date and adds to the slice that holds it. This screen is the only place goals are configured.
 - Used time is what the project tracked inside the window (running entries count up to now). A repeating goal is measured against the current day, week or month.
 - Metrics: each period card lists the goals that apply now (the repeating ones and the one for the current slice) under "Goals", with the same colors. External edits are picked up on resume or pull to refresh.
 
@@ -148,7 +149,6 @@ The Goals screen is always in the side bar (between Metrics and Settings), and g
 - Projects: together | file name | folders.
 - Filename format (template, live preview of example filename).
 - Week start day: Monday (default) | Sunday (used by the Metrics week).
-- Daily goals: hours to reach every day, per project (add, edit, remove with a confirmation). Kept in the app preferences, never written to `budget.journal`. Shown in the Today section of Track.
 - App version (`v1.3.0`), small and centered, at the end of the list. Read from the installed app with `package_info_plus`.
 
 ## Edge cases

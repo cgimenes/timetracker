@@ -142,7 +142,7 @@ void main() {
       );
     });
 
-    alignTest('Settings: daily goal delete button', const SettingsPage(), (
+    alignTest('Goals: daily goal delete button', const BudgetsPage(), (
       tester,
     ) async {
       final tile = find.byKey(const Key('daily-goal-work'));
