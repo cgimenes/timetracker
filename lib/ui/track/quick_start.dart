@@ -5,11 +5,11 @@ import '../../state/clock.dart';
 import '../../state/derived.dart';
 import '../ui_actions.dart';
 
-/// How many accounts get a button.
+/// How many accounts are listed.
 const quickStartCount = 3;
 
-/// One button per frequently used account (the top [quickStartCount] by
-/// frecency) that starts it now.
+/// A "Quick start" section listing the most used accounts (the top
+/// [quickStartCount] by frecency), each with a play button that starts it now.
 class QuickStart extends ConsumerWidget {
   const QuickStart({super.key});
 
@@ -21,20 +21,38 @@ class QuickStart extends ConsumerWidget {
         .toList();
     if (accounts.isEmpty) return const SizedBox.shrink();
 
-    return Wrap(
+    return Card(
       key: const Key('quick-start'),
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final account in accounts)
-          FilledButton.tonalIcon(
-            key: Key('quick-$account'),
-            icon: const Icon(Icons.play_arrow),
-            label: Text(account),
-            onPressed: () =>
-                startEntry(context, ref, account, ref.read(clockProvider)()),
-          ),
-      ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Text(
+                'Quick start',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            for (final account in accounts)
+              ListTile(
+                title: Text(account),
+                trailing: IconButton.filledTonal(
+                  key: Key('quick-$account'),
+                  tooltip: 'Start now',
+                  icon: const Icon(Icons.play_arrow),
+                  onPressed: () => startEntry(
+                    context,
+                    ref,
+                    account,
+                    ref.read(clockProvider)(),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

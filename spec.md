@@ -66,7 +66,7 @@ Screens: Track, Entries, Calendar, Metrics, Goals (only when enabled), Settings.
      - Start at...: one dialog asks date and time (calendar plus hour and minute), and OK starts the entry at that time. A time in the future is refused.
    - Every date and time is asked in that one dialog (also Stop at... and Edit entry), never a date step followed by a time step.
    - No comment field. Comments already present in a file are kept when the app rewrites it, and shown on running entries.
-   - Quick start: under the form, one button per account among the three with the best frecency. Tapping one starts it now (the duplicate warning applies). Hidden when there is no history.
+   - Quick start: a section named "Quick start" under the form, listing the three accounts with the best frecency, one per row. Each row has a play button at its right end that starts that account now (the duplicate warning applies). Hidden when there is no history.
 2. Running section
    - List of running entries: account, start, live elapsed time.
    - Each has Stop button (clock-out at now) and a menu: Stop at... (custom time), Edit (the Edit entry page) and Cancel entry (after a confirmation, removes the entry and records no time).

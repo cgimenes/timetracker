@@ -103,8 +103,13 @@ void main() {
     ) async {
       await tester.enterText(find.byKey(const Key('account')), 'dev');
       await tester.pumpAndSettle();
-      // The suggestion list is the only place the account is listed.
-      final tiles = find.widgetWithText(ListTile, 'work:acme:dev');
+      // The suggestion list (dense tiles); Quick start lists it too.
+      final tiles = find.byWidgetPredicate(
+        (w) =>
+            w is ListTile &&
+            w.dense == true &&
+            (w.title as Text).data == 'work:acme:dev',
+      );
       expect(tiles, findsOneWidget);
 
       await tester.tap(tiles);
@@ -337,15 +342,19 @@ void main() {
     });
 
     trackTest(
-      'quick start buttons: the three most frecent accounts',
+      'quick start lists the three most frecent accounts',
       (tester, storage) async {
         final quick = find.byKey(const Key('quick-start'));
         expect(quick, findsOneWidget);
         // Frecency over the three accounts in the data: dev, then meet; the
         // third is the next one by score.
         expect(
-          find.descendant(of: quick, matching: find.byType(FilledButton)),
+          find.descendant(of: quick, matching: find.byType(ListTile)),
           findsNWidgets(3),
+        );
+        expect(
+          find.descendant(of: quick, matching: find.text('Quick start')),
+          findsOneWidget,
         );
         expect(find.byKey(const Key('quick-work:acme:dev')), findsOneWidget);
         expect(find.byKey(const Key('quick-work:acme:meet')), findsOneWidget);
