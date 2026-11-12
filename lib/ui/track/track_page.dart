@@ -19,7 +19,6 @@ class TrackPage extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        bottom: false,
         child: !hasFolder
             ? const ChooseFolderPrompt()
             : RefreshIndicator(

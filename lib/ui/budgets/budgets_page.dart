@@ -26,7 +26,6 @@ class BudgetsPage extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        bottom: false,
         child: !hasFolder
             ? const ChooseFolderPrompt()
             : RefreshIndicator(

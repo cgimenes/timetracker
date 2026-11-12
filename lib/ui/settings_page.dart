@@ -65,7 +65,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     return Scaffold(
       body: SafeArea(
-        bottom: false,
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: 8),
           children: [

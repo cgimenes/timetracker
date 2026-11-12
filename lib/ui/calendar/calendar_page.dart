@@ -33,7 +33,6 @@ class CalendarPage extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        bottom: false,
         child: !hasFolder
             ? const ChooseFolderPrompt()
             : entries!.hasError && !entries.hasValue
