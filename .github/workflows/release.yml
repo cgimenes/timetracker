@@ -36,7 +36,7 @@ jobs:
       MINOR: ${{ needs.release-please.outputs.minor }}
       PATCH: ${{ needs.release-please.outputs.patch }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
 
