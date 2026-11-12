@@ -267,5 +267,72 @@ void main() {
       // The screen now shows the file as it is: still running, since 14:30.
       expect(find.text('0:30:00'), findsOneWidget);
     });
+
+    trackTest('the menu offers Stop at, Edit and Cancel entry', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(find.byKey(const Key('stop-menu')));
+      await tester.pumpAndSettle();
+      expect(find.text('Stop at...'), findsOneWidget);
+      expect(find.text('Edit'), findsOneWidget);
+      expect(find.text('Cancel entry'), findsOneWidget);
+    });
+
+    trackTest('Edit opens the entry and saving changes the running one', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(find.byKey(const Key('stop-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit entry'), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const Key('account')),
+        'work:acme:review',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('save')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit entry'), findsNothing);
+      expect(
+        storage.text('2026-10.timeclock'),
+        endsWith('i 2026-10-30 14:00:00 work:acme:review\n'),
+      );
+      expect(find.text('work:acme:review'), findsOneWidget);
+    });
+
+    trackTest('Cancel entry asks first, then removes it without a clock-out', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(find.byKey(const Key('stop-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel entry'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cancel entry?'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('keep-running')));
+      await tester.pumpAndSettle();
+      expect(storage.text('2026-10.timeclock'), _data);
+      expect(find.text('Nothing running'), findsNothing);
+
+      await tester.tap(find.byKey(const Key('stop-menu')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel entry'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('cancel-confirm')));
+      await tester.pumpAndSettle();
+
+      expect(
+        storage.text('2026-10.timeclock'),
+        'i 2026-10-30 09:00:00 work:acme:dev\n'
+        'o 2026-10-30 11:00:00 work:acme:dev\n',
+      );
+      expect(find.text('Nothing running'), findsOneWidget);
+    });
   });
 }

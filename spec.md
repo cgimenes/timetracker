@@ -64,7 +64,7 @@ Bottom tabs: Track, Entries, Metrics, Budgets (only when enabled), Settings. Tab
    - No comment field. Comments already present in a file are kept when the app rewrites it, and shown on running entries.
 2. Running section
    - List of running entries: account, start, live elapsed time.
-   - Each has Stop button (clock-out at now) and option to stop at custom time.
+   - Each has Stop button (clock-out at now) and a menu: Stop at... (custom time), Edit (the Edit entry page) and Cancel entry (after a confirmation, removes the entry and records no time).
 
 ### Metrics
 
