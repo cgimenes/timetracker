@@ -9,6 +9,9 @@ The full behavior is in [spec.md](spec.md).
 
 ## What it does
 
+Screens are reached from a side bar: a drawer on phones, a rail that collapses to
+icons on wide screens.
+
 - **Track:** start an entry (account with suggestions, optional backdated
   start) and see what is running. Several entries can run at once.
 - **Notification:** one ongoing notification lists the running entries, with a

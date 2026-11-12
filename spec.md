@@ -51,7 +51,11 @@ Rules:
 
 ## UI
 
-Bottom tabs: Track, Entries, Metrics, Budgets (only when enabled), Settings. Tabs have no top header; the bottom bar names the screen. Only the Edit entry page, which is pushed over the tabs, has a header (it holds Save).
+Screens: Track, Entries, Metrics, Budgets (only when enabled), Settings. They are reached from a side bar on the left.
+
+- Narrow screens (under 600 dp): a top bar with a menu button and the screen name. The menu opens a drawer with the screens.
+- Wide screens and landscape: a rail stays on the left, with no top bar. A menu button at its top collapses it to icons and expands it to icons with names. The choice is remembered.
+- Only the Edit entry page, which is pushed over the screens, has its own header (it holds Save).
 
 ### Track
 
@@ -76,7 +80,7 @@ Bottom tabs: Track, Entries, Metrics, Budgets (only when enabled), Settings. Tab
 
 ### Budgets
 
-Off by default. The Budgets switch in Settings adds a Budgets tab (between Metrics and Settings) and shows budgets in Metrics.
+Off by default. The Budgets switch in Settings adds a Budgets screen to the side bar (between Metrics and Settings) and shows budgets in Metrics.
 
 - A budget is the time allowed for one project (first account level) in one day, week or month. Budgets follow the file split: with month files the tab holds monthly budgets, with week files weekly ones, with day files daily ones.
 - Stored in `budget.journal`, in the same folder, as hledger periodic transactions bounded to their period (`to` is exclusive):
@@ -120,7 +124,7 @@ Off by default. The Budgets switch in Settings adds a Budgets tab (between Metri
 - Projects: together | file name | folders.
 - Filename format (template, live preview of example filename).
 - Week start day: Monday (default) | Sunday (used by the Metrics week).
-- Budgets: on | off (adds the Budgets tab).
+- Budgets: on | off (adds the Budgets screen).
 - App version (`v1.3.0`), small and centered, at the end of the list. Read from the installed app with `package_info_plus`.
 
 ## Edge cases

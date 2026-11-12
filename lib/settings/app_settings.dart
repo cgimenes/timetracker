@@ -12,6 +12,7 @@ const _templateKey = 'fileNameTemplate';
 const _levelKey = 'metricsLevel';
 const _weekStartKey = 'weekStart';
 const _budgetsKey = 'budgetsEnabled';
+const _sideBarKey = 'sideBarExpanded';
 
 class AppSettings {
   const AppSettings({
@@ -21,6 +22,7 @@ class AppSettings {
     required this.metricsLevel,
     required this.weekStart,
     this.budgetsEnabled = false,
+    this.sideBarExpanded = false,
   });
 
   factory AppSettings.defaults() => AppSettings(
@@ -47,6 +49,9 @@ class AppSettings {
   /// Shows the Budgets tab and the budgets in Metrics.
   final bool budgetsEnabled;
 
+  /// The side bar of wide screens shows labels, not only icons.
+  final bool sideBarExpanded;
+
   FileSettings get fileSettings => FileSettings(
     split,
     fileNameTemplate,
@@ -61,6 +66,7 @@ class AppSettings {
     int? metricsLevel,
     WeekStart? weekStart,
     bool? budgetsEnabled,
+    bool? sideBarExpanded,
   }) => AppSettings(
     split: split ?? this.split,
     projects: projects ?? this.projects,
@@ -68,6 +74,7 @@ class AppSettings {
     metricsLevel: metricsLevel ?? this.metricsLevel,
     weekStart: weekStart ?? this.weekStart,
     budgetsEnabled: budgetsEnabled ?? this.budgetsEnabled,
+    sideBarExpanded: sideBarExpanded ?? this.sideBarExpanded,
   );
 }
 
@@ -106,6 +113,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
           WeekStart.values.asNameMap()[prefs.getString(_weekStartKey)] ??
           defaults.weekStart,
       budgetsEnabled: prefs.getBool(_budgetsKey) ?? false,
+      sideBarExpanded: prefs.getBool(_sideBarKey) ?? false,
     );
   }
 
@@ -186,5 +194,10 @@ class SettingsNotifier extends Notifier<AppSettings> {
   Future<void> setBudgetsEnabled(bool enabled) async {
     await ref.read(sharedPreferencesProvider).setBool(_budgetsKey, enabled);
     state = state.copyWith(budgetsEnabled: enabled);
+  }
+
+  Future<void> setSideBarExpanded(bool expanded) async {
+    await ref.read(sharedPreferencesProvider).setBool(_sideBarKey, expanded);
+    state = state.copyWith(sideBarExpanded: expanded);
   }
 }
