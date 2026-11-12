@@ -161,9 +161,11 @@ class _DateTimeDialogState extends State<_DateTimeDialog> {
     final valid = hour != null && minute != null;
 
     return AlertDialog(
-      contentPadding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
+      contentPadding: const EdgeInsets.only(top: 16),
+      // The width of Material's own date picker dialog, which is what the
+      // calendar is laid out for.
       content: SizedBox(
-        width: 320,
+        width: 328,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -174,10 +176,12 @@ class _DateTimeDialogState extends State<_DateTimeDialog> {
                 lastDate: widget.last,
                 onDateChanged: (d) => setState(() => _date = d),
               ),
+              const Divider(height: 1),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     _TimeField(
                       key: const Key('dt-hour'),
@@ -186,9 +190,12 @@ class _DateTimeDialogState extends State<_DateTimeDialog> {
                       valid: hour != null,
                       onChanged: () => setState(() {}),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(':'),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        ':',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
                     ),
                     _TimeField(
                       key: const Key('dt-minute'),
@@ -239,23 +246,34 @@ class _TimeField extends StatelessWidget {
   final VoidCallback onChanged;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 80,
-    child: TextField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      textAlign: TextAlign.center,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(2),
-      ],
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        errorText: valid ? null : '',
-        errorStyle: const TextStyle(height: 0),
+  Widget build(BuildContext context) {
+    final error = Theme.of(context).colorScheme.error;
+    // A red border instead of error text, so the field keeps its height and
+    // nothing in the dialog moves.
+    OutlineInputBorder border(Color? color) => OutlineInputBorder(
+      borderSide: color == null ? const BorderSide() : BorderSide(color: color),
+    );
+
+    return SizedBox(
+      width: 88,
+      child: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.titleLarge,
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(2),
+        ],
+        decoration: InputDecoration(
+          labelText: label,
+          floatingLabelAlignment: FloatingLabelAlignment.center,
+          border: const OutlineInputBorder(),
+          enabledBorder: valid ? null : border(error),
+          focusedBorder: valid ? null : border(error),
+        ),
+        onChanged: (_) => onChanged(),
       ),
-      onChanged: (_) => onChanged(),
-    ),
-  );
+    );
+  }
 }

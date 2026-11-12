@@ -6,8 +6,11 @@ void main() {
   late DateTime? result;
   var asked = false;
 
-  Future<void> open(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(800, 2400);
+  Future<void> open(
+    WidgetTester tester, {
+    Size size = const Size(800, 2400),
+  }) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     result = null;
@@ -62,4 +65,20 @@ void main() {
     expect(asked, isTrue);
     expect(result, isNull);
   });
+
+  for (final size in [const Size(360, 780), const Size(780, 360)]) {
+    testWidgets('fits a $size screen without overflow', (tester) async {
+      await open(tester, size: size);
+      expect(tester.takeException(), isNull);
+      // Calendar, time fields and buttons are all there and on screen.
+      for (final finder in [
+        find.byKey(const Key('dt-hour')),
+        find.byKey(const Key('dt-minute')),
+        find.byKey(const Key('dt-ok')),
+      ]) {
+        await tester.ensureVisible(finder);
+        expect(finder, findsOneWidget);
+      }
+    });
+  }
 }
