@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.7.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.6.0...timetracker-v1.7.0) (2026-11-12)
+
+
+### Features
+
+* color the calendar by account level 3 ([4031c6f](https://github.com/cgimenes/timetracker/commit/4031c6fd05af896b9f3665c7efa5995f24368c5e))
+* go to the track screen after starting an entry again ([2cd3fdb](https://github.com/cgimenes/timetracker/commit/2cd3fdb8c8c9cc0c9bf32715f8759c9318f01c10))
+* menu button on each entry instead of tapping the row ([8eaece4](https://github.com/cgimenes/timetracker/commit/8eaece48c57b8b73cf1036d07f51df063464cc49))
+* move the chart to the end of the metrics screen ([426f8cc](https://github.com/cgimenes/timetracker/commit/426f8cc52861cd2b46fb3a38c03d6df3ef301cfc))
+* quick start buttons for the three most used accounts ([230056c](https://github.com/cgimenes/timetracker/commit/230056c36cbe1e0b3d562fd4b2f6c1802e2a27a7))
+* zoom the calendar ([23ad239](https://github.com/cgimenes/timetracker/commit/23ad239707cac6643f317a8cb2ceea5d4616db82))
+
+
+### Bug Fixes
+
+* keep the bottom of every screen clear of the system bars ([e6388bb](https://github.com/cgimenes/timetracker/commit/e6388bbe02c2be177cf76ba0eb79fe93facee317))
+
 ## [1.6.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.5.0...timetracker-v1.6.0) (2026-11-12)
 
 
