@@ -51,7 +51,7 @@ Rules:
 
 ## UI
 
-Screens: Track, Entries, Calendar, Metrics, Budgets (only when enabled), Settings. They are reached from a side bar on the left.
+Screens: Track, Entries, Calendar, Metrics, Goals (only when enabled), Settings. They are reached from a side bar on the left.
 
 - Narrow screens (under 600 dp): a top bar with a menu button and the screen name. The menu opens a drawer with the screens.
 - Wide screens and landscape: a rail stays on the left, with no top bar. A menu button at its top collapses it to icons and expands it to icons with names. The choice is remembered.
@@ -97,12 +97,13 @@ One day as a column of hours, like Google Calendar.
 - Running entries count up to now.
 - Entries crossing period boundary counted only for portion inside period.
 
-### Budgets
+### Goals
 
-Off by default. The Budgets switch in Settings adds a Budgets screen to the side bar (between Metrics and Settings) and shows budgets in Metrics.
+Off by default. The Goals switch in Settings adds a Goals screen to the side bar (between Metrics and Settings) and shows goals in Metrics.
 
-- A budget is the time allowed for one project (first account level) in one day, week or month. Budgets follow the file split: with month files the tab holds monthly budgets, with week files weekly ones, with day files daily ones.
-- Stored in `budget.journal`, in the same folder, as hledger periodic transactions bounded to their period (`to` is exclusive):
+- A goal is the time to reach for one project (first account level) in one day, week or month. Goals follow the file split: with month files the screen holds monthly goals, with week files weekly ones, with day files daily ones.
+- Colors: a goal is yellow while in progress and green once achieved (time used reaches the target). An achieved goal also gets a check mark and green text, so the state does not depend on color alone. Going past the target is not a problem, so nothing turns red.
+- Stored in `budget.journal` (hledger calls them budgets), in the same folder, as hledger periodic transactions bounded to their period (`to` is exclusive):
 
       ~ monthly from 2026-10-01 to 2026-11-01
           (work)    40h
@@ -111,11 +112,11 @@ Off by default. The Budgets switch in Settings adds a Budgets screen to the side
           (work)    10h
 
   hledger reads it with `hledger -f budget.journal -f '*.timeclock' bal --budget`. hledger weeks start on Monday, like the ISO weeks of the files, whatever the Metrics week start setting says.
-- Blocks without dates (`~ monthly`) repeat every day, week or month. They are shown in "Every day / week / month" cards. With Split None there is no period to follow, so budgets are only these repeating ones, and the period is chosen per budget.
-- The app only understands `~ daily|weekly|monthly [from D to D]` blocks with `(project)  Nh` postings (N up to 2 decimals). Every other line is kept untouched when the app rewrites the file. Budgets for sub-accounts are left alone. The file is not a timeclock file, so the app never reads it as entries.
-- Budgets tab: one card per window, newest first, plus the current one even when empty. Each card lists its budgets with used / allowed time and a progress bar (red when over). Tap a budget to edit it, use the trash icon to remove it (after a confirmation), and "Add budget" to add one to that window. "Budgets for another period" picks a date and adds to the slice that holds it. This tab is the only place budgets are configured.
-- Used time is what the project tracked inside the window (running entries count up to now). A repeating budget is measured against the current day, week or month.
-- Metrics: each period card lists the budgets that apply now (the repeating ones and the one for the current slice) under "Budgets". External edits are picked up on resume or pull to refresh.
+- Blocks without dates (`~ monthly`) repeat every day, week or month. They are shown in "Every day / week / month" cards. With Split None there is no period to follow, so goals are only these repeating ones, and the period is chosen per goal.
+- The app only understands `~ daily|weekly|monthly [from D to D]` blocks with `(project)  Nh` postings (N up to 2 decimals). Every other line is kept untouched when the app rewrites the file. Goals for sub-accounts are left alone. The file is not a timeclock file, so the app never reads it as entries.
+- Goals screen: one card per window, newest first, plus the current one even when empty. Each card lists its goals with used / allowed time and a progress bar (yellow, or green when achieved). Tap a goal to edit it, use the trash icon to remove it (after a confirmation), and "Add goal" to add one to that window. "Goals for another period" picks a date and adds to the slice that holds it. This screen is the only place goals are configured.
+- Used time is what the project tracked inside the window (running entries count up to now). A repeating goal is measured against the current day, week or month.
+- Metrics: each period card lists the goals that apply now (the repeating ones and the one for the current slice) under "Goals", with the same colors. External edits are picked up on resume or pull to refresh.
 
 ### Notification
 
@@ -143,7 +144,7 @@ Off by default. The Budgets switch in Settings adds a Budgets screen to the side
 - Projects: together | file name | folders.
 - Filename format (template, live preview of example filename).
 - Week start day: Monday (default) | Sunday (used by the Metrics week).
-- Budgets: on | off (adds the Budgets screen).
+- Goals: on | off (adds the Goals screen).
 - App version (`v1.3.0`), small and centered, at the end of the list. Read from the installed app with `package_info_plus`.
 
 ## Edge cases

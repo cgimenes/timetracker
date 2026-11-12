@@ -11,6 +11,7 @@ import '../../state/entries.dart';
 import '../choose_folder.dart';
 import '../load_error.dart';
 import '../format.dart';
+import '../palette.dart';
 import 'metrics_chart.dart';
 
 /// Time per account for Today, This week and This month, grouped at the
@@ -140,7 +141,7 @@ class _PeriodCard extends ConsumerWidget {
               ),
             if (budgets.isNotEmpty) ...[
               const Divider(height: 24),
-              Text('Budgets', style: textTheme.titleSmall),
+              Text('Goals', style: textTheme.titleSmall),
               for (final b in budgets) _BudgetRow(kind, b),
             ],
           ],
@@ -158,9 +159,8 @@ class _BudgetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final over = progress.over;
-    final style = over ? TextStyle(color: scheme.error) : null;
+    final brightness = Theme.of(context).brightness;
+    final achieved = progress.achieved;
 
     return Padding(
       key: Key('budget-${kind.name}-${progress.project}'),
@@ -171,16 +171,29 @@ class _BudgetRow extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text(progress.project)),
+              if (achieved)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Icon(
+                    Icons.check_circle,
+                    key: Key('goal-achieved-${kind.name}-${progress.project}'),
+                    size: 18,
+                    color: goalAchievedTextColor(brightness),
+                  ),
+                ),
               Text(
                 '${formatHm(progress.used)} / ${formatHm(progress.allowed)}',
-                style: style,
+                style: achieved
+                    ? TextStyle(color: goalAchievedTextColor(brightness))
+                    : null,
               ),
             ],
           ),
           const SizedBox(height: 4),
           LinearProgressIndicator(
+            key: Key('goal-bar-${kind.name}-${progress.project}'),
             value: progress.fraction,
-            color: over ? scheme.error : null,
+            color: goalBarColor(achieved: achieved, brightness: brightness),
           ),
         ],
       ),

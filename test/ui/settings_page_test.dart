@@ -235,7 +235,7 @@ void main() {
       final version = find.byKey(const Key('version'));
       await tester.ensureVisible(version);
       expect(tester.widget<Text>(version).data, 'v1.3.0');
-      // Last thing in the list: below the Budgets switch.
+      // Last thing in the list: below the Goals switch.
       expect(
         tester.getTopLeft(version).dy,
         greaterThan(

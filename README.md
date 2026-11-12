@@ -24,9 +24,10 @@ icons on wide screens.
 - **Metrics:** a chart of time per day, week or month stacked by project, and
   time per account for today, this week and this month, grouped at the account
   depth you choose.
-- **Budgets:** optional tab. Hours per project for each day, week or month the
-  files are split in, kept in `budget.journal` so `hledger bal --budget` reads
-  them too. Progress shows in Metrics.
+- **Goals:** optional screen. Hours to reach per project for each day, week or
+  month the files are split in, yellow while in progress and green once
+  achieved. Kept in `budget.journal` so `hledger bal --budget` reads them too.
+  Progress shows in Metrics.
 - **Settings:** the folder, how files are split (by day, week or month, and
   optionally by project, in the file name or in folders) and the week start day.
 
@@ -41,7 +42,7 @@ The account is a colon separated path. A clock-out always repeats the account,
 which is what lets entries overlap. Lines the app does not understand, comments
 and blank lines are kept exactly as they are when it rewrites a file.
 
-Budgets live next to them in `budget.journal`:
+Goals live next to them in `budget.journal` (hledger calls them budgets):
 
 ```
 ~ monthly from 2026-10-01 to 2026-11-01

@@ -15,3 +15,18 @@ Color onPalette(Color background) =>
     ThemeData.estimateBrightnessForColor(background) == Brightness.dark
     ? Colors.white
     : Colors.black87;
+
+/// Progress bar color of a goal: yellow while in progress, green once
+/// achieved.
+Color goalBarColor({required bool achieved, required Brightness brightness}) {
+  final light = brightness == Brightness.light;
+  return achieved
+      ? (light ? Colors.green.shade600 : Colors.green.shade400)
+      : (light ? Colors.amber.shade600 : Colors.amber.shade400);
+}
+
+/// Text and icon color of an achieved goal, dark enough to read.
+Color goalAchievedTextColor(Brightness brightness) =>
+    brightness == Brightness.light
+    ? Colors.green.shade800
+    : Colors.green.shade300;

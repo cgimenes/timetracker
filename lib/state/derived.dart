@@ -55,7 +55,9 @@ class BudgetProgress {
 
   String get project => budget.project;
   Duration get allowed => budget.amount;
-  bool get over => used > allowed;
+
+  /// The time asked for was reached.
+  bool get achieved => allowed > Duration.zero && used >= allowed;
 
   /// 0 to 1, for a progress bar.
   double get fraction => allowed == Duration.zero

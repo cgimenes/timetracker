@@ -13,6 +13,7 @@ import '../../state/derived.dart';
 import '../../state/entries.dart';
 import '../choose_folder.dart';
 import '../format.dart';
+import '../palette.dart';
 import '../ui_actions.dart';
 
 /// Every budget, grouped by the day, week or month it is for (the same slices
@@ -85,21 +86,22 @@ class _Groups extends ConsumerWidget {
               ? TextButton.icon(
                   key: const Key('add-recurring'),
                   icon: const Icon(Icons.add),
-                  label: const Text('Add budget'),
+                  label: const Text('Add goal'),
                   onPressed: () => _edit(context, ref, window: null, old: null),
                 )
               : TextButton.icon(
                   key: const Key('add-period'),
                   icon: const Icon(Icons.event),
-                  label: const Text('Budgets for another period'),
+                  label: const Text('Goals for another period'),
                   onPressed: () => _otherPeriod(context, ref, split, now),
                 ),
         ),
         const Padding(
           padding: EdgeInsets.fromLTRB(4, 8, 4, 16),
           child: Text(
-            'Saved in $budgetFileName as hledger periodic transactions, '
-            'bounded to the period. hledger weeks start on Monday.',
+            'Goals are saved in $budgetFileName as hledger periodic '
+            'transactions (budgets), bounded to the period. hledger weeks '
+            'start on Monday.',
           ),
         ),
       ],
@@ -172,7 +174,7 @@ class _WindowCard extends ConsumerWidget {
             if (rows.isEmpty)
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
-                child: Text('No budgets'),
+                child: Text('No goals'),
               ),
             for (final p in rows) _BudgetTile(label, p),
             Align(
@@ -182,7 +184,7 @@ class _WindowCard extends ConsumerWidget {
                 child: TextButton.icon(
                   key: Key('add-budget-$label'),
                   icon: const Icon(Icons.add),
-                  label: const Text('Add budget'),
+                  label: const Text('Add goal'),
                   onPressed: () =>
                       _edit(context, ref, window: window, old: null),
                 ),
@@ -203,9 +205,9 @@ class _BudgetTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scheme = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
     final b = progress.budget;
-    final over = progress.over;
+    final achieved = progress.achieved;
 
     return ListTile(
       key: Key('budget-$label-${b.project}'),
@@ -213,17 +215,30 @@ class _BudgetTile extends ConsumerWidget {
       title: Row(
         children: [
           Expanded(child: Text(b.project)),
+          if (achieved)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Icon(
+                Icons.check_circle,
+                key: Key('goal-achieved-$label-${b.project}'),
+                size: 18,
+                color: goalAchievedTextColor(brightness),
+              ),
+            ),
           Text(
             '${formatHm(progress.used)} / ${formatHm(progress.allowed)}',
-            style: over ? TextStyle(color: scheme.error) : null,
+            style: achieved
+                ? TextStyle(color: goalAchievedTextColor(brightness))
+                : null,
           ),
         ],
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 6),
         child: LinearProgressIndicator(
+          key: Key('goal-bar-$label-${b.project}'),
           value: progress.fraction,
-          color: over ? scheme.error : null,
+          color: goalBarColor(achieved: achieved, brightness: brightness),
         ),
       ),
       trailing: IconButton(
@@ -240,7 +255,7 @@ class _BudgetTile extends ConsumerWidget {
     final yes = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove budget?'),
+        title: const Text('Remove goal?'),
         content: Text(
           '${b.project}, ${formatHours(b.amount)}h\n${b.window.label}',
         ),
@@ -317,8 +332,8 @@ class _BudgetDialogState extends ConsumerState<_BudgetDialog> {
     return AlertDialog(
       title: Text(
         widget.old == null
-            ? 'Add budget, ${_window.label}'
-            : 'Edit budget, ${_window.label}',
+            ? 'Add goal, ${_window.label}'
+            : 'Edit goal, ${_window.label}',
       ),
       content: SingleChildScrollView(
         child: Column(

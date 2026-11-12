@@ -6,6 +6,7 @@ import 'package:timetracker/data/providers.dart';
 import 'package:timetracker/state/clock.dart';
 import 'package:timetracker/ui/budgets/budgets_page.dart';
 import 'package:timetracker/ui/home_shell.dart';
+import 'package:timetracker/ui/palette.dart';
 
 import '../support/memory_storage.dart';
 
@@ -64,7 +65,7 @@ void main() {
       _,
     ) async {
       expect(find.byKey(const Key('window-2026-10')), findsOneWidget);
-      expect(find.text('No budgets'), findsOneWidget);
+      expect(find.text('No goals'), findsOneWidget);
     });
 
     budgetsTest(
@@ -100,6 +101,67 @@ void main() {
             '~ monthly from 2026-10-01 to 2026-11-01\n    (work)    20h\n\n'
             '~ monthly from 2026-09-01 to 2026-10-01\n    (work)    99h\n\n'
             '~ weekly\n    (work)    10h\n',
+      },
+    );
+
+    budgetsTest(
+      'goals are yellow while in progress and green once achieved',
+      (tester, storage) async {
+        final brightness = Theme.of(tester.element(find.byType(BudgetsPage)))
+            .brightness;
+        Color? bar(String key) =>
+            tester.widget<LinearProgressIndicator>(find.byKey(Key(key))).color;
+
+        // October, work used 3:00. 20h: in progress. 3h: achieved.
+        expect(
+          bar('goal-bar-2026-10-work'),
+          goalBarColor(achieved: false, brightness: brightness),
+        );
+        expect(
+          find.byKey(const Key('goal-achieved-2026-10-work')),
+          findsNothing,
+        );
+        expect(
+          bar('goal-bar-2026-10-personal'),
+          goalBarColor(achieved: true, brightness: brightness),
+        );
+        expect(
+          find.byKey(const Key('goal-achieved-2026-10-personal')),
+          findsOneWidget,
+        );
+        // Not red anywhere.
+        expect(
+          bar('goal-bar-2026-10-work'),
+          isNot(
+            Theme.of(tester.element(find.byType(BudgetsPage)))
+                .colorScheme
+                .error,
+          ),
+        );
+      },
+      files: const {
+        '2026-10.timeclock':
+            '$_data'
+            'i 2026-10-05 09:00:00 personal:read\n'
+            'o 2026-10-05 13:00:00 personal:read\n',
+        'budget.journal':
+            '~ monthly from 2026-10-01 to 2026-11-01\n'
+            '    (work)    20h\n    (personal)    3h\n',
+      },
+    );
+
+    budgetsTest(
+      'a goal is achieved exactly at the target',
+      (tester, storage) async {
+        expect(
+          find.byKey(const Key('goal-achieved-2026-10-work')),
+          findsOneWidget,
+        );
+      },
+      files: const {
+        '2026-10.timeclock': _data,
+        'budget.journal':
+            '~ monthly from 2026-10-01 to 2026-11-01\n    (work)    3h\n',
       },
     );
 
@@ -140,7 +202,7 @@ void main() {
 
         await tester.tap(find.byKey(const Key('budget-remove-2026-10-work')));
         await tester.pumpAndSettle();
-        expect(find.text('Remove budget?'), findsOneWidget);
+        expect(find.text('Remove goal?'), findsOneWidget);
         // Cancel keeps it.
         await tester.tap(find.text('Cancel'));
         await tester.pumpAndSettle();
@@ -154,7 +216,7 @@ void main() {
         await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
         await tester.pumpAndSettle();
         expect(storage.text('budget.journal'), '');
-        expect(find.text('No budgets'), findsOneWidget);
+        expect(find.text('No goals'), findsOneWidget);
       },
       files: const {
         '2026-10.timeclock': _data,
@@ -222,11 +284,11 @@ void main() {
     }, prefs: const {'budgetsEnabled': true, 'split': 'none'});
   });
 
-  group('Budgets tab', () {
+  group('Goals tab', () {
     budgetsTest(
       'is hidden until budgets are enabled',
       (tester, _) async {
-        expect(find.text('Budgets'), findsNothing);
+        expect(find.text('Goals'), findsNothing);
         expect(find.text('Settings'), findsOneWidget);
       },
       prefs: const {},
@@ -234,8 +296,8 @@ void main() {
     );
 
     budgetsTest('shows up when enabled', (tester, _) async {
-      expect(find.text('Budgets'), findsWidgets);
-      await tester.tap(find.byIcon(Icons.savings_outlined));
+      expect(find.text('Goals'), findsWidgets);
+      await tester.tap(find.byIcon(Icons.flag_outlined));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('window-2026-10')), findsOneWidget);
     }, home: const HomeShell());
@@ -248,8 +310,8 @@ void main() {
         await tester.ensureVisible(find.byKey(const Key('budgets-enabled')));
         await tester.tap(find.byKey(const Key('budgets-enabled')));
         await tester.pumpAndSettle();
-        // Budgets tab appeared, Settings still shown.
-        expect(find.byIcon(Icons.savings_outlined), findsOneWidget);
+        // Goals tab appeared, Settings still shown.
+        expect(find.byIcon(Icons.flag_outlined), findsOneWidget);
         expect(find.byKey(const Key('budgets-enabled')), findsOneWidget);
       },
       prefs: const {},

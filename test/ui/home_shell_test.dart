@@ -81,7 +81,7 @@ void main() {
         );
       }
       expect(
-        find.descendant(of: drawer, matching: find.text('Budgets')),
+        find.descendant(of: drawer, matching: find.text('Goals')),
         findsNothing,
       );
 
@@ -100,13 +100,13 @@ void main() {
       );
     });
 
-    shellTest('Budgets shows up in the drawer when enabled', (tester, _) async {
+    shellTest('Goals shows up in the drawer when enabled', (tester, _) async {
       await tester.tap(find.byTooltip('Open navigation menu'));
       await tester.pumpAndSettle();
       expect(
         find.descendant(
           of: find.byKey(const Key('side-drawer')),
-          matching: find.text('Budgets'),
+          matching: find.text('Goals'),
         ),
         findsOneWidget,
       );

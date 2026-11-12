@@ -41,7 +41,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       'Calendar',
     ),
     HomeTab.metrics: (Icons.bar_chart_outlined, Icons.bar_chart, 'Metrics'),
-    HomeTab.budgets: (Icons.savings_outlined, Icons.savings, 'Budgets'),
+    HomeTab.budgets: (Icons.flag_outlined, Icons.flag, 'Goals'),
     HomeTab.settings: (Icons.settings_outlined, Icons.settings, 'Settings'),
   };
 

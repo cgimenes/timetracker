@@ -156,7 +156,7 @@ String formatHours(Duration d) {
 String? validateBudget({required String project, required double hours}) {
   final error = validateAccount(project);
   if (error != null) return error;
-  if (project.contains(':')) return 'Budget is for a project, without ":"';
+  if (project.contains(':')) return 'A goal is for a project, without ":"';
   if (!(hours > 0)) return 'Hours must be more than 0';
   if ((hours * 100 - (hours * 100).round()).abs() > 1e-6) {
     return 'Hours can have at most 2 decimals';
