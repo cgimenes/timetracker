@@ -231,11 +231,36 @@ class _BudgetTile extends ConsumerWidget {
         key: Key('budget-remove-$label-${b.project}'),
         tooltip: 'Remove',
         icon: const Icon(Icons.delete_outline),
-        onPressed: () => guard(
-          context,
-          () => ref.read(budgetsProvider.notifier).remove(b.project, b.window),
-        ),
+        onPressed: () => _confirmRemove(context, ref),
       ),
+    );
+  }
+
+  Future<void> _confirmRemove(BuildContext context, WidgetRef ref) async {
+    final b = progress.budget;
+    final yes = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove budget?'),
+        content: Text(
+          '${b.project}, ${formatHours(b.amount)}h\n${b.window.label}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (yes != true || !context.mounted) return;
+    await guard(
+      context,
+      () => ref.read(budgetsProvider.notifier).remove(b.project, b.window),
     );
   }
 }

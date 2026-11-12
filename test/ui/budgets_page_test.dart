@@ -125,7 +125,7 @@ void main() {
     });
 
     budgetsTest(
-      'edit changes the hours, remove deletes the block',
+      'edit changes the hours, remove asks first then deletes the block',
       (tester, storage) async {
         await tester.tap(find.byKey(const Key('budget-2026-10-work')));
         await tester.pumpAndSettle();
@@ -139,6 +139,19 @@ void main() {
         );
 
         await tester.tap(find.byKey(const Key('budget-remove-2026-10-work')));
+        await tester.pumpAndSettle();
+        expect(find.text('Remove budget?'), findsOneWidget);
+        // Cancel keeps it.
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(
+          storage.text('budget.journal'),
+          '~ monthly from 2026-10-01 to 2026-11-01\n    (work)    32.5h\n',
+        );
+
+        await tester.tap(find.byKey(const Key('budget-remove-2026-10-work')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
         await tester.pumpAndSettle();
         expect(storage.text('budget.journal'), '');
         expect(find.text('No budgets'), findsOneWidget);
