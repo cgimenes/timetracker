@@ -45,7 +45,6 @@ class CalendarPage extends ConsumerWidget {
             : const Column(
                 children: [
                   _DayBar(),
-                  _Legend(),
                   Expanded(child: _Timeline()),
                 ],
               ),
@@ -130,50 +129,6 @@ class _DayBar extends ConsumerWidget {
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Groups that appear on the selected day, with their colors.
-class _Legend extends ConsumerWidget {
-  const _Legend();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final level = ref.watch(calendarLevelProvider);
-    final slots = ref.watch(groupColorSlotsProvider(level));
-    final blocks = ref.watch(calendarBlocksProvider);
-    final brightness = Theme.of(context).brightness;
-    final names = {
-      for (final b in blocks) colorKey(b.entry.account, level),
-    }.toList()..sort();
-    if (names.isEmpty) return const SizedBox(height: 8);
-
-    return Padding(
-      key: const Key('cal-legend'),
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 4,
-        children: [
-          for (final name in names)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: paletteColor(slots[name] ?? 0, brightness),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(name, style: Theme.of(context).textTheme.bodySmall),
-              ],
-            ),
         ],
       ),
     );

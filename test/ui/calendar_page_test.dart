@@ -182,19 +182,8 @@ void main() {
       expect(find.text('No entries'), findsOneWidget);
     });
 
-    calendarTest('the legend and colors follow the level', (
-      tester,
-      c,
-      noS,
-    ) async {
-      Finder legend(String name) => find.descendant(
-        of: find.byKey(const Key('cal-legend')),
-        matching: find.text(name),
-      );
-      // Level 1: every entry of the day is "work".
-      expect(legend('work'), findsOneWidget);
-      expect(legend('work:acme'), findsNothing);
-
+    calendarTest('colors follow the level', (tester, c, noS) async {
+      // Level 1: every entry of the day is "work", one color.
       Color colorOf(String account) {
         final material = tester.widget<Material>(
           find
@@ -215,8 +204,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(c.read(settingsProvider).calendarLevel, 2);
       expect(c.read(sharedPreferencesProvider).getInt('calendarLevel'), 2);
-      expect(legend('work:acme'), findsOneWidget);
-      expect(legend('work:globex'), findsOneWidget);
       expect(colorOf('work:acme:dev'), isNot(colorOf('work:globex:dev')));
       // Same group, same color: dev and meet are both work:acme.
       expect(colorOf('work:acme:dev'), colorOf('work:acme:meet'));
@@ -227,10 +214,6 @@ void main() {
       c,
       storage,
     ) async {
-      Finder legend(String name) => find.descendant(
-        of: find.byKey(const Key('cal-legend')),
-        matching: find.text(name),
-      );
       Color colorOf(String account) {
         final material = tester.widget<Material>(
           find
@@ -259,21 +242,32 @@ void main() {
       await tester.pumpAndSettle();
       expect(c.read(settingsProvider).calendarLevel, 3);
       expect(c.read(sharedPreferencesProvider).getInt('calendarLevel'), 3);
-      expect(legend('work:acme:dev'), findsOneWidget);
-      expect(legend('work:acme:meet'), findsOneWidget);
-      expect(legend('work:globex:dev'), findsOneWidget);
       expect(colorOf('work:acme:dev'), isNot(colorOf('work:acme:meet')));
       expect(colorOf('work:acme:dev'), isNot(colorOf('work:globex:dev')));
     });
 
+    calendarTest('has no legend', (tester, c, storage) async {
+      expect(find.byKey(const Key('cal-legend')), findsNothing);
+      // The group names are only on the blocks, not listed above the column.
+      expect(find.text('work'), findsNothing);
+      for (final level in ['Level 2', 'Level 3']) {
+        await tester.tap(
+          find.descendant(
+            of: find.byKey(const Key('cal-level')),
+            matching: find.text(level),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('cal-legend')), findsNothing);
+      }
+    });
+
     calendarTest('level 3 is remembered', (tester, c, storage) async {
       expect(c.read(settingsProvider).calendarLevel, 3);
-      expect(find.byKey(const Key('cal-legend')), findsOneWidget);
     }, prefs: const {'calendarLevel': 3});
 
     calendarTest('the level is remembered', (tester, c, noS) async {
       expect(c.read(settingsProvider).calendarLevel, 2);
-      expect(find.byKey(const Key('cal-legend')), findsOneWidget);
     }, prefs: const {'calendarLevel': 2});
 
     calendarTest('tap a block: details and the three actions', (

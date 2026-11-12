@@ -82,7 +82,7 @@ One day as a column of hours, like Google Calendar.
 - 24 hour rows, scrolled to an hour above the first entry of the day (or above now on an empty today, or the morning). A red line marks the current time on today.
 - Each entry is a block placed by time. Entries are clipped to the day, so one that crosses midnight shows on both days. A running entry ends at now. Entries that overlap share the width of the column evenly side by side.
 - A block shows the account, the time range and the duration (account and duration only when it is short).
-- Colors: a "Color by" control picks account level 1, 2 or 3 (saved). Entries of the same group (`work` at level 1, `work:acme` at level 2, `work:acme:dev` at level 3) share a color, and a legend above the column lists the groups of the day. The same group has the same color on every day.
+- Colors: a "Color by" control picks account level 1, 2 or 3 (saved). Entries of the same group (`work` at level 1, `work:acme` at level 2, `work:acme:dev` at level 3) share a color. The same group has the same color on every day. There is no legend: the account is written on each block.
 - Zoom: pinch with two fingers, or use the + and - buttons over the column. The height of an hour goes from 28 to 168 px (default 56) and is remembered. Zooming keeps the time under the fingers in place. One finger still scrolls.
 - Tap a block: a sheet with the entry details and its actions: Start again, Edit, Remove. A running entry has Edit and Cancel entry instead, like on Track.
 - An empty day says "No entries".
