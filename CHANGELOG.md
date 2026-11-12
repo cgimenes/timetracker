@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.10.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.9.0...timetracker-v1.10.0) (2026-11-12)
+
+
+### Features
+
+* always show the goals screen, remove the goals setting ([6a258c4](https://github.com/cgimenes/timetracker/commit/6a258c45c8ee2cd6892c1c4bb2cc40f132a1d55b))
+* move the daily goals setting to the goals screen ([cf4a850](https://github.com/cgimenes/timetracker/commit/cf4a8506cc872aa06850a8fe14a0c4b349a211e1))
+* search entries by day ([91e045a](https://github.com/cgimenes/timetracker/commit/91e045a8419ceb6c253ee61319bb6ac85fa7261c))
+* show only the daily goals on the track screen ([fc58bc8](https://github.com/cgimenes/timetracker/commit/fc58bc8b484734aafdcf7293755ff2ca00b2d206))
+
 ## [1.9.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.8.0...timetracker-v1.9.0) (2026-11-12)
 
 
