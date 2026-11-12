@@ -66,7 +66,7 @@ class _DayBar extends ConsumerWidget {
 
     return Padding(
       // 4 dp: the 48 dp buttons add 12 dp, so glyphs line up at 16 dp.
-      padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+      padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
       child: Column(
         children: [
           Row(

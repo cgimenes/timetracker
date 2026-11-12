@@ -246,6 +246,16 @@ void main() {
       expect(colorOf('work:acme:dev'), isNot(colorOf('work:globex:dev')));
     });
 
+    calendarTest('there is room between the Color by setting and the day', (
+      tester,
+      _,
+      noS,
+    ) async {
+      final control = tester.getRect(find.byKey(const Key('cal-level')));
+      final day = tester.getRect(find.byType(SingleChildScrollView));
+      expect(day.top - control.bottom, greaterThanOrEqualTo(12));
+    });
+
     calendarTest('has no legend', (tester, c, storage) async {
       expect(find.byKey(const Key('cal-legend')), findsNothing);
       // The group names are only on the blocks, not listed above the column.

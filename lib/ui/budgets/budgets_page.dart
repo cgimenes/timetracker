@@ -86,10 +86,13 @@ class _Groups extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             child: Text('Could not read $budgetFileName: ${load.error}'),
           ),
-        for (final w in windows)
+        for (var i = 0; i < windows.length; i++)
           _WindowCard(
-            w,
-            (byWindow[w]!..sort((a, b) => a.project.compareTo(b.project))),
+            windows[i],
+            (byWindow[windows[i]]!
+              ..sort((a, b) => a.project.compareTo(b.project))),
+            // Said once, in the first card.
+            showNote: i == 0,
           ),
         // Without a file split there is no current period to add to.
         if (split == SplitMethod.none)
@@ -102,18 +105,20 @@ class _Groups extends ConsumerWidget {
               onPressed: () => _edit(context, ref, window: null, old: null),
             ),
           ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(4, 8, 4, 16),
-          child: Text(
-            'Goals are saved in $budgetFileName as hledger periodic '
-            'transactions (budgets), bounded to the period. hledger weeks '
-            'start on Monday.',
+        // No card to hold the note.
+        if (windows.isEmpty)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(4, 8, 4, 16),
+            child: Text(_savedNote),
           ),
-        ),
       ],
     );
   }
 }
+
+const _savedNote =
+    'Goals are saved in $budgetFileName as hledger periodic transactions '
+    '(budgets), bounded to the period. hledger weeks start on Monday.';
 
 /// Asks for a budget and saves it. [window] null means a recurring one, whose
 /// period is asked too.
@@ -139,10 +144,13 @@ Future<void> _edit(
 }
 
 class _WindowCard extends ConsumerWidget {
-  const _WindowCard(this.window, this.rows);
+  const _WindowCard(this.window, this.rows, {this.showNote = false});
 
   final BudgetWindow window;
   final List<BudgetProgress> rows;
+
+  /// Explains where goals are saved.
+  final bool showNote;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -180,6 +188,12 @@ class _WindowCard extends ConsumerWidget {
                 ),
               ),
             ),
+            if (showNote)
+              Padding(
+                key: const Key('goals-note'),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                child: Text(_savedNote, style: textTheme.bodySmall),
+              ),
           ],
         ),
       ),

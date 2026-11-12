@@ -243,6 +243,53 @@ void main() {
       );
     });
 
+    budgetsTest(
+      'the where-goals-are-saved note is in the first goals card',
+      (tester, _) async {
+        final note = find.byKey(const Key('goals-note'));
+        expect(note, findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('window-2026-10')),
+            matching: note,
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: note,
+            matching: find.textContaining('budget.journal'),
+          ),
+          findsOneWidget,
+        );
+        // Said once: nowhere else on the screen.
+        expect(find.textContaining('Goals are saved in'), findsOneWidget);
+      },
+      files: const {
+        '2026-10.timeclock': _data,
+        'budget.journal':
+            '~ monthly from 2026-09-01 to 2026-10-01\n    (work)    9h\n',
+      },
+    );
+
+    budgetsTest('Add daily goal looks like Add goal', (tester, _) async {
+      final daily = find.byKey(const Key('add-daily-goal'));
+      final goal = find.byKey(const Key('add-budget-2026-10'));
+      expect(tester.widget(daily), isA<TextButton>());
+      expect(tester.widget(goal), isA<TextButton>());
+      expect(
+        find.descendant(of: daily, matching: find.byIcon(Icons.add)),
+        findsOneWidget,
+      );
+      // Same position inside their cards, same height.
+      expect(tester.getRect(daily).left, tester.getRect(goal).left);
+      expect(tester.getRect(daily).height, tester.getRect(goal).height);
+      expect(
+        find.descendant(of: daily, matching: find.text('Add daily goal')),
+        findsOneWidget,
+      );
+    });
+
     budgetsTest('there is no way to pick another period', (tester, _) async {
       expect(find.byKey(const Key('add-period')), findsNothing);
       expect(find.text('Goals for another period'), findsNothing);
@@ -253,6 +300,16 @@ void main() {
   });
 
   group('BudgetsPage (no split)', () {
+    budgetsTest(
+      'with no card the note is shown on its own',
+      (tester, _) async {
+        expect(find.byKey(const Key('goals-note')), findsNothing);
+        expect(find.textContaining('Goals are saved in'), findsOneWidget);
+      },
+      prefs: const {'split': 'none'},
+      files: const {},
+    );
+
     budgetsTest('budgets repeat and the period is asked', (
       tester,
       storage,

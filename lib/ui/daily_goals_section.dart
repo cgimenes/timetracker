@@ -62,11 +62,18 @@ class DailyGoalsSection extends ConsumerWidget {
               onPressed: () => _confirmRemove(context, ref, project),
             ),
           ),
-        ListTile(
-          key: const Key('add-daily-goal'),
-          leading: const Icon(Icons.add),
-          title: const Text('Add daily goal'),
-          onTap: () => _edit(context, ref, null),
+        // Same button as "Add goal" in the cards below.
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: TextButton.icon(
+              key: const Key('add-daily-goal'),
+              icon: const Icon(Icons.add),
+              label: const Text('Add daily goal'),
+              onPressed: () => _edit(context, ref, null),
+            ),
+          ),
         ),
       ],
     );
