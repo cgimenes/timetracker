@@ -503,5 +503,20 @@ void main() {
             'i 2026-10-28 09:00:00 c\no 2026-10-28 10:00:00 c\n',
       },
     );
+
+    trackTest('Stop is an icon button, not a text button', (
+      tester,
+      storage,
+    ) async {
+      final stop = find.byKey(const Key('stop'));
+      expect(stop, findsOneWidget);
+      expect(
+        find.descendant(of: stop, matching: find.byIcon(Icons.stop)),
+        findsOneWidget,
+      );
+      expect(find.text('Stop'), findsNothing);
+      // Still named for screen readers and long press.
+      expect(find.byTooltip('Stop'), findsOneWidget);
+    });
   });
 }

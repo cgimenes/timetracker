@@ -55,8 +55,10 @@ class RunningSection extends ConsumerWidget {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    FilledButton.tonal(
+                    IconButton.filledTonal(
                       key: const Key('stop'),
+                      tooltip: 'Stop',
+                      icon: const Icon(Icons.stop),
                       onPressed: () => guard(context, () {
                         // End must come after start, and the clock has
                         // second resolution.
@@ -70,7 +72,6 @@ class RunningSection extends ConsumerWidget {
                             .read(entriesProvider.notifier)
                             .stop(stored, end);
                       }),
-                      child: const Text('Stop'),
                     ),
                     PopupMenuButton<String>(
                       key: const Key('stop-menu'),

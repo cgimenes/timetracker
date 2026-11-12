@@ -69,7 +69,7 @@ Screens: Track, Entries, Calendar, Metrics, Goals (only when enabled), Settings.
    - Quick start: a section named "Quick start" under the form, listing the three accounts with the best frecency, one per row. Each row has a play button at its right end that starts that account now (the duplicate warning applies). Hidden when there is no history.
 2. Running section
    - List of running entries: account, start, live elapsed time.
-   - Each has Stop button (clock-out at now) and a menu: Stop at... (custom time), Edit (the Edit entry page) and Cancel entry (after a confirmation, removes the entry and records no time).
+   - Each has a Stop icon button (a stop symbol, no label; clock-out at now) and a menu: Stop at... (custom time), Edit (the Edit entry page) and Cancel entry (after a confirmation, removes the entry and records no time).
 3. Today section
    - Same as the Today group of Metrics (time per account today, total, running entries counted up to now), but always grouped at level 1 (by project), whatever the Metrics level is.
 
