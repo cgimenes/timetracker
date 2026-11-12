@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/data/providers.dart';
 import 'package:timetracker/state/clock.dart';
+import 'package:timetracker/ui/goal_progress_row.dart';
 import 'package:timetracker/ui/palette.dart';
 import 'package:timetracker/ui/track/track_page.dart';
 
@@ -91,58 +92,16 @@ void main() {
       expect(find.text('Last entries'), findsNothing);
     });
 
-    trackTest('Today: time per project, as in Metrics but always level 1', (
+    trackTest('has no Today metric, only the daily goals', (
       tester,
       storage,
     ) async {
-      final today = find.byKey(const Key('track-total-today'));
-      expect(today, findsOneWidget);
-      // dev 2:00 + meet running 1:00.
-      expect(tester.widget<Text>(today).data, '3:00');
-      expect(find.text('Today'), findsOneWidget);
-      expect(find.text('work'), findsOneWidget);
-      expect(find.text('work:acme'), findsNothing);
+      expect(find.byKey(const Key('track-total-today')), findsNothing);
+      expect(find.text('Today'), findsNothing);
+      expect(find.text('No time tracked'), findsNothing);
+      // Nothing set: no daily goals card either.
+      expect(find.byKey(const Key('daily-goals')), findsNothing);
     });
-
-    trackTest('Today ignores the Metrics level', (tester, storage) async {
-      final card = find.ancestor(
-        of: find.byKey(const Key('track-total-today')),
-        matching: find.byType(Card),
-      );
-      expect(
-        find.descendant(of: card, matching: find.text('work')),
-        findsOneWidget,
-      );
-      expect(
-        find.descendant(of: card, matching: find.text('work:acme:dev')),
-        findsNothing,
-      );
-    }, prefs: const {'metricsLevel': 3});
-
-    trackTest('Today follows the running entry', (tester, storage) async {
-      expect(
-        tester.widget<Text>(find.byKey(const Key('track-total-today'))).data,
-        '3:00',
-      );
-      await tester.tap(find.byKey(const Key('stop')));
-      await tester.pumpAndSettle();
-      // Stopped at 15:00: the same 3:00, now finished.
-      expect(
-        tester.widget<Text>(find.byKey(const Key('track-total-today'))).data,
-        '3:00',
-      );
-    });
-
-    trackTest('Today says so when nothing was tracked', (
-      tester,
-      storage,
-    ) async {
-      expect(find.text('No time tracked'), findsOneWidget);
-      expect(
-        tester.widget<Text>(find.byKey(const Key('track-total-today'))).data,
-        '0:00',
-      );
-    }, files: const {});
 
     trackTest('prefills the last used account', (tester, storage) async {
       expect(accountText(tester), 'work:acme:meet');
@@ -521,12 +480,9 @@ void main() {
     });
 
     group('daily goals', () {
-      Finder card() => find.ancestor(
-        of: find.byKey(const Key('track-total-today')),
-        matching: find.byType(Card),
-      );
+      Finder card() => find.byKey(const Key('daily-goals'));
 
-      trackTest('show in Today with progress, yellow while in progress', (
+      trackTest('show with progress, yellow while in progress', (
         tester,
         storage,
       ) async {
@@ -603,6 +559,28 @@ void main() {
           '2026-10.timeclock': _data,
           'budget.journal': '~ daily\n    (work)    3h\n',
         },
+      );
+
+      trackTest(
+        'the card is just the named list of goals, no totals or accounts',
+        (tester, storage) async {
+          expect(
+            find.descendant(of: card(), matching: find.text('Daily goals')),
+            findsOneWidget,
+          );
+          expect(
+            find.descendant(of: card(), matching: find.byType(GoalProgressRow)),
+            findsNWidgets(2),
+          );
+          // Only the project name and done / goal: no account breakdown.
+          expect(
+            find.descendant(of: card(), matching: find.text('work:acme:dev')),
+            findsNothing,
+          );
+          // Running time counts: dev 2:00 + meet 1:00 running.
+          expect(find.text('3:00 / 8:00'), findsOneWidget);
+        },
+        prefs: const {'dailyGoals': '{"work":28800,"personal":3600}'},
       );
 
       trackTest('none set, no section', (tester, storage) async {

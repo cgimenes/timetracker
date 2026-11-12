@@ -5,9 +5,8 @@ import '../../data/providers.dart';
 import '../../state/entries.dart';
 import '../choose_folder.dart';
 import '../load_error.dart';
-import '../../core/metrics.dart';
-import '../metrics/period_card.dart';
 import 'add_entry_card.dart';
+import 'daily_goals_card.dart';
 import 'quick_start.dart';
 import 'running_section.dart';
 
@@ -36,13 +35,7 @@ class TrackPage extends ConsumerWidget {
                       const AddEntryCard(),
                       const QuickStart(),
                       const RunningSection(),
-                      const PeriodCard(
-                        PeriodKind.today,
-                        'Today',
-                        level: 1,
-                        keyPrefix: 'track-',
-                        dailyGoals: true,
-                      ),
+                      const DailyGoalsCard(),
                     ],
                   ].expand((w) => [w, const SizedBox(height: 12)]).toList(),
                 ),
