@@ -13,7 +13,7 @@ The full behavior is in [spec.md](spec.md).
   start) and see what is running. Several entries can run at once.
 - **Notification:** one ongoing notification lists the running entries, with a
   Stop button for each. Stop works with the app closed.
-- **Entries:** every entry by day, filtered by account level, with edit and
+- **Entries:** finished entries by day, filtered by account level, with edit and
   remove.
 - **Metrics:** time per account for today, this week and this month, grouped
   at the account depth you choose.

@@ -198,10 +198,9 @@ class _EntryTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entry = stored.entry;
     final now = ref.watch(nowProvider);
-    final range = entry.isRunning
-        ? 'since ${formatTimeOfDay(entry.start)}, running'
-        : '${formatTimeOfDay(entry.start)} to ${formatTimeOfDay(entry.end!)}'
-              '${entry.end!.day == entry.start.day ? '' : ' (${formatDate(entry.end!)})'}';
+    final range =
+        '${formatTimeOfDay(entry.start)} to ${formatTimeOfDay(entry.end!)}'
+        '${entry.end!.day == entry.start.day ? '' : ' (${formatDate(entry.end!)})'}';
 
     return ListTile(
       title: Text(entry.account),
@@ -212,11 +211,7 @@ class _EntryTile extends ConsumerWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            entry.isRunning
-                ? formatHms(entry.duration(now))
-                : formatHm(entry.duration(now)),
-          ),
+          Text(formatHm(entry.duration(now))),
           PopupMenuButton<String>(
             key: ValueKey('menu-${stored.fileName}:${entry.inIndex}'),
             onSelected: (action) => switch (action) {
@@ -283,8 +278,7 @@ class _EntryTile extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Remove entry?'),
         content: Text(
-          '${entry.account}\n'
-          '${entry.isRunning ? 'since ${formatDateTime(entry.start)}' : formatRange(entry.start, entry.end!)}',
+          '${entry.account}\n${formatRange(entry.start, entry.end!)}',
         ),
         actions: [
           TextButton(

@@ -56,8 +56,11 @@ final filterPrefixOptionsProvider = Provider<List<String>>((ref) {
   return options;
 });
 
-/// Entries that pass the filter, newest first.
+/// Finished entries that pass the filter, newest first. Running entries are
+/// on the Track tab.
 final filteredEntriesProvider = Provider<List<StoredEntry>>((ref) {
   final filter = ref.watch(entriesFilterProvider);
-  return _all(ref).where((e) => filter.matches(e.entry.account)).toList();
+  return _all(ref)
+      .where((e) => !e.entry.isRunning && filter.matches(e.entry.account))
+      .toList();
 });

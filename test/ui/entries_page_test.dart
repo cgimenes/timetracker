@@ -21,6 +21,11 @@ const _data =
     'o 2026-10-30 09:30:00 work:acme:meet\n'
     'i 2026-10-30 14:00:00 work:globex:dev\n';
 
+const _withFinishedGlobex =
+    'i 2026-10-27 09:00:00 work:globex:dev\n'
+    'o 2026-10-27 10:00:00 work:globex:dev\n'
+    '$_data';
+
 /// Runs [body] with the Entries page mounted on a phone-sized screen. The
 /// widget tree owns the container and is unmounted at the end.
 void entriesTest(
@@ -90,7 +95,6 @@ void main() {
 
       final order = [
         top(tester, find.text('2026-10-30')),
-        top(tester, find.text('work:globex:dev')),
         top(tester, find.text('work:acme:meet')),
         top(tester, find.text('2026-10-29')),
         top(tester, find.text('work:acme:dev')),
@@ -99,23 +103,23 @@ void main() {
       ];
       expect(order, [...order]..sort());
 
-      // Oct 30: meet 0:30 + globex running 1:00 = 1:30.
+      // Oct 30: meet 0:30. The running globex entry is not counted.
       expect(
         find.descendant(
           of: find.widgetWithText(Row, '2026-10-30'),
-          matching: find.text('1:30'),
+          matching: find.text('0:30'),
         ),
         findsOneWidget,
       );
     });
 
-    entriesTest('shows ranges, running entries and comments', (
+    entriesTest('shows ranges and comments, not running entries', (
       tester,
       _,
     ) async {
       expect(find.text('09:00 to 12:00\nfix login'), findsOneWidget);
-      expect(find.text('since 14:00, running'), findsOneWidget);
-      expect(find.text('1:00:00'), findsOneWidget); // live timer
+      expect(find.text('work:globex:dev'), findsNothing);
+      expect(find.textContaining('running'), findsNothing);
     });
 
     entriesTest('filters by level and account prefix', (tester, _) async {
@@ -137,10 +141,9 @@ void main() {
 
       await tester.tap(find.byKey(const Key('filter-prefix')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('work:globex').last);
+      await tester.tap(find.text('work:acme').last);
       await tester.pumpAndSettle();
-      expect(find.text('work:globex:dev'), findsOneWidget);
-      expect(find.text('work:acme:dev'), findsNothing);
+      expect(find.text('work:acme:dev'), findsOneWidget);
       expect(find.text('personal:read'), findsNothing);
     });
 
@@ -253,7 +256,8 @@ void main() {
         storage.text('2026-10.timeclock'),
         isNot(contains('o 2026-10-28 10:00:00')),
       );
-      expect(find.text('since 09:00, running'), findsOneWidget);
+      // Running now, so it moves to the Track tab.
+      expect(find.text('personal:read'), findsNothing);
     });
 
     entriesTest('Start again now clocks in the same account', (
@@ -307,21 +311,23 @@ void main() {
       expect(storage.text('2026-10.timeclock'), _data);
     });
 
-    entriesTest('Start again warns when the account already runs', (
-      tester,
-      storage,
-    ) async {
-      await tester.tap(menuOf('work:globex:dev'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Start again'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('restart-now')));
-      await tester.pumpAndSettle();
-      expect(find.text('Already running'), findsOneWidget);
+    entriesTest(
+      'Start again warns when the account already runs',
+      (tester, storage) async {
+        await tester.tap(menuOf('work:globex:dev'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Start again'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('restart-now')));
+        await tester.pumpAndSettle();
+        expect(find.text('Already running'), findsOneWidget);
 
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-      expect(storage.text('2026-10.timeclock'), _data);
-    });
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+        expect(storage.text('2026-10.timeclock'), _withFinishedGlobex);
+      },
+      // A finished globex session, plus the running one in _data.
+      files: const {'2026-10.timeclock': _withFinishedGlobex},
+    );
   });
 }

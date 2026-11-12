@@ -98,7 +98,7 @@ Bottom tabs: Track, Entries, Metrics, Settings. Tabs have no top header; the bot
 
 ### Entries
 
-- List all entries, newest first, grouped by day.
+- List all finished entries, newest first, grouped by day. Running entries are not listed (they are on Track); day totals count finished entries only.
 - Filter by level: select level, then account prefix at that level.
 - Each entry menu: Start again, Edit, Remove.
   - Start again: asks "Now" or "Pick time" (the one date and time dialog), then clocks in the same account. No comment is copied. If the account already runs, the same duplicate warning as in Track is shown first.
