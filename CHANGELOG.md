@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.11.0...timetracker-v1.12.0) (2026-11-12)
+
+
+### Features
+
+* pick date and time with day chips and the material clock ([589631e](https://github.com/cgimenes/timetracker/commit/589631e774970e6e0e7a8e30855cb780d962732d))
+* tidy the goals screen and the calendar header ([2f03fb8](https://github.com/cgimenes/timetracker/commit/2f03fb8851581ea658ddfc84387405e6bd9ae6f0))
+
 ## [1.11.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.10.0...timetracker-v1.11.0) (2026-11-12)
 
 
