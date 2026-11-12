@@ -255,5 +255,73 @@ void main() {
       );
       expect(find.text('since 09:00, running'), findsOneWidget);
     });
+
+    entriesTest('Start again now clocks in the same account', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(menuOf('personal:read'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start again'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('restart-now')));
+      await tester.pumpAndSettle();
+
+      expect(
+        storage.text('2026-10.timeclock'),
+        '${_data}i 2026-10-30 15:00:00 personal:read\n',
+      );
+      expect(find.text('Started personal:read'), findsOneWidget);
+    });
+
+    entriesTest('Start again at a picked time', (tester, storage) async {
+      await tester.tap(menuOf('personal:read'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start again'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('restart-at')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('dt-hour')), '10');
+      await tester.enterText(find.byKey(const Key('dt-minute')), '15');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('dt-ok')));
+      await tester.pumpAndSettle();
+
+      expect(
+        storage.text('2026-10.timeclock'),
+        '${_data}i 2026-10-30 10:15:00 personal:read\n',
+      );
+    });
+
+    entriesTest('Start again cancelled writes nothing', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(menuOf('personal:read'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start again'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(storage.text('2026-10.timeclock'), _data);
+    });
+
+    entriesTest('Start again warns when the account already runs', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(menuOf('work:globex:dev'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Start again'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('restart-now')));
+      await tester.pumpAndSettle();
+      expect(find.text('Already running'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(storage.text('2026-10.timeclock'), _data);
+    });
   });
 }

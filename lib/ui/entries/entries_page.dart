@@ -220,12 +220,14 @@ class _EntryTile extends ConsumerWidget {
           PopupMenuButton<String>(
             key: ValueKey('menu-${stored.fileName}:${entry.inIndex}'),
             onSelected: (action) => switch (action) {
+              'restart' => _restart(context, ref),
               'edit' => Navigator.of(context).push(
                 MaterialPageRoute<void>(builder: (_) => EditEntryPage(stored)),
               ),
               _ => _confirmRemove(context, ref),
             },
             itemBuilder: (_) => const [
+              PopupMenuItem(value: 'restart', child: Text('Start again')),
               PopupMenuItem(value: 'edit', child: Text('Edit')),
               PopupMenuItem(value: 'remove', child: Text('Remove')),
             ],
@@ -233,6 +235,45 @@ class _EntryTile extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Starts the same account again, now or at a time the user picks.
+  Future<void> _restart(BuildContext context, WidgetRef ref) async {
+    final account = stored.entry.account;
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Start again?'),
+        content: Text(account),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            key: const Key('restart-at'),
+            onPressed: () => Navigator.pop(context, 'at'),
+            child: const Text('Pick time'),
+          ),
+          FilledButton(
+            key: const Key('restart-now'),
+            onPressed: () => Navigator.pop(context, 'now'),
+            child: const Text('Now'),
+          ),
+        ],
+      ),
+    );
+    if (choice == null || !context.mounted) return;
+    final start = choice == 'now'
+        ? ref.read(clockProvider)()
+        : await askStartTime(context, ref, account: account);
+    if (start == null || !context.mounted) return;
+    final started = await startEntry(context, ref, account, start);
+    if (started && context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text('Started $account')));
+    }
   }
 
   Future<void> _confirmRemove(BuildContext context, WidgetRef ref) async {
