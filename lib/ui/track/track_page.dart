@@ -6,6 +6,7 @@ import '../../state/entries.dart';
 import '../choose_folder.dart';
 import '../load_error.dart';
 import 'add_entry_card.dart';
+import 'quick_start.dart';
 import 'running_section.dart';
 
 /// Start an entry and see what is running.
@@ -31,6 +32,7 @@ class TrackPage extends ConsumerWidget {
                       LoadErrorCard(entries.error)
                     else ...[
                       const AddEntryCard(),
+                      const QuickStart(),
                       const RunningSection(),
                     ],
                   ].expand((w) => [w, const SizedBox(height: 12)]).toList(),

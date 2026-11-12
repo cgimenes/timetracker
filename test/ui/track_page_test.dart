@@ -302,7 +302,8 @@ void main() {
         storage.text('2026-10.timeclock'),
         endsWith('i 2026-10-30 14:00:00 work:acme:review\n'),
       );
-      expect(find.text('work:acme:review'), findsOneWidget);
+      // In the running list and as a quick start button.
+      expect(find.text('work:acme:review'), findsNWidgets(2));
     });
 
     trackTest('Cancel entry asks first, then removes it without a clock-out', (
@@ -334,5 +335,79 @@ void main() {
       );
       expect(find.text('Nothing running'), findsOneWidget);
     });
+
+    trackTest(
+      'quick start buttons: the three most frecent accounts',
+      (tester, storage) async {
+        final quick = find.byKey(const Key('quick-start'));
+        expect(quick, findsOneWidget);
+        // Frecency over the three accounts in the data: dev, then meet; the
+        // third is the next one by score.
+        expect(
+          find.descendant(of: quick, matching: find.byType(FilledButton)),
+          findsNWidgets(3),
+        );
+        expect(find.byKey(const Key('quick-work:acme:dev')), findsOneWidget);
+        expect(find.byKey(const Key('quick-work:acme:meet')), findsOneWidget);
+        expect(find.byKey(const Key('quick-personal:read')), findsOneWidget);
+      },
+      files: const {
+        '2026-10.timeclock':
+            'i 2026-10-30 09:00:00 work:acme:dev\n'
+            'o 2026-10-30 10:00:00 work:acme:dev\n'
+            'i 2026-10-29 09:00:00 work:acme:dev\n'
+            'o 2026-10-29 10:00:00 work:acme:dev\n'
+            'i 2026-10-28 09:00:00 work:acme:meet\n'
+            'o 2026-10-28 10:00:00 work:acme:meet\n'
+            'i 2026-10-20 09:00:00 personal:read\n'
+            'o 2026-10-20 10:00:00 personal:read\n'
+            'i 2026-06-01 09:00:00 old:thing\n'
+            'o 2026-06-01 10:00:00 old:thing\n',
+      },
+    );
+
+    trackTest(
+      'only three buttons even with more accounts',
+      (tester, storage) async {
+        expect(find.byKey(const Key('quick-old:thing')), findsNothing);
+      },
+      files: const {
+        '2026-10.timeclock':
+            'i 2026-10-30 09:00:00 a\no 2026-10-30 10:00:00 a\n'
+            'i 2026-10-29 09:00:00 b\no 2026-10-29 10:00:00 b\n'
+            'i 2026-10-28 09:00:00 c\no 2026-10-28 10:00:00 c\n'
+            'i 2026-06-01 09:00:00 old:thing\no 2026-06-01 10:00:00 old:thing\n',
+      },
+    );
+
+    trackTest('a quick start button starts that account now', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(find.byKey(const Key('quick-work:acme:dev')));
+      await tester.pumpAndSettle();
+      expect(
+        storage.text('2026-10.timeclock'),
+        endsWith('i 2026-10-30 15:00:00 work:acme:dev\n'),
+      );
+      expect(find.text('Nothing running'), findsNothing);
+    });
+
+    trackTest('quick start asks first when the account already runs', (
+      tester,
+      storage,
+    ) async {
+      // work:acme:meet runs in the default data.
+      await tester.tap(find.byKey(const Key('quick-work:acme:meet')));
+      await tester.pumpAndSettle();
+      expect(find.text('Already running'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(storage.text('2026-10.timeclock'), _data);
+    });
+
+    trackTest('no history, no quick start buttons', (tester, storage) async {
+      expect(find.byKey(const Key('quick-start')), findsNothing);
+    }, files: const {});
   });
 }
