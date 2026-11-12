@@ -238,51 +238,59 @@ class _EntryTile extends ConsumerWidget {
     return ListTile(
       key: ValueKey('entry-$id'),
       selected: open,
+      // The row with its actions open stands out from the others.
+      selectedTileColor: Theme.of(context).colorScheme.secondaryContainer,
       title: Text(entry.account),
       subtitle: Text(
         entry.comment == null ? range : '$range\n${entry.comment}',
       ),
       isThreeLine: entry.comment != null,
-      onTap: () => notifier.toggle(id),
-      trailing: open
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  tooltip: 'Start again',
-                  icon: const Icon(Icons.replay),
-                  onPressed: () async {
-                    notifier.close();
-                    // Read before the await: the row may be gone afterwards.
-                    final tab = ref.read(homeTabProvider.notifier);
-                    final started = await restartEntry(context, ref, stored);
-                    // Show what is running now.
-                    if (started) tab.select(HomeTab.track);
-                  },
-                ),
-                IconButton(
-                  tooltip: 'Edit',
-                  icon: const Icon(Icons.edit_outlined),
-                  onPressed: () {
-                    notifier.close();
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => EditEntryPage(stored),
-                      ),
-                    );
-                  },
-                ),
-                IconButton(
-                  tooltip: 'Remove',
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () {
-                    notifier.close();
-                    confirmRemoveEntry(context, ref, stored);
-                  },
-                ),
-              ],
-            )
-          : Text(formatHm(entry.duration(now))),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (open) ...[
+            IconButton(
+              tooltip: 'Start again',
+              icon: const Icon(Icons.replay),
+              onPressed: () async {
+                notifier.close();
+                // Read before the await: the row may be gone afterwards.
+                final tab = ref.read(homeTabProvider.notifier);
+                final started = await restartEntry(context, ref, stored);
+                // Show what is running now.
+                if (started) tab.select(HomeTab.track);
+              },
+            ),
+            IconButton(
+              tooltip: 'Edit',
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () {
+                notifier.close();
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => EditEntryPage(stored),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              tooltip: 'Remove',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () {
+                notifier.close();
+                confirmRemoveEntry(context, ref, stored);
+              },
+            ),
+          ] else
+            Text(formatHm(entry.duration(now))),
+          IconButton(
+            key: Key('entry-menu-$id'),
+            tooltip: 'Actions',
+            icon: const Icon(Icons.more_vert),
+            onPressed: () => notifier.toggle(id),
+          ),
+        ],
+      ),
     );
   }
 }

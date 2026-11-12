@@ -131,7 +131,7 @@ Off by default. The Budgets switch in Settings adds a Budgets screen to the side
 
 - List all finished entries, newest first, grouped by day. Running entries are not listed (they are on Track); day totals count finished entries only.
 - Search field above the list: keeps the entries whose account or comment contains every word typed, ignoring case. Day headers and totals follow the search. A clear button empties it.
-- Tap an entry to show its actions in the same row, in place of the duration: Start again, Edit, Remove (icons). One row is open at a time; tapping it again, running an action or changing the search closes it.
+- Each entry has a menu button (three dots) at the end of its row. Pressing it shows the actions in the same row, in place of the duration: Start again, Edit, Remove (icons), and the row gets a highlighted background. Tapping the row itself does nothing. One row is open at a time; pressing the menu button again, running an action or changing the search closes it.
   - Start again: asks "Now" or "Pick time" (the one date and time dialog), then clocks in the same account and switches to the Track screen, where it is running. No comment is copied. If the account already runs, the same duplicate warning as in Track is shown first.
   - Edit: account, start, end (end empty = running). Validation: end > start, nothing in the future. The entry's comment is kept as it is.
   - Remove: confirmation dialog.

@@ -79,7 +79,9 @@ Future<void> rowAction(
   String tooltip,
 ) async {
   final tile = find.widgetWithText(ListTile, account);
-  await tester.tap(tile);
+  await tester.tap(
+    find.descendant(of: tile, matching: find.byTooltip('Actions')),
+  );
   await tester.pumpAndSettle();
   await tester.tap(
     find.descendant(of: tile, matching: find.byTooltip(tooltip)),
@@ -345,47 +347,87 @@ void main() {
       files: const {'2026-10.timeclock': _withFinishedGlobex},
     );
 
-    entriesTest('tap a row to show its actions in place of the duration', (
+    entriesTest('every row has a menu button, tapping the row does nothing', (
+      tester,
+      _,
+    ) async {
+      expect(find.byTooltip('Actions'), findsNWidgets(3));
+      await tester.tap(find.widgetWithText(ListTile, 'personal:read'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Edit'), findsNothing);
+      expect(find.byTooltip('Remove'), findsNothing);
+    });
+
+    entriesTest('the menu button shows the actions in the row, highlighted', (
       tester,
       _,
     ) async {
       final read = find.widgetWithText(ListTile, 'personal:read');
       final dev = find.widgetWithText(ListTile, 'work:acme:dev');
-      Finder icons(Finder tile) =>
-          find.descendant(of: tile, matching: find.byType(IconButton));
-      expect(icons(read), findsNothing);
+      Finder icon(Finder tile, String tooltip) =>
+          find.descendant(of: tile, matching: find.byTooltip(tooltip));
+      Finder actions(Finder tile) => find.descendant(
+        of: tile,
+        matching: find.byWidgetPredicate(
+          (w) =>
+              w is IconButton &&
+              ['Start again', 'Edit', 'Remove'].contains(w.tooltip),
+        ),
+      );
+      expect(actions(read), findsNothing);
       expect(find.descendant(of: read, matching: find.text('1:00')), findsOne);
+      expect(tester.widget<ListTile>(read).selected, isFalse);
 
-      await tester.tap(read);
+      await tester.tap(icon(read, 'Actions'));
       await tester.pumpAndSettle();
-      expect(icons(read), findsNWidgets(3));
-      expect(find.byTooltip('Start again'), findsOneWidget);
-      expect(find.byTooltip('Edit'), findsOneWidget);
-      expect(find.byTooltip('Remove'), findsOneWidget);
+      expect(actions(read), findsNWidgets(3));
       expect(
         find.descendant(of: read, matching: find.text('1:00')),
         findsNothing,
       );
-      // The three icons sit in the row, level with each other.
-      final y = tester.getCenter(find.byTooltip('Edit')).dy;
-      expect(tester.getCenter(find.byTooltip('Start again')).dy, y);
-      expect(tester.getCenter(find.byTooltip('Remove')).dy, y);
+      // Highlighted background.
+      final tile = tester.widget<ListTile>(read);
+      expect(tile.selected, isTrue);
+      expect(
+        tile.selectedTileColor,
+        Theme.of(tester.element(read)).colorScheme.secondaryContainer,
+      );
+      expect(tester.widget<ListTile>(dev).selected, isFalse);
+
+      // The three icons and the menu button sit in the row, level.
+      final y = tester.getCenter(icon(read, 'Edit')).dy;
+      expect(tester.getCenter(icon(read, 'Start again')).dy, y);
+      expect(tester.getCenter(icon(read, 'Remove')).dy, y);
+      expect(tester.getCenter(icon(read, 'Actions')).dy, y);
       expect(y, tester.getCenter(read).dy);
+      // Menu button is the last thing on the right.
+      expect(
+        tester.getCenter(icon(read, 'Actions')).dx,
+        greaterThan(tester.getCenter(icon(read, 'Remove')).dx),
+      );
 
       // Another row takes over.
-      await tester.tap(dev);
+      await tester.tap(icon(dev, 'Actions'));
       await tester.pumpAndSettle();
-      expect(icons(read), findsNothing);
-      expect(icons(dev), findsNWidgets(3));
+      expect(actions(read), findsNothing);
+      expect(actions(dev), findsNWidgets(3));
+      expect(tester.widget<ListTile>(read).selected, isFalse);
+      expect(tester.widget<ListTile>(dev).selected, isTrue);
 
-      // Tapping it again hides them.
-      await tester.tap(dev);
+      // The menu button again hides them.
+      await tester.tap(icon(dev, 'Actions'));
       await tester.pumpAndSettle();
-      expect(find.byType(IconButton), findsNothing);
+      expect(actions(dev), findsNothing);
+      expect(tester.widget<ListTile>(dev).selected, isFalse);
     });
 
     entriesTest('changing the search closes the open row', (tester, _) async {
-      await tester.tap(find.widgetWithText(ListTile, 'personal:read'));
+      await tester.tap(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'personal:read'),
+          matching: find.byTooltip('Actions'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.byTooltip('Edit'), findsOneWidget);
 
