@@ -70,6 +70,8 @@ Screens: Track, Entries, Calendar, Metrics, Goals (only when enabled), Settings.
 2. Running section
    - List of running entries: account, start, live elapsed time.
    - Each has Stop button (clock-out at now) and a menu: Stop at... (custom time), Edit (the Edit entry page) and Cancel entry (after a confirmation, removes the entry and records no time).
+3. Today section
+   - Same as the Today group of Metrics (time per account today, total, running entries counted up to now), but always grouped at level 1 (by project), whatever the Metrics level is.
 
 ### Calendar
 

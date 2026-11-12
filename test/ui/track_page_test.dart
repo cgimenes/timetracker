@@ -24,6 +24,7 @@ void trackTest(
   Future<void> Function(WidgetTester tester, MemoryStorage storage) body, {
   Map<String, String> files = const {'2026-10.timeclock': _data},
   bool withFolder = true,
+  Map<String, Object> prefs = const {},
 }) {
   testWidgets(name, (tester) async {
     tester.view.physicalSize = const Size(800, 2400);
@@ -31,7 +32,7 @@ void trackTest(
     addTearDown(tester.view.reset);
 
     final storage = MemoryStorage(files);
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues(prefs);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -81,17 +82,66 @@ void main() {
       expect(find.text('1:00:00'), findsOneWidget);
     });
 
-    trackTest('has no header, last entries or metrics', (
-      tester,
-      storage,
-    ) async {
+    trackTest('has no header or last entries', (tester, storage) async {
       expect(find.byType(AppBar), findsNothing);
       // The card has no title of its own, only the two buttons.
       expect(find.text('Start now'), findsOneWidget);
       expect(find.text('Start at...'), findsOneWidget);
       expect(find.text('Last entries'), findsNothing);
-      expect(find.text('Today'), findsNothing);
     });
+
+    trackTest('Today: time per project, as in Metrics but always level 1', (
+      tester,
+      storage,
+    ) async {
+      final today = find.byKey(const Key('track-total-today'));
+      expect(today, findsOneWidget);
+      // dev 2:00 + meet running 1:00.
+      expect(tester.widget<Text>(today).data, '3:00');
+      expect(find.text('Today'), findsOneWidget);
+      expect(find.text('work'), findsOneWidget);
+      expect(find.text('work:acme'), findsNothing);
+    });
+
+    trackTest('Today ignores the Metrics level', (tester, storage) async {
+      final card = find.ancestor(
+        of: find.byKey(const Key('track-total-today')),
+        matching: find.byType(Card),
+      );
+      expect(
+        find.descendant(of: card, matching: find.text('work')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: find.text('work:acme:dev')),
+        findsNothing,
+      );
+    }, prefs: const {'metricsLevel': 3});
+
+    trackTest('Today follows the running entry', (tester, storage) async {
+      expect(
+        tester.widget<Text>(find.byKey(const Key('track-total-today'))).data,
+        '3:00',
+      );
+      await tester.tap(find.byKey(const Key('stop')));
+      await tester.pumpAndSettle();
+      // Stopped at 15:00: the same 3:00, now finished.
+      expect(
+        tester.widget<Text>(find.byKey(const Key('track-total-today'))).data,
+        '3:00',
+      );
+    });
+
+    trackTest('Today says so when nothing was tracked', (
+      tester,
+      storage,
+    ) async {
+      expect(find.text('No time tracked'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('track-total-today'))).data,
+        '0:00',
+      );
+    }, files: const {});
 
     trackTest('prefills the last used account', (tester, storage) async {
       expect(accountText(tester), 'work:acme:meet');

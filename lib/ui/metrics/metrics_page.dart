@@ -6,13 +6,11 @@ import '../../core/metrics.dart';
 import '../../data/providers.dart';
 import '../../settings/app_settings.dart';
 import '../../state/budgets.dart';
-import '../../state/derived.dart';
 import '../../state/entries.dart';
 import '../choose_folder.dart';
 import '../load_error.dart';
-import '../format.dart';
-import '../palette.dart';
 import 'metrics_chart.dart';
+import 'period_card.dart';
 
 /// Time per account for Today, This week and This month, grouped at the
 /// level chosen here.
@@ -46,7 +44,7 @@ class MetricsPage extends ConsumerWidget {
                       LoadErrorCard(entries.error),
                     const _LevelCard(),
                     for (final (kind, title) in _periods)
-                      _PeriodCard(kind, title),
+                      PeriodCard(kind, title),
                     const MetricsChart(),
                   ].expand((w) => [w, const SizedBox(height: 12)]).toList(),
                 ),
@@ -91,111 +89,6 @@ class _LevelCard extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _PeriodCard extends ConsumerWidget {
-  const _PeriodCard(this.kind, this.title);
-
-  final PeriodKind kind;
-  final String title;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final metrics = ref.watch(metricsProvider(kind));
-    final budgets = ref.watch(metricsBudgetsProvider(kind));
-    final textTheme = Theme.of(context).textTheme;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(child: Text(title, style: textTheme.titleMedium)),
-                Text(
-                  formatHm(metrics.total),
-                  key: Key('total-${kind.name}'),
-                  style: textTheme.titleMedium,
-                ),
-              ],
-            ),
-            if (metrics.rows.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text('No time tracked'),
-              ),
-            for (final row in metrics.rows)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Row(
-                  children: [
-                    Expanded(child: Text(row.account)),
-                    Text(formatHm(row.duration)),
-                  ],
-                ),
-              ),
-            if (budgets.isNotEmpty) ...[
-              const Divider(height: 24),
-              Text('Goals', style: textTheme.titleSmall),
-              for (final b in budgets) _BudgetRow(kind, b),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BudgetRow extends StatelessWidget {
-  const _BudgetRow(this.kind, this.progress);
-
-  final PeriodKind kind;
-  final BudgetProgress progress;
-
-  @override
-  Widget build(BuildContext context) {
-    final brightness = Theme.of(context).brightness;
-    final achieved = progress.achieved;
-
-    return Padding(
-      key: Key('budget-${kind.name}-${progress.project}'),
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(child: Text(progress.project)),
-              if (achieved)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: Icon(
-                    Icons.check_circle,
-                    key: Key('goal-achieved-${kind.name}-${progress.project}'),
-                    size: 18,
-                    color: goalAchievedTextColor(brightness),
-                  ),
-                ),
-              Text(
-                '${formatHm(progress.used)} / ${formatHm(progress.allowed)}',
-                style: achieved
-                    ? TextStyle(color: goalAchievedTextColor(brightness))
-                    : null,
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          LinearProgressIndicator(
-            key: Key('goal-bar-${kind.name}-${progress.project}'),
-            value: progress.fraction,
-            color: goalBarColor(achieved: achieved, brightness: brightness),
-          ),
-        ],
       ),
     );
   }

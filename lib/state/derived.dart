@@ -31,6 +31,22 @@ final metricsProvider = Provider.family<Metrics, PeriodKind>((ref, kind) {
   );
 });
 
+/// Time per account for a period, grouped at a fixed `level` whatever the
+/// Metrics level is.
+final levelMetricsProvider = Provider.family<Metrics, (PeriodKind, int)>((
+  ref,
+  key,
+) {
+  final now = nowOf(ref);
+  final settings = ref.watch(settingsProvider);
+  return computeMetrics(
+    _entries(ref).map((e) => e.entry),
+    periodRange(key.$1, now, weekStart: settings.weekStart),
+    level: key.$2,
+    now: now,
+  );
+});
+
 /// Accounts to suggest when starting an entry, best first.
 final accountSuggestionsProvider = Provider<List<String>>(
   (ref) => rankAccounts(_entries(ref).map((e) => e.entry), nowOf(ref)),
