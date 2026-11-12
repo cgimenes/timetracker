@@ -418,5 +418,40 @@ void main() {
     trackTest('no history, no quick start buttons', (tester, storage) async {
       expect(find.byKey(const Key('quick-start')), findsNothing);
     }, files: const {});
+
+    trackTest(
+      'quick start is a named list with the play button on the right',
+      (tester, storage) async {
+        final quick = find.byKey(const Key('quick-start'));
+        final tile = find.descendant(
+          of: quick,
+          matching: find.widgetWithText(ListTile, 'work:acme:dev'),
+        );
+        expect(tile, findsOneWidget);
+        final play = find.byKey(const Key('quick-work:acme:dev'));
+        // Same row, at the right end of it.
+        expect(
+          tester.getCenter(play).dy,
+          closeTo(tester.getCenter(tile).dy, 0.5),
+        );
+        expect(
+          tester.getRect(play).right,
+          greaterThan(tester.getRect(tile).right - 40),
+        );
+        expect(
+          tester.getCenter(play).dx,
+          greaterThan(tester.getCenter(find.text('work:acme:dev').first).dx),
+        );
+        // Every row has its own play button.
+        expect(find.byTooltip('Start now'), findsNWidgets(3));
+      },
+      files: const {
+        '2026-10.timeclock':
+            'i 2026-10-30 09:00:00 work:acme:dev\n'
+            'o 2026-10-30 10:00:00 work:acme:dev\n'
+            'i 2026-10-29 09:00:00 b\no 2026-10-29 10:00:00 b\n'
+            'i 2026-10-28 09:00:00 c\no 2026-10-28 10:00:00 c\n',
+      },
+    );
   });
 }
