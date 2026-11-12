@@ -362,5 +362,169 @@ void main() {
       (tester, _, noS) async {},
       files: const {},
     );
+
+    group('zoom', () {
+      double hourHeight(ProviderContainer c) =>
+          c.read(settingsProvider).calendarHourHeight;
+
+      double blockHeight(WidgetTester tester, String account) => tester
+          .getSize(
+            find
+                .ancestor(of: block(account), matching: find.byType(Material))
+                .first,
+          )
+          .height;
+
+      calendarTest('starts at 56 px per hour', (tester, c, storage) async {
+        expect(hourHeight(c), 56);
+        expect(blockHeight(tester, 'work:acme:dev'), closeTo(112, 0.5));
+      });
+
+      calendarTest('the buttons zoom in and out and the blocks follow', (
+        tester,
+        c,
+        storage,
+      ) async {
+        await tester.tap(find.byKey(const Key('cal-zoom-in')));
+        await tester.pumpAndSettle();
+        expect(hourHeight(c), 70);
+        expect(blockHeight(tester, 'work:acme:dev'), closeTo(140, 0.5));
+
+        await tester.tap(find.byKey(const Key('cal-zoom-out')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('cal-zoom-out')));
+        await tester.pumpAndSettle();
+        expect(hourHeight(c), closeTo(44.8, 0.01));
+        expect(blockHeight(tester, 'work:acme:dev'), closeTo(89.6, 0.5));
+      });
+
+      calendarTest('zoom stops at the limits and the buttons turn off', (
+        tester,
+        c,
+        storage,
+      ) async {
+        for (var i = 0; i < 12; i++) {
+          await tester.tap(
+            find.byKey(const Key('cal-zoom-out')),
+            warnIfMissed: false,
+          );
+          await tester.pumpAndSettle();
+        }
+        expect(hourHeight(c), minHourHeight);
+        expect(
+          tester
+              .widget<FloatingActionButton>(
+                find.byKey(const Key('cal-zoom-out')),
+              )
+              .onPressed,
+          isNull,
+        );
+
+        for (var i = 0; i < 20; i++) {
+          await tester.tap(
+            find.byKey(const Key('cal-zoom-in')),
+            warnIfMissed: false,
+          );
+          await tester.pumpAndSettle();
+        }
+        expect(hourHeight(c), maxHourHeight);
+        expect(
+          tester
+              .widget<FloatingActionButton>(
+                find.byKey(const Key('cal-zoom-in')),
+              )
+              .onPressed,
+          isNull,
+        );
+      });
+
+      calendarTest('the zoom is saved', (tester, c, storage) async {
+        await tester.tap(find.byKey(const Key('cal-zoom-in')));
+        await tester.pumpAndSettle();
+        expect(
+          c.read(sharedPreferencesProvider).getDouble('calendarHourHeight'),
+          70,
+        );
+      });
+
+      calendarTest('a saved zoom is used, kept inside the limits', (
+        tester,
+        c,
+        storage,
+      ) async {
+        expect(hourHeight(c), 100);
+        expect(blockHeight(tester, 'work:acme:dev'), closeTo(200, 0.5));
+      }, prefs: const {'calendarHourHeight': 100.0});
+
+      calendarTest('a silly saved zoom is clamped', (tester, c, storage) async {
+        expect(hourHeight(c), maxHourHeight);
+      }, prefs: const {'calendarHourHeight': 9999.0});
+
+      calendarTest('pinching with two fingers zooms', (
+        tester,
+        c,
+        storage,
+      ) async {
+        final center = tester.getCenter(find.byType(SingleChildScrollView));
+        final a = await tester.startGesture(
+          center - const Offset(0, 30),
+          pointer: 1,
+        );
+        final b = await tester.startGesture(
+          center + const Offset(0, 30),
+          pointer: 2,
+        );
+        for (var i = 0; i < 2; i++) {
+          await a.moveBy(const Offset(0, -15));
+          await b.moveBy(const Offset(0, 15));
+          await tester.pump();
+        }
+        await a.up();
+        await b.up();
+        await tester.pumpAndSettle();
+        final big = hourHeight(c);
+        expect(big, greaterThan(56));
+        expect(big, lessThan(maxHourHeight));
+
+        final a2 = await tester.startGesture(
+          center - const Offset(0, 60),
+          pointer: 3,
+        );
+        final b2 = await tester.startGesture(
+          center + const Offset(0, 60),
+          pointer: 4,
+        );
+        for (var i = 0; i < 2; i++) {
+          await a2.moveBy(const Offset(0, 15));
+          await b2.moveBy(const Offset(0, -15));
+          await tester.pump();
+        }
+        await a2.up();
+        await b2.up();
+        await tester.pumpAndSettle();
+        expect(hourHeight(c), lessThan(big));
+      });
+
+      calendarTest('one finger still scrolls and does not zoom', (
+        tester,
+        c,
+        storage,
+      ) async {
+        // A short screen, so the day does not fit and can scroll.
+        tester.view.physicalSize = const Size(800, 700);
+        await tester.pumpAndSettle();
+        final scroll = tester.state<ScrollableState>(
+          find.byType(Scrollable).first,
+        );
+        final before = scroll.position.pixels;
+        await tester.drag(
+          find.byType(SingleChildScrollView),
+          const Offset(0, -200),
+        );
+        await tester.pumpAndSettle();
+        expect(scroll.position.pixels, greaterThan(before));
+        expect(hourHeight(c), 56);
+      });
+    });
   });
 }

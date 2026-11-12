@@ -16,9 +16,11 @@ import '../format.dart';
 import '../load_error.dart';
 import '../palette.dart';
 
-const _hourHeight = 56.0;
 const _gutter = 52.0;
 const _minBlockHeight = 22.0;
+
+/// Factor of one zoom button press.
+const _zoomStep = 1.25;
 const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 /// One day as a column of hours, like Google Calendar: entries are blocks
@@ -187,6 +189,14 @@ class _Timeline extends ConsumerStatefulWidget {
 class _TimelineState extends ConsumerState<_Timeline> {
   late final ScrollController _scroll;
 
+  /// Pointers on the screen. Two fingers zoom instead of scrolling.
+  var _pointers = 0;
+  var _pinching = false;
+  var _pinchBase = defaultHourHeight;
+
+  /// Scroll offset to apply after the next layout, while zooming.
+  double? _pendingOffset;
+
   @override
   void initState() {
     super.initState();
@@ -208,6 +218,28 @@ class _TimelineState extends ConsumerState<_Timeline> {
     super.dispose();
   }
 
+  double _hourHeight() => ref.read(settingsProvider).calendarHourHeight;
+
+  /// Sets the zoom, keeping the time at [focalY] (a position in the visible
+  /// part of the column) where it is.
+  void _zoomTo(double height, {double? focalY}) {
+    final old = _hourHeight();
+    final next = height.clamp(minHourHeight, maxHourHeight);
+    if (next == old) return;
+    if (_scroll.hasClients) {
+      final fy = focalY ?? _scroll.position.viewportDimension / 2;
+      final offset = _pendingOffset ?? _scroll.offset;
+      _pendingOffset = (offset + fy) * next / old - fy;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final target = _pendingOffset;
+        _pendingOffset = null;
+        if (!mounted || target == null || !_scroll.hasClients) return;
+        _scroll.jumpTo(target.clamp(0.0, _scroll.position.maxScrollExtent));
+      });
+    }
+    ref.read(settingsProvider.notifier).setCalendarHourHeight(next);
+  }
+
   /// An hour above the first entry of the day, or above now for an empty
   /// today, or the morning.
   double _startOffset() {
@@ -222,7 +254,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
     } else {
       minute = 8 * 60;
     }
-    return math.max(0, (minute - 60) / 60 * _hourHeight);
+    return math.max(0, (minute - 60) / 60 * _hourHeight());
   }
 
   @override
@@ -235,11 +267,15 @@ class _TimelineState extends ConsumerState<_Timeline> {
     final scheme = Theme.of(context).colorScheme;
     final brightness = Theme.of(context).brightness;
     final isToday = formatDate(day) == formatDate(now);
+    final hourHeight = ref.watch(
+      settingsProvider.select((s) => s.calendarHourHeight),
+    );
 
-    return SingleChildScrollView(
+    final column = SingleChildScrollView(
       controller: _scroll,
+      physics: _pinching ? const NeverScrollableScrollPhysics() : null,
       child: SizedBox(
-        height: 24 * _hourHeight,
+        height: 24 * hourHeight,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth - _gutter - 8;
@@ -247,7 +283,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
               children: [
                 for (var h = 0; h < 24; h++) ...[
                   Positioned(
-                    top: h * _hourHeight,
+                    top: h * hourHeight,
                     left: 0,
                     width: _gutter,
                     child: Padding(
@@ -260,7 +296,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
                     ),
                   ),
                   Positioned(
-                    top: h * _hourHeight,
+                    top: h * hourHeight,
                     left: _gutter,
                     right: 0,
                     child: Divider(height: 1, color: scheme.outlineVariant),
@@ -277,6 +313,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
                 for (final b in blocks)
                   _BlockView(
                     b,
+                    hourHeight: hourHeight,
                     color: paletteColor(
                       slots[colorKey(b.entry.account, level)] ?? 0,
                       brightness,
@@ -287,7 +324,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
                 if (isToday)
                   Positioned(
                     key: const Key('cal-now'),
-                    top: (now.hour * 60 + now.minute) / 60 * _hourHeight,
+                    top: (now.hour * 60 + now.minute) / 60 * hourHeight,
                     left: _gutter - 4,
                     right: 0,
                     child: Row(
@@ -312,18 +349,75 @@ class _TimelineState extends ConsumerState<_Timeline> {
         ),
       ),
     );
+
+    return Stack(
+      children: [
+        Listener(
+          onPointerDown: (_) {
+            _pointers++;
+            if (_pointers >= 2 && !_pinching) setState(() => _pinching = true);
+          },
+          onPointerUp: (_) => _released(),
+          onPointerCancel: (_) => _released(),
+          child: GestureDetector(
+            onScaleStart: (_) => _pinchBase = _hourHeight(),
+            onScaleUpdate: (d) {
+              if (d.pointerCount >= 2) {
+                _zoomTo(_pinchBase * d.scale, focalY: d.localFocalPoint.dy);
+              }
+            },
+            child: column,
+          ),
+        ),
+        Positioned(
+          right: 12,
+          bottom: 12,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FloatingActionButton.small(
+                key: const Key('cal-zoom-in'),
+                heroTag: 'cal-zoom-in',
+                tooltip: 'Zoom in',
+                onPressed: hourHeight >= maxHourHeight
+                    ? null
+                    : () => _zoomTo(_hourHeight() * _zoomStep),
+                child: const Icon(Icons.add),
+              ),
+              const SizedBox(height: 8),
+              FloatingActionButton.small(
+                key: const Key('cal-zoom-out'),
+                heroTag: 'cal-zoom-out',
+                tooltip: 'Zoom out',
+                onPressed: hourHeight <= minHourHeight
+                    ? null
+                    : () => _zoomTo(_hourHeight() / _zoomStep),
+                child: const Icon(Icons.remove),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _released() {
+    if (_pointers > 0) _pointers--;
+    if (_pointers < 2 && _pinching) setState(() => _pinching = false);
   }
 }
 
 class _BlockView extends ConsumerWidget {
   const _BlockView(
     this.block, {
+    required this.hourHeight,
     required this.color,
     required this.left,
     required this.width,
   });
 
   final DayBlock<StoredEntry> block;
+  final double hourHeight;
   final Color color;
   final double left;
   final double width;
@@ -332,7 +426,7 @@ class _BlockView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entry = block.entry;
     final minutes = block.endMinute - block.startMinute;
-    final height = math.max(minutes / 60 * _hourHeight, _minBlockHeight);
+    final height = math.max(minutes / 60 * hourHeight, _minBlockHeight);
     final fg = onPalette(color);
     final duration = formatHm(block.end.difference(block.start));
     final range = entry.isRunning
@@ -342,7 +436,7 @@ class _BlockView extends ConsumerWidget {
 
     return Positioned(
       key: ValueKey('cal-block-${block.item.fileName}:${entry.inIndex}'),
-      top: block.startMinute / 60 * _hourHeight,
+      top: block.startMinute / 60 * hourHeight,
       left: left,
       width: width,
       height: height,

@@ -20,7 +20,7 @@ icons on wide screens.
   remove.
 - **Calendar:** one day as a column of hours, like Google Calendar, with a day
   selector. Entries are blocks colored by account level 1, 2 or 3; tap one to start
-  it again, edit or remove it.
+  it again, edit or remove it. Pinch or use the buttons to zoom.
 - **Metrics:** a chart of time per day, week or month stacked by project, and
   time per account for today, this week and this month, grouped at the account
   depth you choose.

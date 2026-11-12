@@ -14,6 +14,12 @@ const _weekStartKey = 'weekStart';
 const _budgetsKey = 'budgetsEnabled';
 const _sideBarKey = 'sideBarExpanded';
 const _calendarLevelKey = 'calendarLevel';
+const _hourHeightKey = 'calendarHourHeight';
+
+/// Height of one hour in the Calendar, in logical pixels: the zoom range.
+const minHourHeight = 28.0;
+const maxHourHeight = 168.0;
+const defaultHourHeight = 56.0;
 
 class AppSettings {
   const AppSettings({
@@ -25,6 +31,7 @@ class AppSettings {
     this.budgetsEnabled = false,
     this.sideBarExpanded = false,
     this.calendarLevel = 1,
+    this.calendarHourHeight = defaultHourHeight,
   });
 
   factory AppSettings.defaults() => AppSettings(
@@ -57,6 +64,10 @@ class AppSettings {
   /// Account level (1 to 3) the Calendar colors entries by.
   final int calendarLevel;
 
+  /// Zoom of the Calendar: height of one hour, between [minHourHeight] and
+  /// [maxHourHeight].
+  final double calendarHourHeight;
+
   FileSettings get fileSettings => FileSettings(
     split,
     fileNameTemplate,
@@ -73,6 +84,7 @@ class AppSettings {
     bool? budgetsEnabled,
     bool? sideBarExpanded,
     int? calendarLevel,
+    double? calendarHourHeight,
   }) => AppSettings(
     split: split ?? this.split,
     projects: projects ?? this.projects,
@@ -82,6 +94,7 @@ class AppSettings {
     budgetsEnabled: budgetsEnabled ?? this.budgetsEnabled,
     sideBarExpanded: sideBarExpanded ?? this.sideBarExpanded,
     calendarLevel: calendarLevel ?? this.calendarLevel,
+    calendarHourHeight: calendarHourHeight ?? this.calendarHourHeight,
   );
 }
 
@@ -126,6 +139,8 @@ class SettingsNotifier extends Notifier<AppSettings> {
         3 => 3,
         _ => 1,
       },
+      calendarHourHeight: (prefs.getDouble(_hourHeightKey) ?? defaultHourHeight)
+          .clamp(minHourHeight, maxHourHeight),
     );
   }
 
@@ -218,5 +233,13 @@ class SettingsNotifier extends Notifier<AppSettings> {
     final value = level.clamp(1, 3);
     await ref.read(sharedPreferencesProvider).setInt(_calendarLevelKey, value);
     state = state.copyWith(calendarLevel: value);
+  }
+
+  /// Zooms the Calendar. Kept between [minHourHeight] and [maxHourHeight].
+  Future<void> setCalendarHourHeight(double height) async {
+    final value = height.clamp(minHourHeight, maxHourHeight);
+    if (value == state.calendarHourHeight) return;
+    state = state.copyWith(calendarHourHeight: value);
+    await ref.read(sharedPreferencesProvider).setDouble(_hourHeightKey, value);
   }
 }
