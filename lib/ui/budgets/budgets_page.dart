@@ -332,7 +332,6 @@ class _BudgetDialogState extends ConsumerState<_BudgetDialog> {
               autocorrect: false,
               decoration: const InputDecoration(
                 labelText: 'Project',
-                hintText: 'work',
                 border: OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() {}),
@@ -380,7 +379,6 @@ class _BudgetDialogState extends ConsumerState<_BudgetDialog> {
               ),
               decoration: InputDecoration(
                 labelText: 'Hours',
-                hintText: '40',
                 border: const OutlineInputBorder(),
                 errorText: shown ? error : null,
               ),
