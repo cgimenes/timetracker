@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/data/providers.dart';
 import 'package:timetracker/state/clock.dart';
+import 'package:timetracker/state/navigation.dart';
 import 'package:timetracker/ui/entries/entries_page.dart';
 
 import '../support/memory_storage.dart';
@@ -392,5 +393,55 @@ void main() {
       await tester.pump();
       expect(find.byTooltip('Edit'), findsNothing);
     });
+
+    entriesTest('after Start again the user goes to the Track screen', (
+      tester,
+      storage,
+    ) async {
+      final c = ProviderScope.containerOf(
+        tester.element(find.byType(EntriesPage)),
+      );
+      c.read(homeTabProvider.notifier).select(HomeTab.entries);
+
+      await rowAction(tester, 'personal:read', 'Start again');
+      await tester.tap(find.byKey(const Key('restart-now')));
+      await tester.pumpAndSettle();
+
+      expect(c.read(homeTabProvider), HomeTab.track);
+    });
+
+    entriesTest('cancelling Start again stays on the Entries screen', (
+      tester,
+      storage,
+    ) async {
+      final c = ProviderScope.containerOf(
+        tester.element(find.byType(EntriesPage)),
+      );
+      c.read(homeTabProvider.notifier).select(HomeTab.entries);
+
+      await rowAction(tester, 'personal:read', 'Start again');
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(c.read(homeTabProvider), HomeTab.entries);
+    });
+
+    entriesTest('declining the duplicate warning stays on Entries', (
+      tester,
+      storage,
+    ) async {
+      final c = ProviderScope.containerOf(
+        tester.element(find.byType(EntriesPage)),
+      );
+      c.read(homeTabProvider.notifier).select(HomeTab.entries);
+
+      await rowAction(tester, 'work:globex:dev', 'Start again');
+      await tester.tap(find.byKey(const Key('restart-now')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(c.read(homeTabProvider), HomeTab.entries);
+    }, files: const {'2026-10.timeclock': _withFinishedGlobex});
   });
 }

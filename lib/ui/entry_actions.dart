@@ -14,8 +14,9 @@ void editEntry(BuildContext context, StoredEntry stored) {
       .push(MaterialPageRoute<void>(builder: (_) => EditEntryPage(stored)));
 }
 
-/// Starts the same account again, now or at a time the user picks.
-Future<void> restartEntry(
+/// Starts the same account again, now or at a time the user picks. Returns
+/// true when an entry was started.
+Future<bool> restartEntry(
   BuildContext context,
   WidgetRef ref,
   StoredEntry stored,
@@ -44,17 +45,18 @@ Future<void> restartEntry(
       ],
     ),
   );
-  if (choice == null || !context.mounted) return;
+  if (choice == null || !context.mounted) return false;
   final start = choice == 'now'
       ? ref.read(clockProvider)()
       : await askStartTime(context, ref, account: account);
-  if (start == null || !context.mounted) return;
+  if (start == null || !context.mounted) return false;
   final started = await startEntry(context, ref, account, start);
   if (started && context.mounted) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text('Started $account')));
   }
+  return started;
 }
 
 Future<void> confirmRemoveEntry(

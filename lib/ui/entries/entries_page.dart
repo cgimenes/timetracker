@@ -10,6 +10,7 @@ import '../../state/entries_filter.dart';
 import '../choose_folder.dart';
 import '../load_error.dart';
 import '../format.dart';
+import '../../state/navigation.dart';
 import '../entry_actions.dart';
 import 'edit_entry_page.dart';
 
@@ -250,9 +251,13 @@ class _EntryTile extends ConsumerWidget {
                 IconButton(
                   tooltip: 'Start again',
                   icon: const Icon(Icons.replay),
-                  onPressed: () {
+                  onPressed: () async {
                     notifier.close();
-                    restartEntry(context, ref, stored);
+                    // Read before the await: the row may be gone afterwards.
+                    final tab = ref.read(homeTabProvider.notifier);
+                    final started = await restartEntry(context, ref, stored);
+                    // Show what is running now.
+                    if (started) tab.select(HomeTab.track);
                   },
                 ),
                 IconButton(
