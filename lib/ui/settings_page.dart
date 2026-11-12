@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../core/file_naming.dart';
 import '../core/metrics.dart';
@@ -189,6 +190,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               value: settings.budgetsEnabled,
               onChanged: notifier.setBudgetsEnabled,
             ),
+            const _VersionLabel(),
           ],
         ),
       ),
@@ -206,4 +208,30 @@ class _SectionTitle extends StatelessWidget {
     padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
     child: Text(text, style: Theme.of(context).textTheme.titleSmall),
   );
+}
+
+/// The installed version, small, at the end of the list.
+final packageInfoProvider = FutureProvider<PackageInfo>(
+  (ref) => PackageInfo.fromPlatform(),
+);
+
+class _VersionLabel extends ConsumerWidget {
+  const _VersionLabel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final version = ref.watch(packageInfoProvider).value?.version;
+    if (version == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+      child: Text(
+        'v$version',
+        key: const Key('version'),
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodySmall
+            ?.copyWith(color: Theme.of(context).colorScheme.outline),
+      ),
+    );
+  }
 }

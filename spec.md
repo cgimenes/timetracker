@@ -121,6 +121,7 @@ Off by default. The Budgets switch in Settings adds a Budgets tab (between Metri
 - Filename format (template, live preview of example filename).
 - Week start day: Monday (default) | Sunday (used by the Metrics week).
 - Budgets: on | off (adds the Budgets tab).
+- App version (`v1.3.0`), small and centered, at the end of the list. Read from the installed app with `package_info_plus`.
 
 ## Edge cases
 

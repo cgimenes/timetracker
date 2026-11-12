@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/core/file_naming.dart';
 import 'package:timetracker/data/providers.dart';
@@ -23,6 +24,13 @@ void settingsTest(
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    PackageInfo.setMockInitialValues(
+      appName: 'timetracker',
+      packageName: 'dev.cgimenes.timetracker',
+      version: '1.3.0',
+      buildNumber: '4',
+      buildSignature: '',
+    );
     SharedPreferences.setMockInitialValues(prefs);
     await tester.pumpWidget(
       ProviderScope(
@@ -220,6 +228,20 @@ void main() {
       await tester.tap(find.text('Sun'));
       await tester.pump();
       expect(c.read(settingsProvider).weekStart.name, 'sunday');
+    });
+
+    settingsTest('shows a small version number at the end', (tester, c) async {
+      await tester.pumpAndSettle();
+      final version = find.byKey(const Key('version'));
+      await tester.ensureVisible(version);
+      expect(tester.widget<Text>(version).data, 'v1.3.0');
+      // Last thing in the list: below the Budgets switch.
+      expect(
+        tester.getTopLeft(version).dy,
+        greaterThan(
+          tester.getTopLeft(find.byKey(const Key('budgets-enabled'))).dy,
+        ),
+      );
     });
 
     settingsTest('budgets switch is saved and off by default', (
