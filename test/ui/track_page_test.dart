@@ -415,23 +415,29 @@ void main() {
     });
 
     trackTest(
-      'quick start lists the three most frecent accounts',
+      'quick start lists the accounts of the last entries, newest first',
       (tester, storage) async {
         final quick = find.byKey(const Key('quick-start'));
         expect(quick, findsOneWidget);
-        // Frecency over the three accounts in the data: dev, then meet; the
-        // third is the next one by score.
-        expect(
-          find.descendant(of: quick, matching: find.byType(ListTile)),
-          findsNWidgets(3),
+        // dev is the most frecent, but by recency it is new, dev, meet: each
+        // account once, read is too old.
+        final tiles = find.descendant(
+          of: quick,
+          matching: find.byType(ListTile),
         );
+        expect(tiles, findsNWidgets(3));
         expect(
           find.descendant(of: quick, matching: find.text('Quick start')),
           findsOneWidget,
         );
-        expect(find.byKey(const Key('quick-work:acme:dev')), findsOneWidget);
-        expect(find.byKey(const Key('quick-work:acme:meet')), findsOneWidget);
-        expect(find.byKey(const Key('quick-personal:read')), findsOneWidget);
+        expect(
+          [
+            for (final t in tester.widgetList<ListTile>(tiles))
+              ((t.title) as Text).data,
+          ],
+          ['new:thing', 'work:acme:dev', 'work:acme:meet'],
+        );
+        expect(find.byKey(const Key('quick-personal:read')), findsNothing);
       },
       files: const {
         '2026-10.timeclock':
@@ -443,8 +449,8 @@ void main() {
             'o 2026-10-28 10:00:00 work:acme:meet\n'
             'i 2026-10-20 09:00:00 personal:read\n'
             'o 2026-10-20 10:00:00 personal:read\n'
-            'i 2026-06-01 09:00:00 old:thing\n'
-            'o 2026-06-01 10:00:00 old:thing\n',
+            'i 2026-10-30 11:00:00 new:thing\n'
+            'o 2026-10-30 12:00:00 new:thing\n',
       },
     );
 

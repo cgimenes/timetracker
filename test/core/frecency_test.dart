@@ -67,6 +67,20 @@ void main() {
     expect(lastUsedAccount(const []), isNull);
   });
 
+  test('recentAccounts: newest first, each account once', () {
+    final entries = [
+      entry('old', const Duration(days: 9)),
+      entry('a', const Duration(days: 3)),
+      entry('b', const Duration(days: 2)),
+      entry('a', const Duration(days: 1)),
+      entry('c', const Duration(hours: 1)),
+    ];
+    expect(recentAccounts(entries, 3), ['c', 'a', 'b']);
+    expect(recentAccounts(entries, 2), ['c', 'a']);
+    expect(recentAccounts(entries, 10), ['c', 'a', 'b', 'old']);
+    expect(recentAccounts(const [], 3), isEmpty);
+  });
+
   test('lastUsedAccount is the most recently started', () {
     expect(
       lastUsedAccount([
