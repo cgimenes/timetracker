@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.14.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.13.0...timetracker-v1.14.0) (2026-11-16)
+
+
+### Features
+
+* ask the account when starting again or from quick start ([f59798f](https://github.com/cgimenes/timetracker/commit/f59798f48c2c7f8da7b84aa52cc4004c1d777be1))
+* bottom tabs and a settings cog in the title bar ([0435ce0](https://github.com/cgimenes/timetracker/commit/0435ce067d1f040162b804388bee0ae81cd33354))
+* prefill the account with the last closed entry ([d2f0e8a](https://github.com/cgimenes/timetracker/commit/d2f0e8ac79ea2bc87ad6866fcdbaca1263f104bf))
+* quick start leaves out the accounts that run ([6182329](https://github.com/cgimenes/timetracker/commit/6182329eb2ed2734ee3072b2bdf447ca2eb0cd4f))
+* show the running section first on the track page ([5dd0f86](https://github.com/cgimenes/timetracker/commit/5dd0f86e7b50c4e6150333af93d4a1ec9b5addb0))
+
 ## [1.13.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.12.0...timetracker-v1.13.0) (2026-11-16)
 
 
