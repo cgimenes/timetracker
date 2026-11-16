@@ -81,6 +81,16 @@ void main() {
     expect(recentAccounts(const [], 3), isEmpty);
   });
 
+  test('recentAccounts skips excluded accounts before counting', () {
+    final entries = [
+      entry('a', const Duration(days: 3)),
+      entry('b', const Duration(days: 2)),
+      entry('c', const Duration(days: 1)),
+      entry('d', const Duration(hours: 1)),
+    ];
+    expect(recentAccounts(entries, 2, exclude: {'d'}), ['c', 'b']);
+  });
+
   test('lastClosedAccount is the one that ended last, running ignored', () {
     Entry closed(String account, Duration endedAgo) => Entry(
       inIndex: 0,

@@ -404,6 +404,11 @@ void main() {
       expect(c.read(accountSuggestionsProvider).first, 'work:acme:dev');
       // The last closed entry is meet; dev runs.
       expect(c.read(lastAccountProvider), 'work:acme:meet');
+      // Quick start leaves out the running dev.
+      expect(c.read(recentAccountsProvider), [
+        'work:acme:meet',
+        'personal:read',
+      ]);
     });
 
     test('warnings are exposed', () async {

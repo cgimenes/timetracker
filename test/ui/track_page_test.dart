@@ -406,8 +406,9 @@ void main() {
         storage.text('2026-10.timeclock'),
         endsWith('i 2026-10-30 14:00:00 work:acme:review\n'),
       );
-      // In the running list and as a quick start button.
-      expect(find.text('work:acme:review'), findsNWidgets(2));
+      // In the running list only: Quick start leaves out what runs.
+      expect(find.text('work:acme:review'), findsOneWidget);
+      expect(find.byKey(const Key('quick-work:acme:review')), findsNothing);
     });
 
     trackTest('Cancel entry asks first, then removes it without a clock-out', (
@@ -507,17 +508,13 @@ void main() {
       expect(find.text('Nothing running'), findsNothing);
     });
 
-    trackTest('quick start asks first when the account already runs', (
+    trackTest('quick start leaves out the accounts that run', (
       tester,
       storage,
     ) async {
-      // work:acme:meet runs in the default data.
-      await tester.tap(find.byKey(const Key('quick-work:acme:meet')));
-      await tester.pumpAndSettle();
-      expect(find.text('Already running'), findsOneWidget);
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-      expect(storage.text('2026-10.timeclock'), _data);
+      // meet runs in the default data and is the newest entry.
+      expect(find.byKey(const Key('quick-work:acme:meet')), findsNothing);
+      expect(find.byKey(const Key('quick-work:acme:dev')), findsOneWidget);
     });
 
     trackTest('no history, no quick start buttons', (tester, storage) async {

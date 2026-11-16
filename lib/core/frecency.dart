@@ -30,12 +30,18 @@ List<String> rankAccounts(Iterable<Entry> entries, DateTime now) {
 }
 
 /// Accounts of the most recently started entries, newest first, each once.
-List<String> recentAccounts(Iterable<Entry> entries, int count) {
+/// Accounts in [exclude] are skipped.
+List<String> recentAccounts(
+  Iterable<Entry> entries,
+  int count, {
+  Set<String> exclude = const {},
+}) {
   final sorted = entries.toList()..sort((a, b) => b.start.compareTo(a.start));
   final result = <String>[];
   for (final e in sorted) {
     if (result.length >= count) break;
-    if (!result.contains(e.account)) result.add(e.account);
+    if (exclude.contains(e.account) || result.contains(e.account)) continue;
+    result.add(e.account);
   }
   return result;
 }

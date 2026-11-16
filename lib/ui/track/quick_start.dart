@@ -9,8 +9,8 @@ import '../../state/derived.dart';
 import '../ui_actions.dart';
 
 /// A "Quick start" section listing the accounts of the last [quickStartCount]
-/// entries (each once, newest first), each with a play button that starts it
-/// now.
+/// entries that do not run now (each once, newest first), each with a play
+/// button that starts it now.
 class QuickStart extends ConsumerWidget {
   const QuickStart({super.key});
 

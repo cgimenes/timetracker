@@ -55,9 +55,14 @@ final accountSuggestionsProvider = Provider<List<String>>(
 /// How many accounts Quick start lists.
 const quickStartCount = 3;
 
-/// Accounts for Quick start: those of the last entries, newest first.
+/// Accounts for Quick start: those of the last entries, newest first, leaving
+/// out the ones running now.
 final recentAccountsProvider = Provider<List<String>>(
-  (ref) => recentAccounts(_entries(ref).map((e) => e.entry), quickStartCount),
+  (ref) => recentAccounts(
+    _entries(ref).map((e) => e.entry),
+    quickStartCount,
+    exclude: {for (final r in ref.watch(runningProvider)) r.entry.account},
+  ),
 );
 
 /// Account to prefill in the add form: the last one closed.
