@@ -52,6 +52,14 @@ final accountSuggestionsProvider = Provider<List<String>>(
   (ref) => rankAccounts(_entries(ref).map((e) => e.entry), nowOf(ref)),
 );
 
+/// How many accounts Quick start lists.
+const quickStartCount = 3;
+
+/// Accounts for Quick start: those of the last entries, newest first.
+final recentAccountsProvider = Provider<List<String>>(
+  (ref) => recentAccounts(_entries(ref).map((e) => e.entry), quickStartCount),
+);
+
 /// Account to prefill in the add form.
 final lastAccountProvider = Provider<String?>(
   (ref) => lastUsedAccount(_entries(ref).map((e) => e.entry)),

@@ -8,20 +8,15 @@ import '../../state/clock.dart';
 import '../../state/derived.dart';
 import '../ui_actions.dart';
 
-/// How many accounts are listed.
-const quickStartCount = 3;
-
-/// A "Quick start" section listing the most used accounts (the top
-/// [quickStartCount] by frecency), each with a play button that starts it now.
+/// A "Quick start" section listing the accounts of the last [quickStartCount]
+/// entries (each once, newest first), each with a play button that starts it
+/// now.
 class QuickStart extends ConsumerWidget {
   const QuickStart({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final accounts = ref
-        .watch(accountSuggestionsProvider)
-        .take(quickStartCount)
-        .toList();
+    final accounts = ref.watch(recentAccountsProvider);
     if (accounts.isEmpty) return const SizedBox.shrink();
 
     return Card(
