@@ -13,7 +13,6 @@ const _projectSplitKey = 'projectSplit';
 const _templateKey = 'fileNameTemplate';
 const _levelKey = 'metricsLevel';
 const _weekStartKey = 'weekStart';
-const _sideBarKey = 'sideBarExpanded';
 const _calendarLevelKey = 'calendarLevel';
 const _hourHeightKey = 'calendarHourHeight';
 const _dailyGoalsKey = 'dailyGoals';
@@ -30,7 +29,6 @@ class AppSettings {
     required this.fileNameTemplate,
     required this.metricsLevel,
     required this.weekStart,
-    this.sideBarExpanded = false,
     this.calendarLevel = 1,
     this.calendarHourHeight = defaultHourHeight,
     this.dailyGoals = const {},
@@ -57,9 +55,6 @@ class AppSettings {
   final int metricsLevel;
   final WeekStart weekStart;
 
-  /// The side bar of wide screens shows labels, not only icons.
-  final bool sideBarExpanded;
-
   /// Account level (1 to 3) the Calendar colors entries by.
   final int calendarLevel;
 
@@ -84,7 +79,6 @@ class AppSettings {
     String? fileNameTemplate,
     int? metricsLevel,
     WeekStart? weekStart,
-    bool? sideBarExpanded,
     int? calendarLevel,
     double? calendarHourHeight,
     Map<String, Duration>? dailyGoals,
@@ -94,7 +88,6 @@ class AppSettings {
     fileNameTemplate: fileNameTemplate ?? this.fileNameTemplate,
     metricsLevel: metricsLevel ?? this.metricsLevel,
     weekStart: weekStart ?? this.weekStart,
-    sideBarExpanded: sideBarExpanded ?? this.sideBarExpanded,
     calendarLevel: calendarLevel ?? this.calendarLevel,
     calendarHourHeight: calendarHourHeight ?? this.calendarHourHeight,
     dailyGoals: dailyGoals ?? this.dailyGoals,
@@ -135,7 +128,6 @@ class SettingsNotifier extends Notifier<AppSettings> {
       weekStart:
           WeekStart.values.asNameMap()[prefs.getString(_weekStartKey)] ??
           defaults.weekStart,
-      sideBarExpanded: prefs.getBool(_sideBarKey) ?? false,
       calendarLevel: switch (prefs.getInt(_calendarLevelKey)) {
         2 => 2,
         3 => 3,
@@ -219,11 +211,6 @@ class SettingsNotifier extends Notifier<AppSettings> {
         .read(sharedPreferencesProvider)
         .setString(_weekStartKey, weekStart.name);
     state = state.copyWith(weekStart: weekStart);
-  }
-
-  Future<void> setSideBarExpanded(bool expanded) async {
-    await ref.read(sharedPreferencesProvider).setBool(_sideBarKey, expanded);
-    state = state.copyWith(sideBarExpanded: expanded);
   }
 
   /// 1 to 3: how many account levels name a color in the Calendar.

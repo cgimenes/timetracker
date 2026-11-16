@@ -51,10 +51,10 @@ Rules:
 
 ## UI
 
-Screens: Track, Entries, Calendar, Metrics, Goals, Settings. They are reached from a side bar on the left.
+Screens: Track, Entries, Calendar, Metrics, Goals, Settings. The first five are tabs in a bar at the bottom; Settings opens from a cog in the title bar.
 
-- Narrow screens (under 600 dp): a top bar with a menu button and the screen name. The menu opens a drawer with the screens.
-- Wide screens and landscape: a rail stays on the left, with no top bar. A menu button at its top collapses it to icons and expands it to icons with names. The choice is remembered.
+- Title bar: the name of the screen and, at its right end, a cog that opens Settings (a page with a back arrow).
+- Tab bar: at the bottom, on every screen size, with an icon and a name per tab.
 - Only the Edit entry page, which is pushed over the screens, has its own header (it holds Save).
 - Spacing: content sits 16 dp from the screen edges on both sides. Buttons and icons at the right end of a row are aligned so their visible edge is 16 dp from the edge, like the text on the left.
 
@@ -103,7 +103,7 @@ One day as a column of hours, like Google Calendar.
 
 ### Goals
 
-The Goals screen is always in the side bar (between Metrics and Settings), and goals show in Metrics.
+The Goals screen is always one of the tabs (after Metrics), and goals show in Metrics.
 
 - A goal is the time to reach for one project (first account level) in one day, week or month. Goals follow the file split: with month files the screen holds monthly goals, with week files weekly ones, with day files daily ones.
 - Colors: a goal is yellow while in progress and green once achieved (time used reaches the target). An achieved goal also gets a check mark and green text, so the state does not depend on color alone. Going past the target is not a problem, so nothing turns red.

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// The screens of the app, in side bar order.
-enum HomeTab { track, entries, calendar, metrics, budgets, settings }
+/// The screens of the tab bar.
+enum HomeTab { track, entries, calendar, metrics, budgets }
 
 /// The screen being shown. Screens set it to send the user somewhere else,
 /// for example to Track after starting an entry.

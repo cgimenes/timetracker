@@ -216,11 +216,17 @@ void main() {
       },
     );
 
-    settingsTest('has no header and no metrics level any more', (
+    settingsTest('has a Settings title and no metrics level any more', (
       tester,
       c,
     ) async {
-      expect(find.byType(AppBar), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Settings'),
+        ),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('level-plus')), findsNothing);
     });
 

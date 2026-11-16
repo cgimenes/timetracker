@@ -9,8 +9,7 @@ The full behavior is in [spec.md](spec.md).
 
 ## What it does
 
-Screens are reached from a side bar: a drawer on phones, a rail that collapses to
-icons on wide screens.
+Screens are reached from tabs at the bottom. Settings is a cog in the title bar.
 
 - **Track:** start an entry (account with suggestions, optional backdated
   start) and see what is running. Several entries can run at once.

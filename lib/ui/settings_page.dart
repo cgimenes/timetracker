@@ -67,6 +67,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         : fileExample;
 
     return Scaffold(
+      appBar: AppBar(title: const Text('Settings')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: 8),

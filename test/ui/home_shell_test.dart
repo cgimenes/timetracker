@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timetracker/data/providers.dart';
-import 'package:timetracker/settings/app_settings.dart';
 import 'package:timetracker/state/clock.dart';
 import 'package:timetracker/ui/home_shell.dart';
 
@@ -50,105 +49,61 @@ void shellTest(
 }
 
 void main() {
-  group('narrow screen', () {
-    shellTest('has a top bar with a menu button, no bottom bar or rail', (
-      tester,
-      _,
-    ) async {
-      expect(find.byType(AppBar), findsOneWidget);
-      expect(find.byType(NavigationBar), findsNothing);
-      expect(find.byKey(const Key('side-rail')), findsNothing);
-      expect(find.byTooltip('Open navigation menu'), findsOneWidget);
-    });
-
-    shellTest('the drawer lists the screens and switching closes it', (
-      tester,
-      _,
-    ) async {
-      await tester.tap(find.byTooltip('Open navigation menu'));
-      await tester.pumpAndSettle();
-      final drawer = find.byKey(const Key('side-drawer'));
-      for (final label in [
-        'Track',
-        'Entries',
-        'Calendar',
-        'Metrics',
-        'Goals',
-        'Settings',
-      ]) {
-        expect(
-          find.descendant(of: drawer, matching: find.text(label)),
-          findsOneWidget,
-        );
-      }
-      await tester.tap(
-        find.descendant(of: drawer, matching: find.text('Metrics')),
-      );
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('side-drawer')), findsNothing);
-      // The top bar names the screen.
+  shellTest('tabs at the bottom, a title bar with the screen name and a cog', (
+    tester,
+    _,
+  ) async {
+    expect(find.byKey(const Key('tab-bar')), findsOneWidget);
+    expect(find.byTooltip('Open navigation menu'), findsNothing);
+    expect(find.byKey(const Key('side-rail')), findsNothing);
+    final bar = find.byKey(const Key('tab-bar'));
+    for (final label in ['Track', 'Entries', 'Calendar', 'Metrics', 'Goals']) {
       expect(
-        find.descendant(
-          of: find.byType(AppBar),
-          matching: find.text('Metrics'),
-        ),
+        find.descendant(of: bar, matching: find.text(label)),
         findsOneWidget,
       );
-    });
-  });
-
-  group('wide screen', () {
-    const wide = Size(900, 600);
-
-    shellTest('has a rail and no top bar, collapsed to icons', (
-      tester,
-      c,
-    ) async {
-      expect(find.byKey(const Key('side-rail')), findsOneWidget);
-      expect(find.byType(AppBar), findsNothing);
-      expect(find.byKey(const Key('side-drawer')), findsNothing);
-      expect(
-        tester.getSize(find.byKey(const Key('side-rail'))).width,
-        lessThan(120),
-      );
-    }, size: wide);
-
-    shellTest('the toggle expands and collapses it and remembers', (
-      tester,
-      c,
-    ) async {
-      final narrow = tester.getSize(find.byKey(const Key('side-rail'))).width;
-      await tester.tap(find.byKey(const Key('side-toggle')));
-      await tester.pumpAndSettle();
-      expect(c.read(settingsProvider).sideBarExpanded, isTrue);
-      expect(
-        c.read(sharedPreferencesProvider).getBool('sideBarExpanded'),
-        isTrue,
-      );
-      expect(
-        tester.getSize(find.byKey(const Key('side-rail'))).width,
-        greaterThan(narrow),
-      );
-      expect(find.text('Entries'), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('side-toggle')));
-      await tester.pumpAndSettle();
-      expect(c.read(settingsProvider).sideBarExpanded, isFalse);
-    }, size: wide);
-
-    shellTest(
-      'starts expanded when it was left expanded',
-      (tester, c) async {
-        expect(find.text('Entries'), findsOneWidget);
-      },
-      size: wide,
-      prefs: const {'sideBarExpanded': true},
+    }
+    expect(
+      find.descendant(of: bar, matching: find.text('Settings')),
+      findsNothing,
     );
-
-    shellTest('selecting a destination switches the screen', (tester, c) async {
-      await tester.tap(find.byIcon(Icons.bar_chart_outlined));
-      await tester.pumpAndSettle();
-      expect(find.text('This week'), findsOneWidget);
-    }, size: wide);
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: find.text('Track')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('settings')), findsOneWidget);
   });
+
+  shellTest('selecting a tab switches the screen and the title', (
+    tester,
+    _,
+  ) async {
+    await tester.tap(find.byIcon(Icons.bar_chart_outlined));
+    await tester.pumpAndSettle();
+    expect(find.text('This week'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: find.text('Metrics')),
+      findsOneWidget,
+    );
+  });
+
+  shellTest('the cog opens Settings and back returns', (tester, _) async {
+    await tester.tap(find.byKey(const Key('settings')));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byType(AppBar).last,
+        matching: find.text('Settings'),
+      ),
+      findsOneWidget,
+    );
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('tab-bar')).hitTestable(), findsOneWidget);
+  });
+
+  shellTest('the same on a wide screen', (tester, _) async {
+    expect(find.byKey(const Key('tab-bar')), findsOneWidget);
+    expect(find.byKey(const Key('side-rail')), findsNothing);
+  }, size: const Size(900, 600));
 }
