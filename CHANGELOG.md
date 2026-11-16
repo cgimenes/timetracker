@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.13.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.12.0...timetracker-v1.13.0) (2026-11-16)
+
+
+### Features
+
+* quick start lists the accounts of the last entries ([1c36fe0](https://github.com/cgimenes/timetracker/commit/1c36fe0ad3ef38e71a523b01e9e54f3e95575d45))
+* quick start lists the accounts of the last entries ([e139f5f](https://github.com/cgimenes/timetracker/commit/e139f5f92191778bed00206a9cb9c04c2aee8018))
+
 ## [1.12.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.11.0...timetracker-v1.12.0) (2026-11-12)
 
 
