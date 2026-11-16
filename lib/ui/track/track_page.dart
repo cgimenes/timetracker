@@ -32,9 +32,9 @@ class TrackPage extends ConsumerWidget {
                     if (entries!.hasError && !entries.hasValue)
                       LoadErrorCard(entries.error)
                     else ...[
+                      const RunningSection(),
                       const AddEntryCard(),
                       const QuickStart(),
-                      const RunningSection(),
                       const DailyGoalsCard(),
                     ],
                   ].expand((w) => [w, const SizedBox(height: 12)]).toList(),

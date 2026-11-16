@@ -60,7 +60,10 @@ Screens: Track, Entries, Calendar, Metrics, Goals, Settings. The first five are 
 
 ### Track
 
-1. Add section
+1. Running section
+   - List of running entries: account, start, live elapsed time.
+   - Each has a Stop icon button (a stop symbol, no label; clock-out at now) and a menu: Stop at... (custom time), Edit (the Edit entry page) and Cancel entry (after a confirmation, removes the entry and records no time).
+2. Add section
    - Account field: prefilled with the account of the last closed entry and switched to the next one each time an entry stops (not while the user is editing it); dropdown history sorted by frecency; free text allowed.
    - Two buttons side by side, both disabled if account invalid, both close the keyboard:
      - Start now: clock-in at the current time.
@@ -69,9 +72,6 @@ Screens: Track, Entries, Calendar, Metrics, Goals, Settings. The first five are 
    - No comment field. Comments already present in a file are kept when the app rewrites it, and shown on running entries.
    - Quick start: a section named "Quick start" under the form, listing the accounts of the last three entries (each account once, newest first, leaving out accounts that run now), one per row. Each row has a play button at its right end that opens the Start dialog (below). Hidden when there is nothing to list.
    - Start dialog (also from Start again in Entries and Calendar): shows the account, prefilled and editable (with suggestions, same validation as the account field), and the buttons Cancel, Pick time and Now (disabled while the account is invalid). Now starts at the current time; Pick time asks the date and time first. The duplicate warning applies.
-2. Running section
-   - List of running entries: account, start, live elapsed time.
-   - Each has a Stop icon button (a stop symbol, no label; clock-out at now) and a menu: Stop at... (custom time), Edit (the Edit entry page) and Cancel entry (after a confirmation, removes the entry and records no time).
 3. Daily goals section
    - A card named "Daily goals" listing the daily goals set in the Goals screen, one per project, each with time done today / goal and a progress bar (yellow while in progress, green with a check once reached). Running entries count up to now. Only the goals are shown: no totals and no breakdown by account. They are not the goals of `budget.journal`. None set: no section.
 
