@@ -104,8 +104,30 @@ void main() {
       expect(find.byKey(const Key('daily-goals')), findsNothing);
     });
 
-    trackTest('prefills the last used account', (tester, storage) async {
+    trackTest('prefills the last closed account', (tester, storage) async {
+      // meet runs; dev is the one that was closed.
+      expect(accountText(tester), 'work:acme:dev');
+    });
+
+    trackTest('the account follows each entry that is stopped', (
+      tester,
+      storage,
+    ) async {
+      expect(accountText(tester), 'work:acme:dev');
+      await tester.tap(find.byKey(const Key('stop')));
+      await tester.pumpAndSettle();
       expect(accountText(tester), 'work:acme:meet');
+    });
+
+    trackTest('a stop does not overwrite the account being edited', (
+      tester,
+      storage,
+    ) async {
+      await tester.enterText(find.byKey(const Key('account')), 'mine');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('stop')));
+      await tester.pumpAndSettle();
+      expect(accountText(tester), 'mine');
     });
 
     trackTest('suggests accounts, best first, and fills the field', (
@@ -297,7 +319,11 @@ void main() {
       tester,
       storage,
     ) async {
-      // Field is prefilled with work:acme:meet, which is running.
+      await tester.enterText(
+        find.byKey(const Key('account')),
+        'work:acme:meet',
+      );
+      await tester.pump();
       await tester.tap(find.byKey(const Key('start')));
       await tester.pumpAndSettle();
       expect(find.text('Already running'), findsOneWidget);
@@ -519,7 +545,16 @@ void main() {
         );
         expect(
           tester.getCenter(play).dx,
-          greaterThan(tester.getCenter(find.text('work:acme:dev').first).dx),
+          greaterThan(
+            tester
+                .getCenter(
+                  find.descendant(
+                    of: tile,
+                    matching: find.text('work:acme:dev'),
+                  ),
+                )
+                .dx,
+          ),
         );
         // Every row has its own play button.
         expect(find.byTooltip('Start now'), findsNWidgets(3));

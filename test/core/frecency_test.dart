@@ -64,7 +64,7 @@ void main() {
 
   test('no entries', () {
     expect(rankAccounts(const [], now), isEmpty);
-    expect(lastUsedAccount(const []), isNull);
+    expect(lastClosedAccount(const []), isNull);
   });
 
   test('recentAccounts: newest first, each account once', () {
@@ -81,12 +81,21 @@ void main() {
     expect(recentAccounts(const [], 3), isEmpty);
   });
 
-  test('lastUsedAccount is the most recently started', () {
+  test('lastClosedAccount is the one that ended last, running ignored', () {
+    Entry closed(String account, Duration endedAgo) => Entry(
+      inIndex: 0,
+      outIndex: 1,
+      account: account,
+      start: now.subtract(endedAgo + const Duration(hours: 1)),
+      end: now.subtract(endedAgo),
+      comment: null,
+    );
     expect(
-      lastUsedAccount([
-        entry('old', const Duration(days: 2)),
-        entry('latest', const Duration(minutes: 5)),
-        entry('mid', const Duration(hours: 5)),
+      lastClosedAccount([
+        closed('old', const Duration(days: 2)),
+        entry('running', const Duration(minutes: 5)),
+        closed('latest', const Duration(hours: 1)),
+        closed('mid', const Duration(hours: 5)),
       ]),
       'latest',
     );

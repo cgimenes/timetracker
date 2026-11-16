@@ -60,9 +60,9 @@ final recentAccountsProvider = Provider<List<String>>(
   (ref) => recentAccounts(_entries(ref).map((e) => e.entry), quickStartCount),
 );
 
-/// Account to prefill in the add form.
+/// Account to prefill in the add form: the last one closed.
 final lastAccountProvider = Provider<String?>(
-  (ref) => lastUsedAccount(_entries(ref).map((e) => e.entry)),
+  (ref) => lastClosedAccount(_entries(ref).map((e) => e.entry)),
 );
 
 /// Problems found while reading the files (malformed lines, orphan clock-outs).

@@ -402,7 +402,8 @@ void main() {
 
     test('suggestions and last account', () async {
       expect(c.read(accountSuggestionsProvider).first, 'work:acme:dev');
-      expect(c.read(lastAccountProvider), 'work:acme:dev');
+      // The last closed entry is meet; dev runs.
+      expect(c.read(lastAccountProvider), 'work:acme:meet');
     });
 
     test('warnings are exposed', () async {

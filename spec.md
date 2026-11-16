@@ -61,7 +61,7 @@ Screens: Track, Entries, Calendar, Metrics, Goals, Settings. The first five are 
 ### Track
 
 1. Add section
-   - Account field: prefilled with last used account; dropdown history sorted by frecency; free text allowed.
+   - Account field: prefilled with the account of the last closed entry and switched to the next one each time an entry stops (not while the user is editing it); dropdown history sorted by frecency; free text allowed.
    - Two buttons side by side, both disabled if account invalid, both close the keyboard:
      - Start now: clock-in at the current time.
      - Start at...: one dialog asks date and time (calendar plus hour and minute), and OK starts the entry at that time. A time in the future is refused.

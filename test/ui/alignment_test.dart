@@ -114,7 +114,11 @@ void main() {
           tester.getRect(icon(Icons.play_arrow, play)).right + 8;
       expect(tester.getRect(tile).right - circleRight, _aligned);
       expect(
-        leftInset(tester, find.text('personal:read').first, tile),
+        leftInset(
+          tester,
+          find.descendant(of: tile, matching: find.text('personal:read')),
+          tile,
+        ),
         _aligned,
       );
     });

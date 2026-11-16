@@ -40,11 +40,13 @@ List<String> recentAccounts(Iterable<Entry> entries, int count) {
   return result;
 }
 
-/// Account of the most recently started entry.
-String? lastUsedAccount(Iterable<Entry> entries) {
+/// Account of the closed entry that ended last.
+String? lastClosedAccount(Iterable<Entry> entries) {
   Entry? latest;
   for (final e in entries) {
-    if (latest == null || e.start.isAfter(latest.start)) latest = e;
+    final end = e.end;
+    if (end == null) continue;
+    if (latest == null || end.isAfter(latest.end!)) latest = e;
   }
   return latest?.account;
 }

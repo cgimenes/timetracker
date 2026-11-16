@@ -19,14 +19,12 @@ class _AddEntryCardState extends ConsumerState<AddEntryCard> {
   final _account = TextEditingController();
   final _accountFocus = FocusNode();
 
-  var _touched = false;
-
   @override
   void initState() {
     super.initState();
-    // Prefill with the last used account, until the user types something.
+    // Follow the last closed entry, unless the user is editing the field.
     ref.listenManual(lastAccountProvider, (_, last) {
-      if (!_touched && last != null && _account.text.isEmpty) {
+      if (last != null && !_accountFocus.hasFocus && _account.text != last) {
         _account.text = last;
         if (mounted) setState(() {});
       }
@@ -80,7 +78,7 @@ class _AddEntryCardState extends ConsumerState<AddEntryCard> {
               controller: _account,
               focusNode: _accountFocus,
               errorText: showError ? error : null,
-              onChanged: (_) => setState(() => _touched = true),
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 12),
             Row(
