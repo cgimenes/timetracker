@@ -4,13 +4,12 @@ import '../theme.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../state/clock.dart';
 import '../../state/derived.dart';
-import '../ui_actions.dart';
+import '../entry_actions.dart';
 
 /// A "Quick start" section listing the accounts of the last [quickStartCount]
 /// entries that do not run now (each once, newest first), each with a play
-/// button that starts it now.
+/// button that asks the account and when to start it.
 class QuickStart extends ConsumerWidget {
   const QuickStart({super.key});
 
@@ -39,14 +38,9 @@ class QuickStart extends ConsumerWidget {
                 title: Text(account),
                 trailing: IconButton.filledTonal(
                   key: Key('quick-$account'),
-                  tooltip: 'Start now',
+                  tooltip: 'Start...',
                   icon: const Icon(Icons.play_arrow),
-                  onPressed: () => startEntry(
-                    context,
-                    ref,
-                    account,
-                    ref.read(clockProvider)(),
-                  ),
+                  onPressed: () => startAgain(context, ref, account),
                 ),
               ),
           ],

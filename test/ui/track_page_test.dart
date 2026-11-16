@@ -495,17 +495,88 @@ void main() {
       },
     );
 
-    trackTest('a quick start button starts that account now', (
+    trackTest('a quick start button asks the account, then starts it', (
       tester,
       storage,
     ) async {
       await tester.tap(find.byKey(const Key('quick-work:acme:dev')));
+      await tester.pumpAndSettle();
+      // Nothing is written until the dialog is answered.
+      expect(storage.text('2026-10.timeclock'), _data);
+      await tester.tap(find.byKey(const Key('restart-now')));
       await tester.pumpAndSettle();
       expect(
         storage.text('2026-10.timeclock'),
         endsWith('i 2026-10-30 15:00:00 work:acme:dev\n'),
       );
       expect(find.text('Nothing running'), findsNothing);
+    });
+
+    trackTest('quick start lets the account be edited before starting', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(find.byKey(const Key('quick-work:acme:dev')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextField),
+        ),
+        'work:acme:review',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('restart-now')));
+      await tester.pumpAndSettle();
+      expect(
+        storage.text('2026-10.timeclock'),
+        endsWith('i 2026-10-30 15:00:00 work:acme:review\n'),
+      );
+    });
+
+    trackTest('quick start does not start an invalid account', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(find.byKey(const Key('quick-work:acme:dev')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextField),
+        ),
+        'a  b',
+      );
+      await tester.pump();
+      expect(
+        tester
+            .widget<FilledButton>(find.byKey(const Key('restart-now')))
+            .onPressed,
+        isNull,
+      );
+    });
+
+    trackTest('quick start asks first when the edited account already runs', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(find.byKey(const Key('quick-work:acme:dev')));
+      await tester.pumpAndSettle();
+      // work:acme:meet runs in the default data.
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextField),
+        ),
+        'work:acme:meet',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('restart-now')));
+      await tester.pumpAndSettle();
+      expect(find.text('Already running'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(storage.text('2026-10.timeclock'), _data);
     });
 
     trackTest('quick start leaves out the accounts that run', (
@@ -554,7 +625,7 @@ void main() {
           ),
         );
         // Every row has its own play button.
-        expect(find.byTooltip('Start now'), findsNWidgets(3));
+        expect(find.byTooltip('Start...'), findsNWidgets(3));
       },
       files: const {
         '2026-10.timeclock':

@@ -361,6 +361,27 @@ void main() {
       expect(find.text('Started personal:read'), findsOneWidget);
     });
 
+    entriesTest('Start again lets the account be edited first', (
+      tester,
+      storage,
+    ) async {
+      await rowAction(tester, 'personal:read', 'Start again');
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(TextField),
+        ),
+        'personal:write',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('restart-now')));
+      await tester.pumpAndSettle();
+      expect(
+        storage.text('2026-10.timeclock'),
+        '${_data}i 2026-10-30 15:00:00 personal:write\n',
+      );
+    });
+
     entriesTest('Start again at a picked time', (tester, storage) async {
       await rowAction(tester, 'personal:read', 'Start again');
       await tester.tap(find.byKey(const Key('restart-at')));
