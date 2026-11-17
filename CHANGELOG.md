@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.15.0...timetracker-v1.16.0) (2026-11-17)
+
+
+### Features
+
+* expand the date and time of Start at in the form ([bbdd4cb](https://github.com/cgimenes/timetracker/commit/bbdd4cb6b57f02f394bd9bba3fe12154b4afc44f))
+
 ## [1.15.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.14.0...timetracker-v1.15.0) (2026-11-17)
 
 
