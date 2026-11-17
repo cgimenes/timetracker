@@ -214,6 +214,43 @@ void main() {
       expect(find.text('No entries'), findsOneWidget);
     });
 
+    entriesTest('project chips list the projects of the finished entries', (
+      tester,
+      _,
+    ) async {
+      expect(find.byKey(const Key('project-personal')), findsOneWidget);
+      expect(find.byKey(const Key('project-work')), findsOneWidget);
+    });
+
+    entriesTest('a project chip keeps only that project, again shows all', (
+      tester,
+      _,
+    ) async {
+      await tester.tap(find.byKey(const Key('project-work')));
+      await tester.pump();
+      expect(find.text('work:acme:dev'), findsOneWidget);
+      expect(find.text('work:acme:meet'), findsOneWidget);
+      expect(find.text('personal:read'), findsNothing);
+
+      await tester.tap(find.byKey(const Key('project-personal')));
+      await tester.pump();
+      expect(find.text('personal:read'), findsOneWidget);
+      expect(find.text('work:acme:dev'), findsNothing);
+
+      await tester.tap(find.byKey(const Key('project-personal')));
+      await tester.pump();
+      expect(find.text('personal:read'), findsOneWidget);
+      expect(find.text('work:acme:dev'), findsOneWidget);
+    });
+
+    entriesTest('a project chip combines with the search', (tester, _) async {
+      await tester.tap(find.byKey(const Key('project-work')));
+      await tester.enterText(find.byKey(const Key('search')), 'meet');
+      await tester.pump();
+      expect(find.text('work:acme:meet'), findsOneWidget);
+      expect(find.text('work:acme:dev'), findsNothing);
+    });
+
     entriesTest('a day with no entries finds nothing', (tester, _) async {
       await tester.enterText(find.byKey(const Key('search')), '2026-10-27');
       await tester.pump();

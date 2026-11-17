@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/account.dart';
 import '../core/timeclock.dart';
 import '../data/timeclock_repository.dart';
 import 'entries.dart';
@@ -14,6 +15,22 @@ class EntriesSearchNotifier extends Notifier<String> {
   String build() => '';
 
   void set(String query) => state = query;
+}
+
+/// Project (first account level) picked in the Entries chips, or null for all.
+final entriesProjectProvider =
+    NotifierProvider<EntriesProjectNotifier, String?>(
+      EntriesProjectNotifier.new,
+    );
+
+class EntriesProjectNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  /// Picks [project]; picking the one already picked shows all again.
+  void toggle(String project) => state = state == project ? null : project;
+
+  void clear() => state = null;
 }
 
 const _weekdayNames = [
@@ -51,11 +68,30 @@ bool matchesSearch(Entry entry, String query) {
 List<StoredEntry> _all(Ref ref) =>
     ref.watch(entriesProvider).value?.entries ?? const [];
 
-/// Finished entries that match the search, newest first. Running entries are
-/// on the Track tab.
+/// Projects of the finished entries, sorted, for the chips.
+final entryProjectsProvider = Provider<List<String>>((ref) {
+  final projects = {
+    for (final e in _all(ref))
+      if (!e.entry.isRunning) projectOf(e.entry.account),
+  };
+  return projects.toList()..sort();
+});
+
+/// Finished entries that match the search and the picked project, newest
+/// first. Running entries are on the Track tab.
 final filteredEntriesProvider = Provider<List<StoredEntry>>((ref) {
   final query = ref.watch(entriesSearchProvider);
+  final picked = ref.watch(entriesProjectProvider);
+  // A project with no entries left (all removed) filters nothing.
+  final project = ref.watch(entryProjectsProvider).contains(picked)
+      ? picked
+      : null;
   return _all(ref)
-      .where((e) => !e.entry.isRunning && matchesSearch(e.entry, query))
+      .where(
+        (e) =>
+            !e.entry.isRunning &&
+            (project == null || projectOf(e.entry.account) == project) &&
+            matchesSearch(e.entry, query),
+      )
       .toList();
 });

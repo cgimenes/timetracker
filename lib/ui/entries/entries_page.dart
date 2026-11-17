@@ -49,6 +49,7 @@ class EntriesPage extends ConsumerWidget {
             : const Column(
                 children: [
                   _SearchBar(),
+                  _ProjectChips(),
                   Expanded(child: _EntryList()),
                 ],
               ),
@@ -110,6 +111,40 @@ class _SearchBarState extends ConsumerState<_SearchBar> {
   }
 }
 
+/// One chip per project of the finished entries: tap to show only that
+/// project, tap again to show all.
+class _ProjectChips extends ConsumerWidget {
+  const _ProjectChips();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final projects = ref.watch(entryProjectsProvider);
+    if (projects.length < 2) return const SizedBox.shrink();
+    final picked = ref.watch(entriesProjectProvider);
+    return SizedBox(
+      height: 48,
+      child: ListView(
+        key: const Key('project-chips'),
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        children: [
+          for (final p in projects)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                key: Key('project-$p'),
+                label: Text(p),
+                selected: picked == p,
+                onSelected: (_) =>
+                    ref.read(entriesProjectProvider.notifier).toggle(p),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 sealed class _Row {
   const _Row();
 }
@@ -141,6 +176,9 @@ class _EntryList extends ConsumerWidget {
     final now = ref.watch(nowProvider);
     // The open row belongs to the old list when the search changes.
     ref.listen(entriesSearchProvider, (_, _) {
+      ref.read(_openEntryProvider.notifier).close();
+    });
+    ref.listen(entriesProjectProvider, (_, _) {
       ref.read(_openEntryProvider.notifier).close();
     });
 
