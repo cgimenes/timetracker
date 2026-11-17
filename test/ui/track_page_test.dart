@@ -89,7 +89,7 @@ void main() {
       expect(find.byType(AppBar), findsNothing);
       // The card has no title of its own, only the two buttons.
       expect(find.byTooltip('Start now'), findsOneWidget);
-      expect(find.text('Start at...'), findsOneWidget);
+      expect(find.byTooltip('Start at...'), findsOneWidget);
       expect(find.text('Last entries'), findsNothing);
     });
 
@@ -183,7 +183,7 @@ void main() {
       expect(tester.widget<TextField>(field).focusNode!.hasFocus, isFalse);
     });
 
-    trackTest('Start is an icon right of the field, Start at is below it', (
+    trackTest('Start is an icon right of the field, a chevron is below it', (
       tester,
       storage,
     ) async {
@@ -200,7 +200,17 @@ void main() {
         findsNothing,
       );
       expect(at.top, greaterThanOrEqualTo(field.bottom));
-      expect(at.left, lessThan(field.left + 16));
+      // Only a chevron (no text), centered in the card, and small.
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('start-at')),
+          matching: find.byType(Text),
+        ),
+        findsNothing,
+      );
+      final card = tester.getRect(find.byType(Card).first);
+      expect(at.center.dx, closeTo(card.center.dx, 1));
+      expect(at.height, lessThanOrEqualTo(32));
       expect(
         find.descendant(
           of: find.byKey(const Key('start-at')),

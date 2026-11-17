@@ -102,18 +102,25 @@ class _AddEntryCardState extends ConsumerState<AddEntryCard> {
                 ),
               ],
             ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
+            // Just a chevron, centered under the field: it opens the date and
+            // time options.
+            Center(
+              child: IconButton(
                 key: const Key('start-at'),
+                tooltip: 'Start at...',
+                style: IconButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(40, 28),
+                  fixedSize: const Size(40, 28),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
                 onPressed: () => setState(() {
                   _expanded = !_expanded;
                   _moment = null;
                   _momentError = null;
                 }),
-                iconAlignment: IconAlignment.end,
                 icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
-                label: const Text('Start at...'),
               ),
             ),
             AnimatedSize(
