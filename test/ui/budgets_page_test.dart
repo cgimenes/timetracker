@@ -363,7 +363,8 @@ void main() {
       expect(c.read(settingsProvider).dailyGoals, {
         'work': const Duration(hours: 8),
       });
-      expect(find.text('8h a day'), findsOneWidget);
+      // work did 2:00 today (09:00 to 11:00).
+      expect(find.text('2:00 / 8:00'), findsOneWidget);
       expect(find.text('No daily goals'), findsNothing);
       // Kept in the app preferences, as JSON of seconds.
       expect(
@@ -387,6 +388,45 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('budget-period')), findsNothing);
+    });
+
+    budgetsTest('shows today progress: yellow while in progress', (
+      tester,
+      storage,
+    ) async {
+      await addGoal(tester, 'work', '8');
+      final brightness = Theme.of(tester.element(find.byType(BudgetsPage)))
+          .brightness;
+      final bar = tester.widget<LinearProgressIndicator>(
+        find.byKey(const Key('daily-goal-bar-work')),
+      );
+      expect(bar.value, closeTo(0.25, 0.001));
+      expect(bar.color, goalBarColor(achieved: false, brightness: brightness));
+      expect(find.byKey(const Key('daily-goal-achieved-work')), findsNothing);
+    });
+
+    budgetsTest('shows today progress: green and checked once reached', (
+      tester,
+      storage,
+    ) async {
+      await addGoal(tester, 'work', '1.5');
+      final brightness = Theme.of(tester.element(find.byType(BudgetsPage)))
+          .brightness;
+      expect(find.text('2:00 / 1:30'), findsOneWidget);
+      expect(find.byKey(const Key('daily-goal-achieved-work')), findsOneWidget);
+      final bar = tester.widget<LinearProgressIndicator>(
+        find.byKey(const Key('daily-goal-bar-work')),
+      );
+      expect(bar.value, 1);
+      expect(bar.color, goalBarColor(achieved: true, brightness: brightness));
+    });
+
+    budgetsTest('a project with no time today shows 0:00', (
+      tester,
+      storage,
+    ) async {
+      await addGoal(tester, 'personal', '1');
+      expect(find.text('0:00 / 1:00'), findsOneWidget);
     });
 
     budgetsTest('goals are per project', (tester, storage) async {

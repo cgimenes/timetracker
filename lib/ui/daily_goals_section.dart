@@ -6,6 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/budget.dart';
 import '../settings/app_settings.dart';
+import '../state/derived.dart';
+import 'format.dart';
+import 'palette.dart';
 import 'goal_dialog.dart';
 import 'ui_actions.dart';
 
@@ -19,8 +22,9 @@ class DailyGoalsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final goals = ref.watch(settingsProvider.select((s) => s.dailyGoals));
-    final projects = goals.keys.toList()..sort();
+    // Sorted by project, with the time done today.
+    final goals = ref.watch(dailyGoalProgressProvider);
+    final brightness = Theme.of(context).brightness;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,27 +43,53 @@ class DailyGoalsSection extends ConsumerWidget {
             'screen. Kept in the app, not in the files.',
           ),
         ),
-        if (projects.isEmpty)
+        if (goals.isEmpty)
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Text('No daily goals'),
           ),
-        for (final project in projects)
+        for (final g in goals)
           ListTile(
-            key: Key('daily-goal-$project'),
+            key: Key('daily-goal-${g.project}'),
             contentPadding: trailingButtonTilePadding,
-            title: Text(project),
-            subtitle: Text('${formatHours(goals[project]!)}h a day'),
-            onTap: () => _edit(
-              context,
-              ref,
-              Budget(project, _everyDay, goals[project]!),
+            onTap: () => _edit(context, ref, g.budget),
+            title: Row(
+              children: [
+                Expanded(child: Text(g.project)),
+                if (g.achieved)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Icon(
+                      Icons.check_circle,
+                      key: Key('daily-goal-achieved-${g.project}'),
+                      size: 18,
+                      color: goalAchievedTextColor(brightness),
+                    ),
+                  ),
+                Text(
+                  '${formatHm(g.used)} / ${formatHm(g.allowed)}',
+                  style: g.achieved
+                      ? TextStyle(color: goalAchievedTextColor(brightness))
+                      : null,
+                ),
+              ],
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: LinearProgressIndicator(
+                key: Key('daily-goal-bar-${g.project}'),
+                value: g.fraction,
+                color: goalBarColor(
+                  achieved: g.achieved,
+                  brightness: brightness,
+                ),
+              ),
             ),
             trailing: IconButton(
-              key: Key('daily-goal-remove-$project'),
+              key: Key('daily-goal-remove-${g.project}'),
               tooltip: 'Remove',
               icon: const Icon(Icons.delete_outline),
-              onPressed: () => _confirmRemove(context, ref, project),
+              onPressed: () => _confirmRemove(context, ref, g.project),
             ),
           ),
         // Same button as "Add goal" in the cards below.
