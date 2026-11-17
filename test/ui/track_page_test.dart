@@ -204,13 +204,40 @@ void main() {
       expect(
         find.descendant(
           of: find.byKey(const Key('start-at')),
-          matching: find.byIcon(Icons.chevron_right),
+          matching: find.byIcon(Icons.expand_more),
         ),
         findsOneWidget,
       );
     });
 
-    trackTest('Start at asks date and time in one dialog and starts', (
+    trackTest('Start at opens the date and time right in the form', (
+      tester,
+      storage,
+    ) async {
+      expect(find.byKey(const Key('start-at-fields')), findsNothing);
+      await tester.tap(find.byKey(const Key('start-at')));
+      await tester.pumpAndSettle();
+      // No dialog: the pickers are part of the card, under the button.
+      expect(find.byType(AlertDialog), findsNothing);
+      final fields = find.byKey(const Key('start-at-fields'));
+      expect(fields, findsOneWidget);
+      expect(
+        tester.getRect(fields).top,
+        greaterThanOrEqualTo(
+          tester.getRect(find.byKey(const Key('start-at'))).bottom,
+        ),
+      );
+      expect(find.byKey(const Key('dt-today')), findsOneWidget);
+      expect(find.byKey(const Key('dt-time')), findsOneWidget);
+      // The chevron now points up, and again closes it.
+      expect(find.byIcon(Icons.expand_less), findsOneWidget);
+      await tester.tap(find.byKey(const Key('start-at')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('start-at-fields')), findsNothing);
+      expect(find.byIcon(Icons.expand_more), findsOneWidget);
+    });
+
+    trackTest('Start at starts at the picked time with the play button', (
       tester,
       storage,
     ) async {
@@ -219,13 +246,15 @@ void main() {
       await tester.tap(find.byKey(const Key('start-at')));
       await tester.pumpAndSettle();
       await pickTime(tester, 10, 30);
-      await tester.tap(find.byKey(const Key('dt-ok')));
+      await tester.tap(find.byKey(const Key('start')));
       await tester.pumpAndSettle();
 
       expect(
         storage.text('2026-10.timeclock'),
         endsWith('i 2026-10-30 10:30:00 personal:read\n'),
       );
+      // Started: the date and time close again.
+      expect(find.byKey(const Key('start-at-fields')), findsNothing);
     });
 
     trackTest('Start at yesterday, with the day chip', (tester, storage) async {
@@ -236,7 +265,7 @@ void main() {
       await tester.tap(find.byKey(const Key('dt-yesterday')));
       await tester.pump();
       await pickTime(tester, 22, 15);
-      await tester.tap(find.byKey(const Key('dt-ok')));
+      await tester.tap(find.byKey(const Key('start')));
       await tester.pumpAndSettle();
 
       // Yesterday evening is before the other entries: a running entry that
@@ -247,7 +276,7 @@ void main() {
       );
     });
 
-    trackTest('Start at defaults to now, so OK alone starts right away', (
+    trackTest('Start at defaults to now, so play alone starts right away', (
       tester,
       storage,
     ) async {
@@ -255,7 +284,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const Key('start-at')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('dt-ok')));
+      await tester.tap(find.byKey(const Key('start')));
       await tester.pumpAndSettle();
       expect(
         storage.text('2026-10.timeclock'),
@@ -263,7 +292,7 @@ void main() {
       );
     });
 
-    trackTest('Start at in the future is refused in the dialog', (
+    trackTest('Start at in the future is refused in the form', (
       tester,
       storage,
     ) async {
@@ -273,14 +302,19 @@ void main() {
       await tester.pumpAndSettle();
       await pickTime(tester, 16, 0);
 
-      // The dialog says so and OK does nothing: no snack bar needed.
+      // The form says so and play is disabled.
       expect(find.text('In the future'), findsOneWidget);
       expect(
-        tester.widget<FilledButton>(find.byKey(const Key('dt-ok'))).onPressed,
+        tester.widget<IconButton>(find.byKey(const Key('start'))).onPressed,
         isNull,
       );
-      await tester.tap(find.text('Cancel'));
+      // Closing it goes back to starting now.
+      await tester.tap(find.byKey(const Key('start-at')));
       await tester.pumpAndSettle();
+      expect(
+        tester.widget<IconButton>(find.byKey(const Key('start'))).onPressed,
+        isNotNull,
+      );
       expect(storage.text('2026-10.timeclock'), _data);
     });
 

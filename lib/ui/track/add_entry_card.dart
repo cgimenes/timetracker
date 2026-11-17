@@ -5,6 +5,7 @@ import '../../core/validation.dart';
 import '../../state/clock.dart';
 import '../../state/derived.dart';
 import '../account_field.dart';
+import '../date_time_fields.dart';
 import '../ui_actions.dart';
 
 /// Form to start an entry.
@@ -18,6 +19,11 @@ class AddEntryCard extends ConsumerStatefulWidget {
 class _AddEntryCardState extends ConsumerState<AddEntryCard> {
   final _account = TextEditingController();
   final _accountFocus = FocusNode();
+
+  /// The date and time are open: the play button starts at that moment.
+  var _expanded = false;
+  DateTime? _moment;
+  String? _momentError;
 
   @override
   void initState() {
@@ -40,26 +46,23 @@ class _AddEntryCardState extends ConsumerState<AddEntryCard> {
 
   DateTime get _now => ref.read(clockProvider)();
 
+  /// Problem with the account, if any.
   String? _error() =>
       validateEntry(account: _account.text.trim(), start: _now, now: _now);
 
-  Future<void> _startNow() => _submit(null);
+  /// Account valid and, when the date and time are open, a valid moment.
+  bool get _canStart =>
+      _error() == null && (!_expanded || _momentError == null);
 
-  Future<void> _startAt() => _submit(null, ask: true);
-
-  /// Starts at [start], or asks for a time first when [ask] is true, or uses
-  /// the current time when [start] is null.
-  Future<void> _submit(DateTime? start, {bool ask = false}) async {
-    if (_error() != null) return;
+  /// Starts now, or at the date and time when they are open.
+  Future<void> _start() async {
+    if (!_canStart) return;
     // Close the keyboard (and the suggestions) right away.
     FocusManager.instance.primaryFocus?.unfocus();
     final account = _account.text.trim();
-    if (ask) {
-      start = await askStartTime(context, ref, account: account);
-      if (start == null) return;
-    }
-    if (!mounted) return;
-    await startEntry(context, ref, account, start ?? _now);
+    final start = _expanded ? _moment : null;
+    final started = await startEntry(context, ref, account, start ?? _now);
+    if (started && mounted) setState(() => _expanded = false);
   }
 
   @override
@@ -93,7 +96,7 @@ class _AddEntryCardState extends ConsumerState<AddEntryCard> {
                     key: const Key('start'),
                     tooltip: 'Start now',
                     iconSize: 28,
-                    onPressed: error == null ? _startNow : null,
+                    onPressed: _canStart ? _start : null,
                     icon: const Icon(Icons.play_arrow),
                   ),
                 ),
@@ -103,11 +106,35 @@ class _AddEntryCardState extends ConsumerState<AddEntryCard> {
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
                 key: const Key('start-at'),
-                onPressed: error == null ? _startAt : null,
+                onPressed: () => setState(() {
+                  _expanded = !_expanded;
+                  _moment = null;
+                  _momentError = null;
+                }),
                 iconAlignment: IconAlignment.end,
-                icon: const Icon(Icons.chevron_right),
+                icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
                 label: const Text('Start at...'),
               ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 150),
+              alignment: Alignment.topCenter,
+              child: _expanded
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: DateTimeFields(
+                        key: const Key('start-at-fields'),
+                        initial: _now,
+                        first: DateTime(_now.year - 2),
+                        last: DateTime(_now.year, _now.month, _now.day),
+                        notAfter: _now,
+                        onChanged: (moment, error) => setState(() {
+                          _moment = moment;
+                          _momentError = error;
+                        }),
+                      ),
+                    )
+                  : const SizedBox(width: double.infinity),
             ),
           ],
         ),
