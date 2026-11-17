@@ -74,33 +74,40 @@ class _AddEntryCardState extends ConsumerState<AddEntryCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AccountField(
-              controller: _account,
-              focusNode: _accountFocus,
-              errorText: showError ? error : null,
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 12),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: FilledButton.icon(
-                    key: const Key('start'),
-                    onPressed: error == null ? _startNow : null,
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Start now'),
+                  child: AccountField(
+                    controller: _account,
+                    focusNode: _accountFocus,
+                    errorText: showError ? error : null,
+                    onChanged: (_) => setState(() {}),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    key: const Key('start-at'),
-                    onPressed: error == null ? _startAt : null,
-                    icon: const Icon(Icons.schedule),
-                    label: const Text('Start at...'),
+                const SizedBox(width: 8),
+                // Level with the 56 dp field, whatever the error line does.
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: IconButton.filled(
+                    key: const Key('start'),
+                    tooltip: 'Start now',
+                    iconSize: 28,
+                    onPressed: error == null ? _startNow : null,
+                    icon: const Icon(Icons.play_arrow),
                   ),
                 ),
               ],
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                key: const Key('start-at'),
+                onPressed: error == null ? _startAt : null,
+                iconAlignment: IconAlignment.end,
+                icon: const Icon(Icons.chevron_right),
+                label: const Text('Start at...'),
+              ),
             ),
           ],
         ),

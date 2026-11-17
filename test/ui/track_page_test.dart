@@ -69,7 +69,7 @@ void main() {
   group('TrackPage', () {
     trackTest('asks for a folder when none is chosen', (tester, storage) async {
       expect(find.byKey(const Key('choose-folder')), findsOneWidget);
-      expect(find.text('Start now'), findsNothing);
+      expect(find.byTooltip('Start now'), findsNothing);
     }, withFolder: false);
 
     trackTest('empty directory shows nothing running', (tester, storage) async {
@@ -88,7 +88,7 @@ void main() {
     trackTest('has no header or last entries', (tester, storage) async {
       expect(find.byType(AppBar), findsNothing);
       // The card has no title of its own, only the two buttons.
-      expect(find.text('Start now'), findsOneWidget);
+      expect(find.byTooltip('Start now'), findsOneWidget);
       expect(find.text('Start at...'), findsOneWidget);
       expect(find.text('Last entries'), findsNothing);
     });
@@ -158,14 +158,14 @@ void main() {
       await tester.pump();
       expect(find.text('Account has two consecutive spaces'), findsOneWidget);
       expect(
-        tester.widget<FilledButton>(find.byKey(const Key('start'))).onPressed,
+        tester.widget<IconButton>(find.byKey(const Key('start'))).onPressed,
         isNull,
       );
 
       await tester.enterText(find.byKey(const Key('account')), '');
       await tester.pump();
       expect(
-        tester.widget<FilledButton>(find.byKey(const Key('start'))).onPressed,
+        tester.widget<IconButton>(find.byKey(const Key('start'))).onPressed,
         isNull,
       );
     });
@@ -183,14 +183,31 @@ void main() {
       expect(tester.widget<TextField>(field).focusNode!.hasFocus, isFalse);
     });
 
-    trackTest('Start now and Start at sit side by side', (
+    trackTest('Start is an icon right of the field, Start at is below it', (
       tester,
       storage,
     ) async {
-      final now = tester.getCenter(find.byKey(const Key('start')));
-      final at = tester.getCenter(find.byKey(const Key('start-at')));
-      expect(at.dx, greaterThan(now.dx));
-      expect(at.dy, now.dy);
+      final field = tester.getRect(find.byKey(const Key('account')));
+      final start = tester.getRect(find.byKey(const Key('start')));
+      final at = tester.getRect(find.byKey(const Key('start-at')));
+      expect(start.left, greaterThanOrEqualTo(field.right));
+      expect(start.center.dy, closeTo(field.center.dy, 1));
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('start')),
+          matching: find.byType(Text),
+        ),
+        findsNothing,
+      );
+      expect(at.top, greaterThanOrEqualTo(field.bottom));
+      expect(at.left, lessThan(field.left + 16));
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('start-at')),
+          matching: find.byIcon(Icons.chevron_right),
+        ),
+        findsOneWidget,
+      );
     });
 
     trackTest('Start at asks date and time in one dialog and starts', (
