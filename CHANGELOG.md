@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.15.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.14.0...timetracker-v1.15.0) (2026-11-17)
+
+
+### Features
+
+* filter the entries by project with chips ([e5b09ef](https://github.com/cgimenes/timetracker/commit/e5b09ef0c7fcb2750557d3c4b90d6e045b7c9a31))
+* remove the goals from the metrics page ([8598c36](https://github.com/cgimenes/timetracker/commit/8598c3651c5d67a471db3271cec6e38aad64641b))
+* show today progress on the daily goals ([1d25cc1](https://github.com/cgimenes/timetracker/commit/1d25cc12f0f4dab965e3070af9c5912ca160981c))
+* start with an icon button beside the account, start at below ([32be322](https://github.com/cgimenes/timetracker/commit/32be3221df81d1d63135302f00930995d946ea1d))
+
 ## [1.14.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.13.0...timetracker-v1.14.0) (2026-11-16)
 
 
