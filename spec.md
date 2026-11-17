@@ -104,7 +104,7 @@ One day as a column of hours, like Google Calendar.
 
 ### Goals
 
-The Goals screen is always one of the tabs (after Metrics), and goals show in Metrics.
+The Goals screen is always one of the tabs (after Metrics), and goals do not show in Metrics.
 
 - A goal is the time to reach for one project (first account level) in one day, week or month. Goals follow the file split: with month files the screen holds monthly goals, with week files weekly ones, with day files daily ones.
 - Colors: a goal is yellow while in progress and green once achieved (time used reaches the target). An achieved goal also gets a check mark and green text, so the state does not depend on color alone. Going past the target is not a problem, so nothing turns red.
@@ -122,7 +122,7 @@ The Goals screen is always one of the tabs (after Metrics), and goals show in Me
 - Daily goals: the first card of the Goals screen, "Daily goals". Hours to reach every day, one per project: add (with the same "Add" button as the goal cards), edit, or remove (after a confirmation). Kept in the app preferences, never written to `budget.journal`, and shown on the Track screen.
 - Goals screen: below it, one card per window, newest first, plus the current one even when empty. Each card lists its goals with used / allowed time and a progress bar (yellow, or green when achieved). Tap a goal to edit it, use the trash icon to remove it (after a confirmation), and "Add goal" to add one to that window. Goals can only be added to the cards that are there, so a new period gets its card (and its first goals) when it becomes the current one; existing goals of other periods stay editable. This screen is the only place goals are configured. A short note in the first goals card says where goals are saved (`budget.journal`, as hledger periodic transactions); with no card (no file split and no goals) the note is shown on its own.
 - Used time is what the project tracked inside the window (running entries count up to now). A repeating goal is measured against the current day, week or month.
-- Metrics: each period card lists the goals that apply now (the repeating ones and the one for the current slice) under "Goals", with the same colors. External edits are picked up on resume or pull to refresh.
+- Metrics does not show goals. External edits to `budget.journal` are picked up on resume or pull to refresh of the Goals screen.
 
 ### Notification
 

@@ -8,7 +8,6 @@ import '../../core/account.dart';
 import '../../core/metrics.dart';
 import '../../data/providers.dart';
 import '../../settings/app_settings.dart';
-import '../../state/budgets.dart';
 import '../../state/entries.dart';
 import '../choose_folder.dart';
 import '../load_error.dart';
@@ -36,10 +35,7 @@ class MetricsPage extends ConsumerWidget {
         child: !hasFolder
             ? const ChooseFolderPrompt()
             : RefreshIndicator(
-                onRefresh: () => Future.wait([
-                  ref.read(entriesProvider.notifier).reload(),
-                  ref.read(budgetsProvider.notifier).reload(),
-                ]),
+                onRefresh: () => ref.read(entriesProvider.notifier).reload(),
                 child: ListView(
                   padding: const EdgeInsets.all(12),
                   children: [

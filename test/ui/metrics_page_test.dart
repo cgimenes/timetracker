@@ -7,7 +7,6 @@ import 'package:timetracker/data/providers.dart';
 import 'package:timetracker/settings/app_settings.dart';
 import 'package:timetracker/state/clock.dart';
 import 'package:timetracker/ui/metrics/metrics_page.dart';
-import 'package:timetracker/ui/palette.dart';
 
 import '../support/memory_storage.dart';
 
@@ -164,91 +163,19 @@ void main() {
     });
 
     metricsTest(
-      'shows goals: green and checked when achieved, yellow while in progress',
+      'shows no goals, even with a budget file',
       (tester, container, storage) async {
-        // Work today: 2:00 + 0:30 + 1:00 running.
-        final daily = find.byKey(const Key('budget-today-work'));
-        expect(daily, findsOneWidget);
-        expect(find.text('Goals'), findsWidgets);
-        expect(
-          find.descendant(of: daily, matching: find.text('3:30 / 3:00')),
-          findsOneWidget,
-        );
-        final brightness = Theme.of(tester.element(daily)).brightness;
-
-        // 3:30 of 3:00: achieved.
-        expect(
-          find.byKey(const Key('goal-achieved-today-work')),
-          findsOneWidget,
-        );
-        expect(
-          tester
-              .widget<LinearProgressIndicator>(
-                find.byKey(const Key('goal-bar-today-work')),
-              )
-              .color,
-          goalBarColor(achieved: true, brightness: brightness),
-        );
-        expect(
-          tester
-              .widget<Text>(
-                find.descendant(of: daily, matching: find.text('3:30 / 3:00')),
-              )
-              .style
-              ?.color,
-          goalAchievedTextColor(brightness),
-        );
-
-        // 3:30 of 40:00: in progress, no check.
-        final monthly = find.byKey(const Key('budget-month-work'));
-        expect(
-          find.descendant(of: monthly, matching: find.text('3:30 / 40:00')),
-          findsOneWidget,
-        );
-        expect(find.byKey(const Key('goal-achieved-month-work')), findsNothing);
-        expect(
-          tester
-              .widget<LinearProgressIndicator>(
-                find.byKey(const Key('goal-bar-month-work')),
-              )
-              .color,
-          goalBarColor(achieved: false, brightness: brightness),
-        );
-        // No weekly goal: nothing for the week.
-        expect(find.byKey(const Key('budget-week-work')), findsNothing);
+        expect(find.text('Goals'), findsNothing);
+        expect(find.byKey(const Key('budget-today-work')), findsNothing);
+        expect(find.byKey(const Key('budget-month-work')), findsNothing);
+        expect(find.text('3:30 / 3:00'), findsNothing);
+        // The time is still there.
+        expect(find.byKey(const Key('total-today')), findsOneWidget);
       },
       files: const {
         '2026-10.timeclock': _data,
         'budget.journal':
             '~ daily\n    (work)    3h\n\n~ monthly\n    (work)    40h\n',
-      },
-    );
-
-    metricsTest('without a budget file there is no Goals section', (
-      tester,
-      container,
-      storage,
-    ) async {
-      expect(find.text('Goals'), findsNothing);
-    });
-
-    metricsTest(
-      'a dated budget counts only its own window, other months are ignored',
-      (tester, container, storage) async {
-        // October window: all of the month's work, 3:30.
-        final monthly = find.byKey(const Key('budget-month-work'));
-        expect(
-          find.descendant(of: monthly, matching: find.text('3:30 / 20:00')),
-          findsOneWidget,
-        );
-        // A September budget is not for this month.
-        expect(find.text('0:00 / 99:00'), findsNothing);
-      },
-      files: const {
-        '2026-10.timeclock': _data,
-        'budget.journal':
-            '~ monthly from 2026-10-01 to 2026-11-01\n    (work)    20h\n\n'
-            '~ monthly from 2026-09-01 to 2026-10-01\n    (work)    99h\n',
       },
     );
 

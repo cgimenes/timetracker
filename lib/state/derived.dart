@@ -125,17 +125,6 @@ Duration _usedBy(
       .fold(Duration.zero, (sum, r) => sum + r.duration);
 }
 
-/// Budgets that apply now to the period of [kind], for the Metrics cards: the
-/// recurring ones, and the one for the current day, week or month.
-final metricsBudgetsProvider =
-    Provider.family<List<BudgetProgress>, PeriodKind>((ref, kind) {
-      final now = nowOf(ref);
-      return [
-        for (final p in ref.watch(budgetProgressProvider))
-          if (p.budget.period.kind == kind && p.budget.window.contains(now)) p,
-      ]..sort((a, b) => a.project.compareTo(b.project));
-    });
-
 /// How the Metrics chart groups time. Not saved: it starts on days.
 final chartGroupingProvider = NotifierProvider<ChartGroupingNotifier, Grouping>(
   ChartGroupingNotifier.new,

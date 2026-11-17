@@ -4,9 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/metrics.dart';
 import '../../state/derived.dart';
 import '../format.dart';
-import '../goal_progress_row.dart';
 
-/// Time per account for one period, with the goals that apply to it.
+/// Time per account for one period.
 class PeriodCard extends ConsumerWidget {
   const PeriodCard(this.kind, this.title, {super.key});
 
@@ -16,7 +15,6 @@ class PeriodCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final metrics = ref.watch(metricsProvider(kind));
-    final budgets = ref.watch(metricsBudgetsProvider(kind));
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
@@ -50,11 +48,6 @@ class PeriodCard extends ConsumerWidget {
                   ],
                 ),
               ),
-            if (budgets.isNotEmpty) ...[
-              const Divider(height: 24),
-              Text('Goals', style: textTheme.titleSmall),
-              for (final b in budgets) GoalProgressRow(kind, b),
-            ],
           ],
         ),
       ),
