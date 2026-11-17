@@ -249,7 +249,7 @@ class _BudgetTile extends ConsumerWidget {
       trailing: IconButton(
         key: Key('budget-remove-$label-${b.project}'),
         tooltip: 'Remove',
-        icon: const Icon(Icons.delete_outline),
+        icon: Icon(Icons.delete_outline, color: destructiveColor(context)),
         onPressed: () => _confirmRemove(context, ref),
       ),
     );
@@ -270,6 +270,7 @@ class _BudgetTile extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           FilledButton(
+            style: destructiveFilledStyle(context),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Remove'),
           ),

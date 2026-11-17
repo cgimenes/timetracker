@@ -1,3 +1,5 @@
+import 'theme.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -134,6 +136,7 @@ Future<void> confirmRemoveEntry(
           child: const Text('Cancel'),
         ),
         FilledButton(
+          style: destructiveFilledStyle(context),
           onPressed: () => Navigator.pop(context, true),
           child: const Text('Remove'),
         ),
@@ -167,6 +170,7 @@ Future<void> cancelRunningEntry(
         ),
         FilledButton(
           key: const Key('cancel-confirm'),
+          style: destructiveFilledStyle(context),
           onPressed: () => Navigator.pop(context, true),
           child: const Text('Cancel entry'),
         ),

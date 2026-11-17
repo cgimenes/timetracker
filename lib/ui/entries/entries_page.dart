@@ -317,7 +317,10 @@ class _EntryTile extends ConsumerWidget {
             ),
             IconButton(
               tooltip: 'Remove',
-              icon: const Icon(Icons.delete_outline),
+              icon: Icon(
+                Icons.delete_outline,
+                color: destructiveColor(context),
+              ),
               onPressed: () {
                 notifier.close();
                 confirmRemoveEntry(context, ref, stored);

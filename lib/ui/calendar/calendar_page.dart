@@ -1,3 +1,5 @@
+import '../theme.dart';
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -478,6 +480,9 @@ class _BlockView extends ConsumerWidget {
                   ),
                   OutlinedButton.icon(
                     key: const Key('cal-remove'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: destructiveColor(context),
+                    ),
                     icon: Icon(
                       entry.isRunning
                           ? Icons.cancel_outlined

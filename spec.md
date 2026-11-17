@@ -56,6 +56,7 @@ Screens: Track, Entries, Calendar, Metrics, Goals, Settings. The first five are 
 - Title bar: the name of the screen and, at its right end, a cog that opens Settings (a page with a back arrow).
 - Tab bar: at the bottom, on every screen size, with an icon and a name per tab.
 - Only the Edit entry page, which is pushed over the screens, has its own header (it holds Save).
+- Colors: stop and delete actions are red (the theme error color): the Stop button, the delete icons, Remove in the Calendar sheet, "Cancel entry" in the running menu, and the confirm buttons that remove or cancel an entry or a goal.
 - Spacing: content sits 16 dp from the screen edges on both sides. Buttons and icons at the right end of a row are aligned so their visible edge is 16 dp from the edge, like the text on the left.
 
 ### Track

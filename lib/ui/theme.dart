@@ -27,3 +27,16 @@ const trailingFilledButtonTilePadding = EdgeInsetsDirectional.only(
   start: 16,
   end: 12,
 );
+
+/// Color of the stop and delete actions: red, from the theme.
+Color destructiveColor(BuildContext context) =>
+    Theme.of(context).colorScheme.error;
+
+/// Red filled button, to confirm a removal.
+ButtonStyle destructiveFilledStyle(BuildContext context) {
+  final scheme = Theme.of(context).colorScheme;
+  return FilledButton.styleFrom(
+    backgroundColor: scheme.error,
+    foregroundColor: scheme.onError,
+  );
+}

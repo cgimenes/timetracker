@@ -88,7 +88,10 @@ class DailyGoalsSection extends ConsumerWidget {
             trailing: IconButton(
               key: Key('daily-goal-remove-${g.project}'),
               tooltip: 'Remove',
-              icon: const Icon(Icons.delete_outline),
+              icon: Icon(
+                Icons.delete_outline,
+                color: destructiveColor(context),
+              ),
               onPressed: () => _confirmRemove(context, ref, g.project),
             ),
           ),
@@ -146,6 +149,7 @@ class DailyGoalsSection extends ConsumerWidget {
           ),
           FilledButton(
             key: const Key('daily-goal-remove-confirm'),
+            style: destructiveFilledStyle(context),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Remove'),
           ),

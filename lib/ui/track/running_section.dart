@@ -62,6 +62,14 @@ class RunningSection extends ConsumerWidget {
                     IconButton.filledTonal(
                       key: const Key('stop'),
                       tooltip: 'Stop',
+                      style: IconButton.styleFrom(
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .errorContainer,
+                        foregroundColor: Theme.of(context)
+                            .colorScheme
+                            .onErrorContainer,
+                      ),
                       icon: const Icon(Icons.stop),
                       onPressed: () => guard(context, () {
                         // End must come after start, and the clock has
@@ -88,12 +96,18 @@ class RunningSection extends ConsumerWidget {
                         ),
                         _ => cancelRunningEntry(context, ref, stored),
                       },
-                      itemBuilder: (_) => const [
-                        PopupMenuItem(value: 'at', child: Text('Stop at...')),
-                        PopupMenuItem(value: 'edit', child: Text('Edit')),
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'at',
+                          child: Text('Stop at...'),
+                        ),
+                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
                         PopupMenuItem(
                           value: 'cancel',
-                          child: Text('Cancel entry'),
+                          child: Text(
+                            'Cancel entry',
+                            style: TextStyle(color: destructiveColor(context)),
+                          ),
                         ),
                       ],
                     ),
