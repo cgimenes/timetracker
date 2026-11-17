@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.17.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.16.0...timetracker-v1.17.0) (2026-11-17)
+
+
+### Features
+
+* make the stop and delete actions red ([3899733](https://github.com/cgimenes/timetracker/commit/389973391e1e444126634bf0e1faa6fe75408b05))
+* toggle the start at options with a small centered chevron ([a857b32](https://github.com/cgimenes/timetracker/commit/a857b326a69b7ad7e00dd6d756367b31b6927f42))
+
 ## [1.16.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.15.0...timetracker-v1.16.0) (2026-11-17)
 
 
