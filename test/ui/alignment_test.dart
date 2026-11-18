@@ -107,7 +107,7 @@ void main() {
     alignTest('Track: quick start play button', const TrackPage(), (
       tester,
     ) async {
-      final play = find.byKey(const Key('quick-personal:read'));
+      final play = find.byKey(const Key('quick-personal'));
       final tile = tileOf(play);
       // A filled button shows a 40 dp circle; its edge is what the eye sees.
       final circleRight =
@@ -116,7 +116,7 @@ void main() {
       expect(
         leftInset(
           tester,
-          find.descendant(of: tile, matching: find.text('personal:read')),
+          find.descendant(of: tile, matching: find.text('personal')),
           tile,
         ),
         _aligned,

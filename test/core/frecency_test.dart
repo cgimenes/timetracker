@@ -67,6 +67,27 @@ void main() {
     expect(lastClosedAccount(const []), isNull);
   });
 
+  test('rankProjects groups the accounts of a project', () {
+    final ranked = rankProjects([
+      entry('work:acme:dev', const Duration(days: 1)),
+      entry('work:globex:dev', const Duration(days: 2)),
+      entry('personal:read', const Duration(hours: 1)),
+      entry('old', const Duration(days: 200)),
+    ], now);
+    // work: 200 (two recent uses), personal: 100, old: 10.
+    expect(ranked, ['work', 'personal', 'old']);
+  });
+
+  test('recentUses gives the latest start of each account', () {
+    final uses = recentUses([
+      entry('a', const Duration(days: 3)),
+      entry('b', const Duration(days: 2)),
+      entry('a', const Duration(days: 1)),
+    ], 5);
+    expect([for (final u in uses) u.account], ['a', 'b']);
+    expect(uses.first.start, now.subtract(const Duration(days: 1)));
+  });
+
   test('recentAccounts: newest first, each account once', () {
     final entries = [
       entry('old', const Duration(days: 9)),

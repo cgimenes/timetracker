@@ -1,3 +1,4 @@
+import 'account.dart';
 import 'timeclock.dart';
 
 /// Weight of one use, by age. Same buckets Firefox uses for frecency.
@@ -12,14 +13,25 @@ int _weight(Duration age) {
 
 /// Accounts ordered by frecency: frequency of use weighted by recency.
 /// Ties go to the most recently used, then alphabetical order.
-List<String> rankAccounts(Iterable<Entry> entries, DateTime now) {
+List<String> rankAccounts(Iterable<Entry> entries, DateTime now) =>
+    _rank(entries, now, (e) => e.account);
+
+/// Projects (first account level) ordered by frecency, like [rankAccounts].
+List<String> rankProjects(Iterable<Entry> entries, DateTime now) =>
+    _rank(entries, now, (e) => projectOf(e.account));
+
+List<String> _rank(
+  Iterable<Entry> entries,
+  DateTime now,
+  String Function(Entry) keyOf,
+) {
   final score = <String, int>{};
   final last = <String, DateTime>{};
   for (final e in entries) {
-    score[e.account] =
-        (score[e.account] ?? 0) + _weight(now.difference(e.start));
-    final seen = last[e.account];
-    if (seen == null || e.start.isAfter(seen)) last[e.account] = e.start;
+    final key = keyOf(e);
+    score[key] = (score[key] ?? 0) + _weight(now.difference(e.start));
+    final seen = last[key];
+    if (seen == null || e.start.isAfter(seen)) last[key] = e.start;
   }
   return score.keys.toList()..sort((a, b) {
     final byScore = score[b]!.compareTo(score[a]!);
@@ -29,22 +41,33 @@ List<String> rankAccounts(Iterable<Entry> entries, DateTime now) {
   });
 }
 
+/// Accounts of the most recently started entries, newest first, each once,
+/// with the start of its latest entry. Accounts in [exclude] are skipped.
+List<({String account, DateTime start})> recentUses(
+  Iterable<Entry> entries,
+  int count, {
+  Set<String> exclude = const {},
+}) {
+  final sorted = entries.toList()..sort((a, b) => b.start.compareTo(a.start));
+  final result = <({String account, DateTime start})>[];
+  for (final e in sorted) {
+    if (result.length >= count) break;
+    if (exclude.contains(e.account) ||
+        result.any((u) => u.account == e.account)) {
+      continue;
+    }
+    result.add((account: e.account, start: e.start));
+  }
+  return result;
+}
+
 /// Accounts of the most recently started entries, newest first, each once.
 /// Accounts in [exclude] are skipped.
 List<String> recentAccounts(
   Iterable<Entry> entries,
   int count, {
   Set<String> exclude = const {},
-}) {
-  final sorted = entries.toList()..sort((a, b) => b.start.compareTo(a.start));
-  final result = <String>[];
-  for (final e in sorted) {
-    if (result.length >= count) break;
-    if (exclude.contains(e.account) || result.contains(e.account)) continue;
-    result.add(e.account);
-  }
-  return result;
-}
+}) => [for (final u in recentUses(entries, count, exclude: exclude)) u.account];
 
 /// Account of the closed entry that ended last.
 String? lastClosedAccount(Iterable<Entry> entries) {

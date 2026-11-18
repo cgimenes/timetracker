@@ -404,11 +404,12 @@ void main() {
       expect(c.read(accountSuggestionsProvider).first, 'work:acme:dev');
       // The last closed entry is meet; dev runs.
       expect(c.read(lastAccountProvider), 'work:acme:meet');
-      // Quick start leaves out the running dev.
-      expect(c.read(recentAccountsProvider), [
-        'work:acme:meet',
-        'personal:read',
-      ]);
+      // Quick start: projects by frecency; the modal leaves out what runs.
+      expect(c.read(quickStartProjectsProvider), ['work', 'personal']);
+      expect(
+        c.read(projectRecentAccountsProvider('work')).map((u) => u.account),
+        ['work:acme:meet'],
+      );
     });
 
     test('warnings are exposed', () async {

@@ -507,66 +507,137 @@ void main() {
       expect(find.text('Nothing running'), findsOneWidget);
     });
 
+    Finder modalTile(String account) =>
+        find.byKey(Key('quick-account-$account'));
+    Finder dialogField() => find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.byType(TextField),
+    );
+
     trackTest(
-      'quick start lists the accounts of the last entries, newest first',
+      'quick start lists the three most used projects',
       (tester, storage) async {
         final quick = find.byKey(const Key('quick-start'));
         expect(quick, findsOneWidget);
-        // dev is the most frecent, but by recency it is new, dev, meet: each
-        // account once, read is too old.
-        final tiles = find.descendant(
-          of: quick,
-          matching: find.byType(ListTile),
-        );
-        expect(tiles, findsNWidgets(3));
         expect(
           find.descendant(of: quick, matching: find.text('Quick start')),
           findsOneWidget,
         );
+        final tiles = find.descendant(
+          of: quick,
+          matching: find.byType(ListTile),
+        );
         expect(
           [
             for (final t in tester.widgetList<ListTile>(tiles))
-              ((t.title) as Text).data,
+              (t.title as Text).data,
           ],
-          ['new:thing', 'work:acme:dev', 'work:acme:meet'],
+          // work: 3 uses in 3 days. personal: 1 recent use. Then a gap, and
+          // old and fourth, which do not make it.
+          ['work', 'personal', 'side'],
         );
-        expect(find.byKey(const Key('quick-personal:read')), findsNothing);
+        expect(find.byKey(const Key('quick-old')), findsNothing);
       },
       files: const {
         '2026-10.timeclock':
             'i 2026-10-30 09:00:00 work:acme:dev\n'
             'o 2026-10-30 10:00:00 work:acme:dev\n'
-            'i 2026-10-29 09:00:00 work:acme:dev\n'
-            'o 2026-10-29 10:00:00 work:acme:dev\n'
-            'i 2026-10-28 09:00:00 work:acme:meet\n'
-            'o 2026-10-28 10:00:00 work:acme:meet\n'
-            'i 2026-10-20 09:00:00 personal:read\n'
-            'o 2026-10-20 10:00:00 personal:read\n'
-            'i 2026-10-30 11:00:00 new:thing\n'
-            'o 2026-10-30 12:00:00 new:thing\n',
+            'i 2026-10-29 09:00:00 work:acme:meet\n'
+            'o 2026-10-29 10:00:00 work:acme:meet\n'
+            'i 2026-10-28 09:00:00 work:globex:dev\n'
+            'o 2026-10-28 10:00:00 work:globex:dev\n'
+            'i 2026-10-27 09:00:00 personal:read\n'
+            'o 2026-10-27 10:00:00 personal:read\n'
+            'i 2026-10-20 09:00:00 side:thing\n'
+            'o 2026-10-20 10:00:00 side:thing\n'
+            'i 2026-06-01 09:00:00 old:thing\n'
+            'o 2026-06-01 10:00:00 old:thing\n',
       },
     );
 
     trackTest(
-      'only three buttons even with more accounts',
+      'a project opens a modal with its five last accounts, newest first',
       (tester, storage) async {
-        expect(find.byKey(const Key('quick-old:thing')), findsNothing);
+        await tester.tap(find.byKey(const Key('quick-work')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('quick-modal')), findsOneWidget);
+        final tiles = find.descendant(
+          of: find.byKey(const Key('quick-modal')),
+          matching: find.byType(ListTile),
+        );
+        expect(
+          [
+            for (final t in tester.widgetList<ListTile>(tiles))
+              (t.title as Text).data,
+          ],
+          ['work:a6', 'work:a2', 'work:a5', 'work:a4', 'work:a3'],
+        );
+        // When each was last started.
+        expect(find.text('2026-10-29 09:00'), findsOneWidget);
+        // Other projects are not in it.
+        expect(modalTile('personal:read'), findsNothing);
       },
       files: const {
         '2026-10.timeclock':
-            'i 2026-10-30 09:00:00 a\no 2026-10-30 10:00:00 a\n'
-            'i 2026-10-29 09:00:00 b\no 2026-10-29 10:00:00 b\n'
-            'i 2026-10-28 09:00:00 c\no 2026-10-28 10:00:00 c\n'
-            'i 2026-06-01 09:00:00 old:thing\no 2026-06-01 10:00:00 old:thing\n',
+            'i 2026-10-20 09:00:00 work:a1\no 2026-10-20 10:00:00 work:a1\n'
+            'i 2026-10-21 09:00:00 work:a2\no 2026-10-21 10:00:00 work:a2\n'
+            'i 2026-10-22 09:00:00 work:a3\no 2026-10-22 10:00:00 work:a3\n'
+            'i 2026-10-23 09:00:00 work:a4\no 2026-10-23 10:00:00 work:a4\n'
+            'i 2026-10-24 09:00:00 work:a5\no 2026-10-24 10:00:00 work:a5\n'
+            'i 2026-10-25 09:00:00 work:a2\no 2026-10-25 10:00:00 work:a2\n'
+            'i 2026-10-29 09:00:00 work:a6\no 2026-10-29 10:00:00 work:a6\n'
+            'i 2026-10-26 09:00:00 personal:read\n'
+            'o 2026-10-26 10:00:00 personal:read\n',
       },
     );
 
-    trackTest('a quick start button asks the account, then starts it', (
+    trackTest('the modal leaves out the accounts that run', (
       tester,
       storage,
     ) async {
-      await tester.tap(find.byKey(const Key('quick-work:acme:dev')));
+      // meet runs in the default data; dev does not.
+      await tester.tap(find.byKey(const Key('quick-work')));
       await tester.pumpAndSettle();
+      expect(modalTile('work:acme:dev'), findsOneWidget);
+      expect(modalTile('work:acme:meet'), findsNothing);
+    });
+
+    trackTest(
+      'a project whose accounts all run says so',
+      (tester, storage) async {
+        // The project stays in the list.
+        await tester.tap(find.byKey(const Key('quick-work')));
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Everything in this project is running'),
+          findsOneWidget,
+        );
+      },
+      files: const {
+        '2026-10.timeclock': 'i 2026-10-30 14:00:00 work:acme:dev\n',
+      },
+    );
+
+    trackTest('the whole row opens the modal too', (tester, storage) async {
+      await tester.tap(find.widgetWithText(ListTile, 'work'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('quick-modal')), findsOneWidget);
+    });
+
+    trackTest('an account of the modal opens the Start dialog, then starts', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(find.byKey(const Key('quick-work')));
+      await tester.pumpAndSettle();
+      await tester.tap(modalTile('work:acme:dev'));
+      await tester.pumpAndSettle();
+      // The modal is gone; the Start dialog has the account, editable.
+      expect(find.byKey(const Key('quick-modal')), findsNothing);
+      expect(
+        tester.widget<TextField>(dialogField()).controller!.text,
+        'work:acme:dev',
+      );
       // Nothing is written until the dialog is answered.
       expect(storage.text('2026-10.timeclock'), _data);
       await tester.tap(find.byKey(const Key('restart-now')));
@@ -575,22 +646,17 @@ void main() {
         storage.text('2026-10.timeclock'),
         endsWith('i 2026-10-30 15:00:00 work:acme:dev\n'),
       );
-      expect(find.text('Nothing running'), findsNothing);
     });
 
-    trackTest('quick start lets the account be edited before starting', (
+    trackTest('the account can be edited before starting', (
       tester,
       storage,
     ) async {
-      await tester.tap(find.byKey(const Key('quick-work:acme:dev')));
+      await tester.tap(find.byKey(const Key('quick-work')));
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.descendant(
-          of: find.byType(AlertDialog),
-          matching: find.byType(TextField),
-        ),
-        'work:acme:review',
-      );
+      await tester.tap(modalTile('work:acme:dev'));
+      await tester.pumpAndSettle();
+      await tester.enterText(dialogField(), 'work:acme:review');
       await tester.pump();
       await tester.tap(find.byKey(const Key('restart-now')));
       await tester.pumpAndSettle();
@@ -600,42 +666,26 @@ void main() {
       );
     });
 
-    trackTest('quick start does not start an invalid account', (
-      tester,
-      storage,
-    ) async {
-      await tester.tap(find.byKey(const Key('quick-work:acme:dev')));
+    trackTest('closing the modal starts nothing', (tester, storage) async {
+      await tester.tap(find.byKey(const Key('quick-work')));
       await tester.pumpAndSettle();
-      await tester.enterText(
-        find.descendant(
-          of: find.byType(AlertDialog),
-          matching: find.byType(TextField),
-        ),
-        'a  b',
-      );
-      await tester.pump();
-      expect(
-        tester
-            .widget<FilledButton>(find.byKey(const Key('restart-now')))
-            .onPressed,
-        isNull,
-      );
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('quick-modal')), findsNothing);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(storage.text('2026-10.timeclock'), _data);
     });
 
-    trackTest('quick start asks first when the edited account already runs', (
+    trackTest('the Start dialog asks first when the edited account runs', (
       tester,
       storage,
     ) async {
-      await tester.tap(find.byKey(const Key('quick-work:acme:dev')));
+      await tester.tap(find.byKey(const Key('quick-work')));
+      await tester.pumpAndSettle();
+      await tester.tap(modalTile('work:acme:dev'));
       await tester.pumpAndSettle();
       // work:acme:meet runs in the default data.
-      await tester.enterText(
-        find.descendant(
-          of: find.byType(AlertDialog),
-          matching: find.byType(TextField),
-        ),
-        'work:acme:meet',
-      );
+      await tester.enterText(dialogField(), 'work:acme:meet');
       await tester.pump();
       await tester.tap(find.byKey(const Key('restart-now')));
       await tester.pumpAndSettle();
@@ -645,16 +695,7 @@ void main() {
       expect(storage.text('2026-10.timeclock'), _data);
     });
 
-    trackTest('quick start leaves out the accounts that run', (
-      tester,
-      storage,
-    ) async {
-      // meet runs in the default data and is the newest entry.
-      expect(find.byKey(const Key('quick-work:acme:meet')), findsNothing);
-      expect(find.byKey(const Key('quick-work:acme:dev')), findsOneWidget);
-    });
-
-    trackTest('no history, no quick start buttons', (tester, storage) async {
+    trackTest('no history, no quick start', (tester, storage) async {
       expect(find.byKey(const Key('quick-start')), findsNothing);
     }, files: const {});
 
@@ -664,10 +705,10 @@ void main() {
         final quick = find.byKey(const Key('quick-start'));
         final tile = find.descendant(
           of: quick,
-          matching: find.widgetWithText(ListTile, 'work:acme:dev'),
+          matching: find.widgetWithText(ListTile, 'work'),
         );
         expect(tile, findsOneWidget);
-        final play = find.byKey(const Key('quick-work:acme:dev'));
+        final play = find.byKey(const Key('quick-work'));
         // Same row, at the right end of it.
         expect(
           tester.getCenter(play).dy,
@@ -682,23 +723,20 @@ void main() {
           greaterThan(
             tester
                 .getCenter(
-                  find.descendant(
-                    of: tile,
-                    matching: find.text('work:acme:dev'),
-                  ),
+                  find.descendant(of: tile, matching: find.text('work')),
                 )
                 .dx,
           ),
         );
-        // Every row has its own play button.
-        expect(find.byTooltip('Start...'), findsNWidgets(3));
+        // Every row has its own button.
+        expect(find.byTooltip('Choose...'), findsNWidgets(3));
       },
       files: const {
         '2026-10.timeclock':
             'i 2026-10-30 09:00:00 work:acme:dev\n'
             'o 2026-10-30 10:00:00 work:acme:dev\n'
-            'i 2026-10-29 09:00:00 b\no 2026-10-29 10:00:00 b\n'
-            'i 2026-10-28 09:00:00 c\no 2026-10-28 10:00:00 c\n',
+            'i 2026-10-29 09:00:00 b:x\no 2026-10-29 10:00:00 b:x\n'
+            'i 2026-10-28 09:00:00 c:x\no 2026-10-28 10:00:00 c:x\n',
       },
     );
 

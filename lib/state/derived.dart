@@ -53,18 +53,32 @@ final accountSuggestionsProvider = Provider<List<String>>(
   (ref) => rankAccounts(_entries(ref).map((e) => e.entry), nowOf(ref)),
 );
 
-/// How many accounts Quick start lists.
+/// How many projects Quick start lists.
 const quickStartCount = 3;
 
-/// Accounts for Quick start: those of the last entries, newest first, leaving
-/// out the ones running now.
-final recentAccountsProvider = Provider<List<String>>(
-  (ref) => recentAccounts(
+/// How many accounts the Quick start modal of a project lists.
+const projectRecentCount = 5;
+
+/// Projects for Quick start: the most used ones, by frecency.
+final quickStartProjectsProvider = Provider<List<String>>(
+  (ref) => rankProjects(
     _entries(ref).map((e) => e.entry),
-    quickStartCount,
-    exclude: {for (final r in ref.watch(runningProvider)) r.entry.account},
-  ),
+    nowOf(ref),
+  ).take(quickStartCount).toList(),
 );
+
+/// The last accounts of a project, newest first, each once with the start of
+/// its latest entry, leaving out the ones running now.
+final projectRecentAccountsProvider =
+    Provider.family<List<({String account, DateTime start})>, String>(
+      (ref, project) => recentUses(
+        _entries(ref)
+            .map((e) => e.entry)
+            .where((e) => projectOf(e.account) == project),
+        projectRecentCount,
+        exclude: {for (final r in ref.watch(runningProvider)) r.entry.account},
+      ),
+    );
 
 /// Account to prefill in the add form: the last one closed.
 final lastAccountProvider = Provider<String?>(
