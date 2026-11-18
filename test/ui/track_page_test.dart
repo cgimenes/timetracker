@@ -783,6 +783,30 @@ void main() {
       }, prefs: const {'dailyGoals': '{"work":28800,"personal":3600}'});
 
       trackTest(
+        'can be for any level, counting its sub-accounts',
+        (tester, storage) async {
+          // work:acme did 3:00 (dev 2:00 + meet 1:00), only dev did 2:00.
+          expect(
+            find.descendant(
+              of: find.byKey(const Key('track-budget-today-work:acme')),
+              matching: find.text('3:00 / 4:00'),
+            ),
+            findsOneWidget,
+          );
+          expect(
+            find.descendant(
+              of: find.byKey(const Key('track-budget-today-work:acme:dev')),
+              matching: find.text('2:00 / 3:00'),
+            ),
+            findsOneWidget,
+          );
+        },
+        prefs: const {
+          'dailyGoals': '{"work:acme":14400,"work:acme:dev":10800}',
+        },
+      );
+
+      trackTest(
         'are not the goals of budget.journal',
         (tester, storage) async {
           // The journal has a daily goal for work; Track shows only Settings.

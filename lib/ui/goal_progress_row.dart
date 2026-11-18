@@ -25,21 +25,21 @@ class GoalProgressRow extends StatelessWidget {
     final achieved = progress.achieved;
 
     return Padding(
-      key: Key('${keyPrefix}budget-${kind.name}-${progress.project}'),
+      key: Key('${keyPrefix}budget-${kind.name}-${progress.account}'),
       padding: const EdgeInsets.only(top: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              Expanded(child: Text(progress.project)),
+              Expanded(child: Text(progress.account)),
               if (achieved)
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
                   child: Icon(
                     Icons.check_circle,
                     key: Key(
-                      '${keyPrefix}goal-achieved-${kind.name}-${progress.project}',
+                      '${keyPrefix}goal-achieved-${kind.name}-${progress.account}',
                     ),
                     size: 18,
                     color: goalAchievedTextColor(brightness),
@@ -55,7 +55,7 @@ class GoalProgressRow extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           LinearProgressIndicator(
-            key: Key('${keyPrefix}goal-bar-${kind.name}-${progress.project}'),
+            key: Key('${keyPrefix}goal-bar-${kind.name}-${progress.account}'),
             value: progress.fraction,
             color: goalBarColor(achieved: achieved, brightness: brightness),
           ),

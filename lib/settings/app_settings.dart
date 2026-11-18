@@ -228,12 +228,12 @@ class SettingsNotifier extends Notifier<AppSettings> {
     await ref.read(sharedPreferencesProvider).setDouble(_hourHeightKey, value);
   }
 
-  /// Sets the daily goal of [project], in minutes of precision.
-  Future<void> setDailyGoal(String project, Duration amount) =>
-      _saveDailyGoals({...state.dailyGoals, project: amount});
+  /// Sets the daily goal of [account], in minutes of precision.
+  Future<void> setDailyGoal(String account, Duration amount) =>
+      _saveDailyGoals({...state.dailyGoals, account: amount});
 
-  Future<void> removeDailyGoal(String project) =>
-      _saveDailyGoals({...state.dailyGoals}..remove(project));
+  Future<void> removeDailyGoal(String account) =>
+      _saveDailyGoals({...state.dailyGoals}..remove(account));
 
   Future<void> _saveDailyGoals(Map<String, Duration> goals) async {
     state = state.copyWith(dailyGoals: Map.unmodifiable(goals));

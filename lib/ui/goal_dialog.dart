@@ -5,7 +5,7 @@ import '../core/account.dart';
 import '../core/budget.dart';
 import '../state/derived.dart';
 
-/// Asks for a goal: project, hours and, for a repeating goal, the period.
+/// Asks for a goal: account, hours and, for a repeating goal, the period.
 /// Pops with the [Budget] to save, or null.
 class GoalDialog extends ConsumerStatefulWidget {
   const GoalDialog({
@@ -31,7 +31,7 @@ class GoalDialog extends ConsumerStatefulWidget {
 }
 
 class _GoalDialogState extends ConsumerState<GoalDialog> {
-  late final _project = TextEditingController(text: widget.old?.project ?? '');
+  late final _account = TextEditingController(text: widget.old?.account ?? '');
   late final _hours = TextEditingController(
     text: widget.old == null ? '' : formatHours(widget.old!.amount),
   );
@@ -46,7 +46,7 @@ class _GoalDialogState extends ConsumerState<GoalDialog> {
 
   @override
   void dispose() {
-    _project.dispose();
+    _account.dispose();
     _hours.dispose();
     super.dispose();
   }
@@ -59,16 +59,18 @@ class _GoalDialogState extends ConsumerState<GoalDialog> {
     if (_hours.text.trim().isNotEmpty && hours == null) {
       return 'Hours is not a number';
     }
-    return validateBudget(project: _project.text.trim(), hours: hours ?? 0);
+    return validateBudget(account: _account.text.trim(), hours: hours ?? 0);
   }
 
   @override
   Widget build(BuildContext context) {
-    final projects = <String>{
-      for (final a in ref.watch(accountSuggestionsProvider)) projectOf(a),
+    // Recent accounts and their parents, best first.
+    final accounts = <String>{
+      for (final a in ref.watch(accountSuggestionsProvider))
+        for (var l = 1; l <= accountDepth(a); l++) truncateAccount(a, l),
     }.take(6);
     final error = _error;
-    final shown = _project.text.trim().isNotEmpty && _hours.text.isNotEmpty;
+    final shown = _account.text.trim().isNotEmpty && _hours.text.isNotEmpty;
 
     return AlertDialog(
       title: Text(
@@ -83,25 +85,26 @@ class _GoalDialogState extends ConsumerState<GoalDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
-              key: const Key('budget-project'),
-              controller: _project,
+              key: const Key('budget-account'),
+              controller: _account,
               autocorrect: false,
               decoration: const InputDecoration(
-                labelText: 'Project',
+                labelText: 'Account',
+                hintText: 'work:project',
                 border: OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() {}),
             ),
-            if (projects.isNotEmpty)
+            if (accounts.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Wrap(
                   spacing: 8,
                   children: [
-                    for (final p in projects)
+                    for (final p in accounts)
                       ActionChip(
                         label: Text(p),
-                        onPressed: () => setState(() => _project.text = p),
+                        onPressed: () => setState(() => _account.text = p),
                       ),
                   ],
                 ),
@@ -154,7 +157,7 @@ class _GoalDialogState extends ConsumerState<GoalDialog> {
               ? () => Navigator.pop(
                   context,
                   Budget(
-                    _project.text.trim(),
+                    _account.text.trim(),
                     _window,
                     Duration(seconds: (_hoursValue! * 3600).round()),
                   ),

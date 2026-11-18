@@ -36,12 +36,20 @@ void main() {
       expect(doc.budgets, [const Budget('work', _daily, Duration(hours: 2))]);
     });
 
-    test('ignores sub-accounts and reports unreadable postings', () {
+    test('reads sub-accounts and reports unreadable postings', () {
       final doc = BudgetDocument.parse(
         '~ monthly\n    (work:acme)    5h\n    (work)    lots\n    ; note\n',
       );
-      expect(doc.budgets, isEmpty);
+      expect(doc.budgets.map((b) => b.account), ['work:acme']);
       expect(doc.warnings.map((w) => w.line), [3]);
+    });
+
+    test('sets and removes a sub-account goal', () {
+      final doc = BudgetDocument.parse('')
+        ..setBudget('work:acme', _monthly, const Duration(hours: 4));
+      expect(doc.serialize(), '~ monthly\n    (work:acme)    4h\n');
+      doc.removeBudget('work:acme', _monthly);
+      expect(doc.serialize(), '');
     });
 
     test('empty text', () {
@@ -180,12 +188,12 @@ void main() {
   });
 
   test('validateBudget', () {
-    expect(validateBudget(project: 'work', hours: 40), isNull);
-    expect(validateBudget(project: 'work', hours: 1.25), isNull);
-    expect(validateBudget(project: '', hours: 1), isNotNull);
-    expect(validateBudget(project: 'a:b', hours: 1), isNotNull);
-    expect(validateBudget(project: 'work', hours: 0), isNotNull);
-    expect(validateBudget(project: 'work', hours: -1), isNotNull);
-    expect(validateBudget(project: 'work', hours: 1.234), isNotNull);
+    expect(validateBudget(account: 'work', hours: 40), isNull);
+    expect(validateBudget(account: 'work', hours: 1.25), isNull);
+    expect(validateBudget(account: '', hours: 1), isNotNull);
+    expect(validateBudget(account: 'a:b', hours: 1), isNull);
+    expect(validateBudget(account: 'work', hours: 0), isNotNull);
+    expect(validateBudget(account: 'work', hours: -1), isNotNull);
+    expect(validateBudget(account: 'work', hours: 1.234), isNotNull);
   });
 }

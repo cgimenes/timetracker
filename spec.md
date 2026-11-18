@@ -74,7 +74,7 @@ Screens: Track, Entries, Calendar, Metrics, Goals, Settings. The first five are 
    - Quick start: a section named "Quick start" under the form, listing the accounts of the last three entries (each account once, newest first, leaving out accounts that run now), one per row. Each row has a play button at its right end that opens the Start dialog (below). Hidden when there is nothing to list.
    - Start dialog (also from Start again in Entries and Calendar): shows the account, prefilled and editable (with suggestions, same validation as the account field), and the buttons Cancel, Pick time and Now (disabled while the account is invalid). Now starts at the current time; Pick time asks the date and time first. The duplicate warning applies.
 3. Daily goals section
-   - A card named "Daily goals" listing the daily goals set in the Goals screen, one per project, each with time done today / goal and a progress bar (yellow while in progress, green with a check once reached). Running entries count up to now. Only the goals are shown: no totals and no breakdown by account. They are not the goals of `budget.journal`. None set: no section.
+   - A card named "Daily goals" listing the daily goals set in the Goals screen, one per account (any level), each with time done today / goal and a progress bar (yellow while in progress, green with a check once reached). Running entries count up to now. Only the goals are shown: no totals and no breakdown by account. They are not the goals of `budget.journal`. None set: no section.
 
 ### Calendar
 
@@ -107,7 +107,7 @@ One day as a column of hours, like Google Calendar.
 
 The Goals screen is always one of the tabs (after Metrics), and goals do not show in Metrics.
 
-- A goal is the time to reach for one project (first account level) in one day, week or month. Goals follow the file split: with month files the screen holds monthly goals, with week files weekly ones, with day files daily ones.
+- A goal is the time to reach for one account, at any level (`work`, `work:acme`, ...), in one day, week or month. It counts the account and its sub-accounts. Goals follow the file split: with month files the screen holds monthly goals, with week files weekly ones, with day files daily ones.
 - Colors: a goal is yellow while in progress and green once achieved (time used reaches the target). An achieved goal also gets a check mark and green text, so the state does not depend on color alone. Going past the target is not a problem, so nothing turns red.
 - Stored in `budget.journal` (hledger calls them budgets), in the same folder, as hledger periodic transactions bounded to their period (`to` is exclusive):
 
@@ -119,10 +119,10 @@ The Goals screen is always one of the tabs (after Metrics), and goals do not sho
 
   hledger reads it with `hledger -f budget.journal -f '*.timeclock' bal --budget`. hledger weeks start on Monday, like the ISO weeks of the files, whatever the Metrics week start setting says.
 - Blocks without dates (`~ monthly`) repeat every day, week or month. They are shown in "Every day / week / month" cards. With Split None there is no period to follow, so goals are only these repeating ones, and the period is chosen per goal.
-- The app only understands `~ daily|weekly|monthly [from D to D]` blocks with `(project)  Nh` postings (N up to 2 decimals). Every other line is kept untouched when the app rewrites the file. Goals for sub-accounts are left alone. The file is not a timeclock file, so the app never reads it as entries.
-- Daily goals: the first card of the Goals screen, "Daily goals". Hours to reach every day, one per project: add (with the same "Add" button as the goal cards), edit, or remove (after a confirmation). Each shows the time done today / the goal and a progress bar (yellow while in progress, green with a check once reached; running entries count up to now), like the other goals. Kept in the app preferences, never written to `budget.journal`, and shown on the Track screen.
+- The app only understands `~ daily|weekly|monthly [from D to D]` blocks with `(account)  Nh` postings (N up to 2 decimals). Every other line is kept untouched when the app rewrites the file. The file is not a timeclock file, so the app never reads it as entries.
+- Daily goals: the first card of the Goals screen, "Daily goals". Hours to reach every day, one per account (any level): add (with the same "Add" button as the goal cards), edit, or remove (after a confirmation). Each shows the time done today / the goal and a progress bar (yellow while in progress, green with a check once reached; running entries count up to now), like the other goals. Kept in the app preferences, never written to `budget.journal`, and shown on the Track screen.
 - Goals screen: below it, one card per window, newest first, plus the current one even when empty. Each card lists its goals with used / allowed time and a progress bar (yellow, or green when achieved). Tap a goal to edit it, use the trash icon to remove it (after a confirmation), and "Add goal" to add one to that window. Goals can only be added to the cards that are there, so a new period gets its card (and its first goals) when it becomes the current one; existing goals of other periods stay editable. This screen is the only place goals are configured. A short note in the first goals card says where goals are saved (`budget.journal`, as hledger periodic transactions); with no card (no file split and no goals) the note is shown on its own.
-- Used time is what the project tracked inside the window (running entries count up to now). A repeating goal is measured against the current day, week or month.
+- Used time is what the account (with its sub-accounts) tracked inside the window (running entries count up to now). A repeating goal is measured against the current day, week or month.
 - Metrics does not show goals. External edits to `budget.journal` are picked up on resume or pull to refresh of the Goals screen.
 
 ### Notification

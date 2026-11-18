@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/account.dart';
 import '../core/budget.dart';
 import '../core/frecency.dart';
 import '../core/metrics.dart';
@@ -82,7 +83,7 @@ class BudgetProgress {
   final Budget budget;
   final Duration used;
 
-  String get project => budget.project;
+  String get account => budget.account;
   Duration get allowed => budget.amount;
 
   /// The time asked for was reached.
@@ -94,7 +95,7 @@ class BudgetProgress {
       : (used.inSeconds / allowed.inSeconds).clamp(0, 1);
 }
 
-/// Every budget with the time its project used inside the budget's window. A
+/// Every budget with the time its account used inside the budget's window. A
 /// recurring budget is measured against the current day, week or month.
 final budgetProgressProvider = Provider<List<BudgetProgress>>((ref) {
   final budgets = ref.watch(budgetsProvider).value?.budgets ?? const [];
@@ -119,9 +120,14 @@ Duration _usedBy(
   final range = w.recurring
       ? periodRange(w.period.kind, now, weekStart: weekStart)
       : DateRange(w.from!, w.to!);
-  final metrics = computeMetrics(entries, range, level: 1, now: now);
+  final metrics = computeMetrics(
+    entries,
+    range,
+    level: accountDepth(b.account),
+    now: now,
+  );
   return metrics.rows
-      .where((r) => r.account == b.project)
+      .where((r) => r.account == b.account)
       .fold(Duration.zero, (sum, r) => sum + r.duration);
 }
 
@@ -149,14 +155,15 @@ final chartBucketsProvider = Provider<List<Bucket>>((ref) {
   );
 });
 
-/// The daily goals of Settings with the time each project did today. Not the
-/// goals of `budget.journal`. Sorted by project.
+/// The daily goals of Settings with the time each account did today. Not the
+/// goals of `budget.journal`. Sorted by account.
 final dailyGoalProgressProvider = Provider<List<BudgetProgress>>((ref) {
   final goals = ref.watch(settingsProvider.select((s) => s.dailyGoals));
   if (goals.isEmpty) return const [];
-  final today = ref.watch(levelMetricsProvider((PeriodKind.today, 1)));
-  Duration usedBy(String project) => today.rows
-      .where((r) => r.account == project)
+  Duration usedBy(String account) => ref
+      .watch(levelMetricsProvider((PeriodKind.today, accountDepth(account))))
+      .rows
+      .where((r) => r.account == account)
       .fold(Duration.zero, (sum, r) => sum + r.duration);
   return [
     for (final e in goals.entries)
@@ -168,5 +175,5 @@ final dailyGoalProgressProvider = Provider<List<BudgetProgress>>((ref) {
         ),
         usedBy(e.key),
       ),
-  ]..sort((a, b) => a.project.compareTo(b.project));
+  ]..sort((a, b) => a.account.compareTo(b.account));
 });

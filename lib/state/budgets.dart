@@ -31,11 +31,11 @@ class BudgetsNotifier extends AsyncNotifier<BudgetLoad> {
     if (current == null || await _repo.hasChanged(current)) await reload();
   }
 
-  Future<void> set(String project, BudgetWindow window, Duration amount) =>
-      _change((repo) => repo.set(project, window, amount));
+  Future<void> set(String account, BudgetWindow window, Duration amount) =>
+      _change((repo) => repo.set(account, window, amount));
 
-  Future<void> remove(String project, BudgetWindow window) =>
-      _change((repo) => repo.remove(project, window));
+  Future<void> remove(String account, BudgetWindow window) =>
+      _change((repo) => repo.remove(account, window));
 
   Future<void> _change(
     Future<void> Function(BudgetRepository repo) action,

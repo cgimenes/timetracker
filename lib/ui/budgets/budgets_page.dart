@@ -90,7 +90,7 @@ class _Groups extends ConsumerWidget {
           _WindowCard(
             windows[i],
             (byWindow[windows[i]]!
-              ..sort((a, b) => a.project.compareTo(b.project))),
+              ..sort((a, b) => a.account.compareTo(b.account))),
             // Said once, in the first card.
             showNote: i == 0,
           ),
@@ -135,11 +135,11 @@ Future<void> _edit(
   if (result == null || !context.mounted) return;
   await guard(context, () async {
     final notifier = ref.read(budgetsProvider.notifier);
-    await notifier.set(result.project, result.window, result.amount);
+    await notifier.set(result.account, result.window, result.amount);
     final moved =
         old != null &&
-        (old.project != result.project || old.window != result.window);
-    if (moved) await notifier.remove(old.project, old.window);
+        (old.account != result.account || old.window != result.window);
+    if (moved) await notifier.remove(old.account, old.window);
   });
 }
 
@@ -214,18 +214,18 @@ class _BudgetTile extends ConsumerWidget {
     final achieved = progress.achieved;
 
     return ListTile(
-      key: Key('budget-$label-${b.project}'),
+      key: Key('budget-$label-${b.account}'),
       contentPadding: trailingButtonTilePadding,
       onTap: () => _edit(context, ref, window: b.window, old: b),
       title: Row(
         children: [
-          Expanded(child: Text(b.project)),
+          Expanded(child: Text(b.account)),
           if (achieved)
             Padding(
               padding: const EdgeInsets.only(right: 4),
               child: Icon(
                 Icons.check_circle,
-                key: Key('goal-achieved-$label-${b.project}'),
+                key: Key('goal-achieved-$label-${b.account}'),
                 size: 18,
                 color: goalAchievedTextColor(brightness),
               ),
@@ -241,13 +241,13 @@ class _BudgetTile extends ConsumerWidget {
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 6),
         child: LinearProgressIndicator(
-          key: Key('goal-bar-$label-${b.project}'),
+          key: Key('goal-bar-$label-${b.account}'),
           value: progress.fraction,
           color: goalBarColor(achieved: achieved, brightness: brightness),
         ),
       ),
       trailing: IconButton(
-        key: Key('budget-remove-$label-${b.project}'),
+        key: Key('budget-remove-$label-${b.account}'),
         tooltip: 'Remove',
         icon: Icon(Icons.delete_outline, color: destructiveColor(context)),
         onPressed: () => _confirmRemove(context, ref),
@@ -262,7 +262,7 @@ class _BudgetTile extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Remove goal?'),
         content: Text(
-          '${b.project}, ${formatHours(b.amount)}h\n${b.window.label}',
+          '${b.account}, ${formatHours(b.amount)}h\n${b.window.label}',
         ),
         actions: [
           TextButton(
@@ -280,7 +280,7 @@ class _BudgetTile extends ConsumerWidget {
     if (yes != true || !context.mounted) return;
     await guard(
       context,
-      () => ref.read(budgetsProvider.notifier).remove(b.project, b.window),
+      () => ref.read(budgetsProvider.notifier).remove(b.account, b.window),
     );
   }
 }

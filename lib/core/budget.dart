@@ -121,11 +121,12 @@ class BudgetWindow {
   String toString() => header;
 }
 
-/// Time allowed for one project (first account level) in a [window].
+/// Time allowed for one account, at any level, in a [window]. It counts the
+/// account and its sub-accounts.
 class Budget {
-  const Budget(this.project, this.window, this.amount);
+  const Budget(this.account, this.window, this.amount);
 
-  final String project;
+  final String account;
   final BudgetWindow window;
   final Duration amount;
 
@@ -134,15 +135,15 @@ class Budget {
   @override
   bool operator ==(Object other) =>
       other is Budget &&
-      other.project == project &&
+      other.account == account &&
       other.window == window &&
       other.amount == amount;
 
   @override
-  int get hashCode => Object.hash(project, window, amount);
+  int get hashCode => Object.hash(account, window, amount);
 
   @override
-  String toString() => '$project $window ${formatHours(amount)}h';
+  String toString() => '$account $window ${formatHours(amount)}h';
 }
 
 /// `40`, `1.5` or `0.25`: hours with at most two decimals, no trailing zeros.
@@ -153,10 +154,9 @@ String formatHours(Duration d) {
 }
 
 /// Returns an error message, or null when the budget can be saved.
-String? validateBudget({required String project, required double hours}) {
-  final error = validateAccount(project);
+String? validateBudget({required String account, required double hours}) {
+  final error = validateAccount(account);
   if (error != null) return error;
-  if (project.contains(':')) return 'A goal is for a project, without ":"';
   if (!(hours > 0)) return 'Hours must be more than 0';
   if ((hours * 100 - (hours * 100).round()).abs() > 1e-6) {
     return 'Hours can have at most 2 decimals';
@@ -201,7 +201,7 @@ class _Posting {
 ///
 /// A block without dates applies every day, week or month. Only
 /// `~ daily|weekly|monthly` blocks (with optional `from` and `to` dates)
-/// holding `(project)  Nh` postings are understood. Every other line is kept
+/// holding `(account)  Nh` postings are understood. Every other line is kept
 /// exactly as it is.
 class BudgetDocument {
   BudgetDocument._(this._lines);
@@ -245,14 +245,12 @@ class BudgetDocument {
         warnings.add(BudgetWarning(i + 1, line.trim()));
         continue;
       }
-      final project = m.group(1)!;
-      // Sub-accounts are valid hledger but not a first-iteration budget.
-      if (project.contains(':')) continue;
+      final account = m.group(1)!;
       final hours = double.parse(m.group(2)!);
       postings.add(
         _Posting(
           i,
-          Budget(project, current, Duration(seconds: (hours * 3600).round())),
+          Budget(account, current, Duration(seconds: (hours * 3600).round())),
         ),
       );
     }
@@ -263,15 +261,15 @@ class BudgetDocument {
 
   List<BudgetWarning> get warnings => _scan().$3;
 
-  String _line(String project, Duration amount) =>
-      '    ($project)    ${formatHours(amount)}h';
+  String _line(String account, Duration amount) =>
+      '    ($account)    ${formatHours(amount)}h';
 
-  /// Sets the budget of [project] in [window], replacing the old amount.
-  void setBudget(String project, BudgetWindow window, Duration amount) {
+  /// Sets the budget of [account] in [window], replacing the old amount.
+  void setBudget(String account, BudgetWindow window, Duration amount) {
     final (postings, headers, _) = _scan();
     for (final p in postings) {
-      if (p.budget.project == project && p.budget.window == window) {
-        _lines[p.line] = _line(project, amount);
+      if (p.budget.account == account && p.budget.window == window) {
+        _lines[p.line] = _line(account, amount);
         return;
       }
     }
@@ -283,21 +281,21 @@ class BudgetDocument {
           _indented(_lines[at + 1])) {
         at++;
       }
-      _lines.insert(at + 1, _line(project, amount));
+      _lines.insert(at + 1, _line(account, amount));
       return;
     }
     if (_lines.isNotEmpty && _lines.last.isEmpty) _lines.removeLast();
     if (_lines.isNotEmpty) _lines.add('');
     _lines
       ..add(window.header)
-      ..add(_line(project, amount));
+      ..add(_line(account, amount));
   }
 
   /// Removes the budget; its block goes too when nothing else is in it.
-  void removeBudget(String project, BudgetWindow window) {
+  void removeBudget(String account, BudgetWindow window) {
     final (postings, headers, _) = _scan();
     final match = postings.where(
-      (p) => p.budget.project == project && p.budget.window == window,
+      (p) => p.budget.account == account && p.budget.window == window,
     );
     if (match.isEmpty) return;
     final at = match.first.line;

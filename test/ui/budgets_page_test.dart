@@ -177,7 +177,7 @@ void main() {
       await tester.pumpAndSettle();
       // The window decides the period: no period choice.
       expect(find.byKey(const Key('budget-period')), findsNothing);
-      await tester.enterText(find.byKey(const Key('budget-project')), 'work');
+      await tester.enterText(find.byKey(const Key('budget-account')), 'work');
       await tester.enterText(find.byKey(const Key('budget-hours')), '40');
       await tester.pump();
       await tester.tap(find.byKey(const Key('budget-save')));
@@ -232,7 +232,7 @@ void main() {
     budgetsTest('Save is disabled for a bad budget', (tester, _) async {
       await tester.tap(find.byKey(const Key('add-budget-2026-10')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('budget-project')), 'a:b');
+      await tester.enterText(find.byKey(const Key('budget-account')), 'a  b');
       await tester.enterText(find.byKey(const Key('budget-hours')), '5');
       await tester.pump();
       expect(
@@ -317,7 +317,7 @@ void main() {
       expect(find.byKey(const Key('add-period')), findsNothing);
       await tester.tap(find.byKey(const Key('add-recurring')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('budget-project')), 'work');
+      await tester.enterText(find.byKey(const Key('budget-account')), 'work');
       await tester.enterText(find.byKey(const Key('budget-hours')), '10');
       await tester.tap(
         find.descendant(
@@ -343,7 +343,7 @@ void main() {
       await tester.ensureVisible(find.byKey(const Key('add-daily-goal')));
       await tester.tap(find.byKey(const Key('add-daily-goal')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('budget-project')), project);
+      await tester.enterText(find.byKey(const Key('budget-account')), project);
       await tester.enterText(find.byKey(const Key('budget-hours')), hours);
       await tester.pump();
       await tester.tap(find.byKey(const Key('budget-save')));
@@ -480,7 +480,7 @@ void main() {
       await tester.ensureVisible(find.byKey(const Key('add-daily-goal')));
       await tester.tap(find.byKey(const Key('add-daily-goal')));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byKey(const Key('budget-project')), 'a:b');
+      await tester.enterText(find.byKey(const Key('budget-account')), 'a  b');
       await tester.enterText(find.byKey(const Key('budget-hours')), '2');
       await tester.pump();
       expect(

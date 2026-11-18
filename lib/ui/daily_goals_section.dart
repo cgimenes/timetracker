@@ -14,7 +14,7 @@ import 'ui_actions.dart';
 
 const _everyDay = BudgetWindow.recurring(BudgetPeriod.daily);
 
-/// Daily goals in Settings: hours to reach every day, one per project. They
+/// Daily goals in Settings: hours to reach every day, one per account. They
 /// are saved in the app settings, not in `budget.journal`, and shown on the
 /// Track screen.
 class DailyGoalsSection extends ConsumerWidget {
@@ -22,7 +22,7 @@ class DailyGoalsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Sorted by project, with the time done today.
+    // Sorted by account, with the time done today.
     final goals = ref.watch(dailyGoalProgressProvider);
     final brightness = Theme.of(context).brightness;
 
@@ -39,7 +39,7 @@ class DailyGoalsSection extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Text(
-            'Hours to reach every day for a project, shown on the Track '
+            'Hours to reach every day for a account, shown on the Track '
             'screen. Kept in the app, not in the files.',
           ),
         ),
@@ -50,18 +50,18 @@ class DailyGoalsSection extends ConsumerWidget {
           ),
         for (final g in goals)
           ListTile(
-            key: Key('daily-goal-${g.project}'),
+            key: Key('daily-goal-${g.account}'),
             contentPadding: trailingButtonTilePadding,
             onTap: () => _edit(context, ref, g.budget),
             title: Row(
               children: [
-                Expanded(child: Text(g.project)),
+                Expanded(child: Text(g.account)),
                 if (g.achieved)
                   Padding(
                     padding: const EdgeInsets.only(right: 4),
                     child: Icon(
                       Icons.check_circle,
-                      key: Key('daily-goal-achieved-${g.project}'),
+                      key: Key('daily-goal-achieved-${g.account}'),
                       size: 18,
                       color: goalAchievedTextColor(brightness),
                     ),
@@ -77,7 +77,7 @@ class DailyGoalsSection extends ConsumerWidget {
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 6),
               child: LinearProgressIndicator(
-                key: Key('daily-goal-bar-${g.project}'),
+                key: Key('daily-goal-bar-${g.account}'),
                 value: g.fraction,
                 color: goalBarColor(
                   achieved: g.achieved,
@@ -86,13 +86,13 @@ class DailyGoalsSection extends ConsumerWidget {
               ),
             ),
             trailing: IconButton(
-              key: Key('daily-goal-remove-${g.project}'),
+              key: Key('daily-goal-remove-${g.account}'),
               tooltip: 'Remove',
               icon: Icon(
                 Icons.delete_outline,
                 color: destructiveColor(context),
               ),
-              onPressed: () => _confirmRemove(context, ref, g.project),
+              onPressed: () => _confirmRemove(context, ref, g.account),
             ),
           ),
         // Same button as "Add goal" in the cards below.
@@ -125,9 +125,9 @@ class DailyGoalsSection extends ConsumerWidget {
     if (result == null || !context.mounted) return;
     final settings = ref.read(settingsProvider.notifier);
     await guard(context, () async {
-      await settings.setDailyGoal(result.project, result.amount);
-      if (old != null && old.project != result.project) {
-        await settings.removeDailyGoal(old.project);
+      await settings.setDailyGoal(result.account, result.amount);
+      if (old != null && old.account != result.account) {
+        await settings.removeDailyGoal(old.account);
       }
     });
   }
@@ -135,13 +135,13 @@ class DailyGoalsSection extends ConsumerWidget {
   Future<void> _confirmRemove(
     BuildContext context,
     WidgetRef ref,
-    String project,
+    String account,
   ) async {
     final yes = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Remove daily goal?'),
-        content: Text(project),
+        content: Text(account),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -157,6 +157,6 @@ class DailyGoalsSection extends ConsumerWidget {
       ),
     );
     if (yes != true) return;
-    await ref.read(settingsProvider.notifier).removeDailyGoal(project);
+    await ref.read(settingsProvider.notifier).removeDailyGoal(account);
   }
 }
