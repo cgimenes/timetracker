@@ -36,3 +36,21 @@ int accountDepth(String account) => account.split(':').length;
 
 /// First level of the account: `work` in `work:acme:dev`.
 String projectOf(String account) => truncateAccount(account, 1);
+
+/// [account] with its [from] prefix replaced by [to], or null when [account]
+/// is neither [from] nor one of its sub-accounts.
+String? renamedAccount(String account, String from, String to) {
+  if (account == from) return to;
+  if (account.startsWith('$from:')) {
+    return '$to${account.substring(from.length)}';
+  }
+  return null;
+}
+
+/// Returns an error message, or null when [from] can be renamed to [to].
+String? validateRename(String from, String to) {
+  final error = validateAccount(from) ?? validateAccount(to);
+  if (error != null) return error;
+  if (from == to) return 'The names are the same';
+  return null;
+}

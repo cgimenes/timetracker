@@ -202,6 +202,65 @@ class TimeclockRepository {
     await removeEntry(stored);
   }
 
+  /// Renames [from], and its sub-accounts, to [to] in every file. Returns
+  /// how many entries changed.
+  ///
+  /// An entry stays in its file, unless its project changes and [settings]
+  /// put the new project in other files: it moves to the file of the new
+  /// project. Like [replaceEntry], the copy is written before the original is
+  /// removed, so a failure in between leaves a duplicate, never a lost entry.
+  Future<int> renameAccount(
+    String from,
+    String to, {
+    required FileSettings settings,
+  }) async {
+    final affected = [
+      for (final s in (await load()).entries)
+        if (renamedAccount(s.entry.account, from, to) != null) s,
+    ];
+    if (affected.isEmpty) return 0;
+
+    final adds = <String, List<StoredEntry>>{};
+    for (final s in affected) {
+      final e = s.entry;
+      final account = renamedAccount(e.account, from, to)!;
+      final target = settings.nameFor(e.start, account);
+      if (target != settings.nameFor(e.start, e.account) &&
+          target != s.fileName) {
+        adds.putIfAbsent(target, () => []).add(s);
+      }
+    }
+
+    for (final MapEntry(key: target, value: moved) in adds.entries) {
+      await _update(target, (doc) {
+        var next = doc;
+        for (final s in moved) {
+          final e = s.entry;
+          next = next.addEntry(
+            renamedAccount(e.account, from, to)!,
+            e.start,
+            end: e.end,
+            comment: e.comment,
+          );
+        }
+        return next;
+      });
+    }
+
+    final movedFrom = adds.values.expand((l) => l).toList();
+    for (final file in {for (final s in affected) s.fileName}) {
+      final leaving = movedFrom.where((s) => s.fileName == file).toList();
+      await _update(file, (doc) {
+        var next = doc;
+        for (final s in leaving) {
+          next = next.removeEntry(_find(next, s));
+        }
+        return next.renameAccount(from, to);
+      });
+    }
+    return affected.length;
+  }
+
   Future<void> removeEntry(StoredEntry stored) =>
       _update(stored.fileName, (doc) => doc.removeEntry(_find(doc, stored)));
 

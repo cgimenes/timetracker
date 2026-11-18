@@ -642,4 +642,56 @@ void main() {
       expect(find.text('In the future'), findsOneWidget);
     });
   });
+
+  group('rename account', () {
+    entriesTest('the button opens the dialog, Rename is off until valid', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(find.byKey(const Key('rename-account')));
+      await tester.pumpAndSettle();
+      FilledButton save() =>
+          tester.widget<FilledButton>(find.byKey(const Key('rename-save')));
+      expect(save().onPressed, isNull);
+
+      await tester.enterText(find.byKey(const Key('rename-from')), 'work:acme');
+      await tester.enterText(find.byKey(const Key('rename-to')), 'work:acme');
+      await tester.pump();
+      expect(save().onPressed, isNull);
+      expect(find.text('The names are the same'), findsOneWidget);
+
+      await tester.enterText(find.byKey(const Key('rename-to')), 'clients');
+      await tester.pump();
+      expect(save().onPressed, isNotNull);
+      expect(
+        find.textContaining('2 entries, sub-accounts included'),
+        findsOneWidget,
+      );
+      expect(find.text('work:acme:dev -> clients:dev'), findsOneWidget);
+
+      await tester.enterText(find.byKey(const Key('rename-from')), 'nope');
+      await tester.pump();
+      expect(save().onPressed, isNull);
+      expect(find.text('No entries match'), findsOneWidget);
+    });
+
+    entriesTest('Rename rewrites the files and says how many', (
+      tester,
+      storage,
+    ) async {
+      await tester.tap(find.byKey(const Key('rename-account')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('rename-from')), 'work:acme');
+      await tester.enterText(find.byKey(const Key('rename-to')), 'clients');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('rename-save')));
+      await tester.pumpAndSettle();
+
+      final text = storage.text('2026-10.timeclock')!;
+      expect(text, contains('i 2026-10-29 09:00:00 clients:dev  fix login'));
+      expect(text, contains('o 2026-10-30 09:30:00 clients:meet'));
+      expect(text, contains('work:globex:dev'));
+      expect(find.text('Renamed 2 entries to clients'), findsOneWidget);
+    });
+  });
 }

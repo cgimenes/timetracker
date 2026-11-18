@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timetracker/core/file_naming.dart';
+import 'package:timetracker/core/timeclock.dart';
 import 'package:timetracker/data/providers.dart';
 import 'package:timetracker/data/timeclock_repository.dart';
 
@@ -472,6 +473,65 @@ void main() {
         storage.text('personal/2026-10.timeclock'),
         'i 2026-10-01 09:00:00 personal:a\n',
       );
+    });
+  });
+
+  group('renameAccount', () {
+    const data =
+        'i 2026-10-01 09:00:00 work:acme:dev  fix\n'
+        'o 2026-10-01 10:00:00 work:acme:dev\n'
+        'i 2026-10-02 09:00:00 work:acme:meet\n'
+        'i 2026-10-02 11:00:00 work:globex\n'
+        'o 2026-10-02 12:00:00 work:globex\n';
+
+    test('renames in place, running entries too', () async {
+      storage.externalWrite('2026-10.timeclock', data);
+      final count = await repo.renameAccount(
+        'work:acme',
+        'work:beta',
+        settings: monthly,
+      );
+      expect(count, 2);
+      expect(
+        storage.text('2026-10.timeclock'),
+        'i 2026-10-01 09:00:00 work:beta:dev  fix\n'
+        'o 2026-10-01 10:00:00 work:beta:dev\n'
+        'i 2026-10-02 09:00:00 work:beta:meet\n'
+        'i 2026-10-02 11:00:00 work:globex\n'
+        'o 2026-10-02 12:00:00 work:globex\n',
+      );
+    });
+
+    test('nothing matches, nothing is written', () async {
+      storage.externalWrite('2026-10.timeclock', data);
+      expect(await repo.renameAccount('nope', 'x', settings: monthly), 0);
+      expect(storage.text('2026-10.timeclock'), data);
+    });
+
+    test('a new project moves the entries to its files', () async {
+      final byProject = FileSettings.defaults(
+        SplitMethod.month,
+        splitByProject: true,
+      );
+      storage.externalWrite('work-2026-10.timeclock', data);
+      final count = await repo.renameAccount(
+        'work:acme',
+        'clients:acme',
+        settings: byProject,
+      );
+      expect(count, 2);
+      expect(
+        storage.text('work-2026-10.timeclock'),
+        'i 2026-10-02 11:00:00 work:globex\n'
+        'o 2026-10-02 12:00:00 work:globex\n',
+      );
+      final moved = TimeclockDocument.parse(
+        storage.text('clients-2026-10.timeclock')!,
+      );
+      expect(moved.entries.map((e) => (e.account, e.isRunning)).toSet(), {
+        ('clients:acme:dev', false),
+        ('clients:acme:meet', true),
+      });
     });
   });
 }

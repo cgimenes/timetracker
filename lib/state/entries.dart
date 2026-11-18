@@ -71,6 +71,16 @@ class EntriesNotifier extends AsyncNotifier<LoadResult> {
     ),
   );
 
+  /// Renames [from], and its sub-accounts, to [to] in every file. Returns how
+  /// many entries changed.
+  Future<int> renameAccount(String from, String to) async {
+    var count = 0;
+    await _change((repo) async {
+      count = await repo.renameAccount(from, to, settings: _files);
+    });
+    return count;
+  }
+
   Future<void> remove(StoredEntry entry) =>
       _change((repo) => repo.removeEntry(entry));
 

@@ -96,4 +96,25 @@ void main() {
       );
     });
   });
+
+  group('renamedAccount', () {
+    test('renames the account and its sub-accounts', () {
+      expect(renamedAccount('work:acme', 'work:acme', 'x'), 'x');
+      expect(renamedAccount('work:acme:dev', 'work:acme', 'x:y'), 'x:y:dev');
+      expect(renamedAccount('work', 'work', 'work:old'), 'work:old');
+    });
+
+    test('leaves other accounts alone', () {
+      expect(renamedAccount('work:acmeX', 'work:acme', 'x'), isNull);
+      expect(renamedAccount('personal', 'work', 'x'), isNull);
+      expect(renamedAccount('work', 'work:acme', 'x'), isNull);
+    });
+  });
+
+  test('validateRename', () {
+    expect(validateRename('work', 'clients'), isNull);
+    expect(validateRename('work', 'work'), isNotNull);
+    expect(validateRename('', 'x'), isNotNull);
+    expect(validateRename('work', 'a  b'), isNotNull);
+  });
 }

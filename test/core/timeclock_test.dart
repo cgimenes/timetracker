@@ -314,4 +314,33 @@ void main() {
       );
     });
   });
+
+  group('renameAccount', () {
+    test('renames clock-ins and clock-outs, keeps every other line', () {
+      const text =
+          '; note\n'
+          'i 2026-10-30 09:00:00 work:acme:dev  fix\n'
+          'o 2026-10-30 10:00:00 work:acme:dev\n'
+          'i 2026-10-30 11:00:00 work:acmeX\n'
+          'o 2026-10-30 12:00:00 work:acmeX\n'
+          'i 2026-10-30 14:00:00 work:acme\n';
+      final doc = TimeclockDocument.parse(text)
+          .renameAccount('work:acme', 'clients');
+      expect(
+        doc.serialize(),
+        '; note\n'
+        'i 2026-10-30 09:00:00 clients:dev  fix\n'
+        'o 2026-10-30 10:00:00 clients:dev\n'
+        'i 2026-10-30 11:00:00 work:acmeX\n'
+        'o 2026-10-30 12:00:00 work:acmeX\n'
+        'i 2026-10-30 14:00:00 clients\n',
+      );
+      expect(doc.entries.map((e) => e.account), [
+        'clients:dev',
+        'work:acmeX',
+        'clients',
+      ]);
+      expect(doc.entries.last.isRunning, isTrue);
+    });
+  });
 }

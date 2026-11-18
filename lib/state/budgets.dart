@@ -37,6 +37,12 @@ class BudgetsNotifier extends AsyncNotifier<BudgetLoad> {
   Future<void> remove(String account, BudgetWindow window) =>
       _change((repo) => repo.remove(account, window));
 
+  Future<int> rename(String from, String to) async {
+    var count = 0;
+    await _change((repo) async => count = await repo.rename(from, to));
+    return count;
+  }
+
   Future<void> _change(
     Future<void> Function(BudgetRepository repo) action,
   ) async {

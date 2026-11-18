@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/account.dart';
 import '../core/file_naming.dart';
 import '../core/metrics.dart';
 import '../data/providers.dart';
@@ -234,6 +235,22 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   Future<void> removeDailyGoal(String account) =>
       _saveDailyGoals({...state.dailyGoals}..remove(account));
+
+  /// Renames [from], and its sub-accounts, in the daily goals. A goal the new
+  /// name already has is kept. Returns how many goals changed.
+  Future<int> renameDailyGoals(String from, String to) async {
+    final goals = {...state.dailyGoals};
+    var count = 0;
+    for (final e in state.dailyGoals.entries) {
+      final name = renamedAccount(e.key, from, to);
+      if (name == null) continue;
+      count++;
+      goals.remove(e.key);
+      goals.putIfAbsent(name, () => e.value);
+    }
+    if (count > 0) await _saveDailyGoals(goals);
+    return count;
+  }
 
   Future<void> _saveDailyGoals(Map<String, Duration> goals) async {
     state = state.copyWith(dailyGoals: Map.unmodifiable(goals));

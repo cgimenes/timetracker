@@ -291,6 +291,33 @@ class BudgetDocument {
       ..add(_line(account, amount));
   }
 
+  /// Renames [from], and its sub-accounts, to [to] in every budget. When the
+  /// new name already has a budget in the same window, that one is kept and
+  /// the old one is dropped. Returns how many budgets were renamed or dropped.
+  int renameAccount(String from, String to) {
+    final postings = _scan().$1;
+    final taken = {
+      for (final p in postings) (p.budget.account, p.budget.window),
+    };
+    final dropped = <Budget>[];
+    var count = 0;
+    for (final p in postings) {
+      final name = renamedAccount(p.budget.account, from, to);
+      if (name == null) continue;
+      count++;
+      if (taken.contains((name, p.budget.window))) {
+        dropped.add(p.budget);
+      } else {
+        _lines[p.line] = _line(name, p.budget.amount);
+        taken.add((name, p.budget.window));
+      }
+    }
+    for (final b in dropped) {
+      removeBudget(b.account, b.window);
+    }
+    return count;
+  }
+
   /// Removes the budget; its block goes too when nothing else is in it.
   void removeBudget(String account, BudgetWindow window) {
     final (postings, headers, _) = _scan();

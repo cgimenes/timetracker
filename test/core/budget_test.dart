@@ -196,4 +196,27 @@ void main() {
     expect(validateBudget(account: 'work', hours: -1), isNotNull);
     expect(validateBudget(account: 'work', hours: 1.234), isNotNull);
   });
+
+  group('renameAccount', () {
+    test('renames goals of the account and its sub-accounts', () {
+      final doc = BudgetDocument.parse(
+        '~ monthly\n    (work:acme)    4h\n    (work:acme:dev)    2h\n'
+        '    (personal)    1h\n',
+      );
+      expect(doc.renameAccount('work:acme', 'clients'), 2);
+      expect(
+        doc.serialize(),
+        '~ monthly\n    (clients)    4h\n    (clients:dev)    2h\n'
+        '    (personal)    1h\n',
+      );
+    });
+
+    test('keeps the goal the new name already has', () {
+      final doc = BudgetDocument.parse(
+        '~ monthly\n    (a)    4h\n    (b)    9h\n',
+      );
+      expect(doc.renameAccount('a', 'b'), 1);
+      expect(doc.serialize(), '~ monthly\n    (b)    9h\n');
+    });
+  });
 }

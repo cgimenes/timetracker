@@ -10,6 +10,8 @@ class AccountField extends ConsumerWidget {
     required this.focusNode,
     required this.onChanged,
     this.errorText,
+    this.label = 'Account',
+    this.fieldKey = const Key('account'),
     super.key,
   });
 
@@ -17,6 +19,8 @@ class AccountField extends ConsumerWidget {
   final FocusNode focusNode;
   final ValueChanged<String> onChanged;
   final String? errorText;
+  final String label;
+  final Key fieldKey;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,12 +40,12 @@ class AccountField extends ConsumerWidget {
         onSelected: (account) => onChanged(account),
         fieldViewBuilder: (context, controller, focusNode, onSubmitted) =>
             TextField(
-              key: const Key('account'),
+              key: fieldKey,
               controller: controller,
               focusNode: focusNode,
               autocorrect: false,
               decoration: InputDecoration(
-                labelText: 'Account',
+                labelText: label,
                 hintText: 'work:project:task',
                 border: const OutlineInputBorder(),
                 errorText: errorText,

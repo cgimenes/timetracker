@@ -342,6 +342,25 @@ class TimeclockDocument {
     return TimeclockDocument._(lines, true);
   }
 
+  /// Renames [from], and its sub-accounts, to [to] on every clock line. Other
+  /// lines, and clock-outs that name no account, are left as they are.
+  TimeclockDocument renameAccount(String from, String to) {
+    _check(to, null);
+    final lines = [
+      for (final line in _lines)
+        if (line is ClockLine && renamedAccount(line.account, from, to) != null)
+          ClockLine(
+            isIn: line.isIn,
+            time: line.time,
+            account: renamedAccount(line.account, from, to)!,
+            comment: line.comment,
+          )
+        else
+          line,
+    ];
+    return TimeclockDocument._(lines, _trailingNewline);
+  }
+
   /// Removes the clock-in and clock-out of [entry].
   TimeclockDocument removeEntry(Entry entry) {
     final lines = [..._lines];

@@ -55,6 +55,14 @@ class BudgetRepository {
   Future<void> remove(String account, BudgetWindow window) =>
       _update((doc) => doc.removeBudget(account, window));
 
+  /// Renames [from], and its sub-accounts, in the goals. Returns how many
+  /// goals changed.
+  Future<int> rename(String from, String to) async {
+    var count = 0;
+    await _update((doc) => count = doc.renameAccount(from, to));
+    return count;
+  }
+
   Future<void> _update(void Function(BudgetDocument doc) change) async {
     final old = await _storage.read(budgetFileName) ?? '';
     final doc = BudgetDocument.parse(old);

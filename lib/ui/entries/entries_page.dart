@@ -16,6 +16,10 @@ import '../format.dart';
 import '../../state/navigation.dart';
 import '../entry_actions.dart';
 import 'edit_entry_page.dart';
+import 'rename_account_dialog.dart';
+import '../ui_actions.dart';
+import '../../settings/app_settings.dart';
+import '../../state/budgets.dart';
 
 /// Id of the entry whose actions are shown in its row, if any. One at a time.
 final _openEntryProvider = NotifierProvider<_OpenEntry, String?>(
@@ -83,30 +87,71 @@ class _SearchBarState extends ConsumerState<_SearchBar> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-      child: TextField(
-        key: const Key('search'),
-        controller: _controller,
-        autocorrect: false,
-        textInputAction: TextInputAction.search,
-        decoration: InputDecoration(
-          hintText: 'Search account, comment or day',
-          prefixIcon: const Icon(Icons.search),
-          border: const OutlineInputBorder(),
-          isDense: true,
-          suffixIcon: _controller.text.isEmpty
-              ? null
-              : IconButton(
-                  key: const Key('search-clear'),
-                  tooltip: 'Clear',
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
-                    _controller.clear();
-                    _set('');
-                  },
-                ),
-        ),
-        onChanged: _set,
+      child: Row(
+        children: [
+          Expanded(child: _field()),
+          IconButton(
+            key: const Key('rename-account'),
+            tooltip: 'Rename account',
+            icon: const Icon(Icons.drive_file_rename_outline),
+            onPressed: _rename,
+          ),
+        ],
       ),
+    );
+  }
+
+  Future<void> _rename() async {
+    final picked = ref.read(entriesProjectProvider);
+    final result = await showDialog<(String, String)>(
+      context: context,
+      builder: (_) => RenameAccountDialog(initialFrom: picked ?? ''),
+    );
+    if (result == null || !mounted) return;
+    final (from, to) = result;
+    final messenger = ScaffoldMessenger.of(context);
+    await guard(context, () async {
+      final count = await ref
+          .read(entriesProvider.notifier)
+          .renameAccount(from, to);
+      await ref.read(budgetsProvider.notifier).rename(from, to);
+      await ref.read(settingsProvider.notifier).renameDailyGoals(from, to);
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              'Renamed $count ${count == 1 ? 'entry' : 'entries'} to $to',
+            ),
+          ),
+        );
+    });
+  }
+
+  Widget _field() {
+    return TextField(
+      key: const Key('search'),
+      controller: _controller,
+      autocorrect: false,
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        hintText: 'Search account, comment or day',
+        prefixIcon: const Icon(Icons.search),
+        border: const OutlineInputBorder(),
+        isDense: true,
+        suffixIcon: _controller.text.isEmpty
+            ? null
+            : IconButton(
+                key: const Key('search-clear'),
+                tooltip: 'Clear',
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  _controller.clear();
+                  _set('');
+                },
+              ),
+      ),
+      onChanged: _set,
     );
   }
 }
