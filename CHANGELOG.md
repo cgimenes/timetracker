@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.18.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.17.0...timetracker-v1.18.0) (2026-11-18)
+
+
+### Features
+
+* allow goals at any account level ([2225b78](https://github.com/cgimenes/timetracker/commit/2225b781a453fab68b454717bb6c9a010117ea60))
+* quick start lists the most used projects ([9378c9b](https://github.com/cgimenes/timetracker/commit/9378c9bbaa475a53fb5d5e1e1797b85d8efd0c17))
+* rename accounts from the entries screen ([ba2f15c](https://github.com/cgimenes/timetracker/commit/ba2f15c785947e3ea60514fc8f4551c4fff0ce98))
+
+
+### Bug Fixes
+
+* trim the bottom margin of the add entry card ([6351619](https://github.com/cgimenes/timetracker/commit/63516194dbe057aac80780ec659376d4f091227c))
+
 ## [1.17.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.16.0...timetracker-v1.17.0) (2026-11-17)
 
 
