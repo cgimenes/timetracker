@@ -200,6 +200,11 @@ void main() {
         findsNothing,
       );
       expect(at.top, greaterThanOrEqualTo(field.bottom));
+      // The card ends right under the chevron.
+      expect(
+        tester.getRect(find.byType(Card).first).bottom - at.bottom,
+        lessThanOrEqualTo(8),
+      );
       // Only a chevron (no text), centered in the card, and small.
       expect(
         find.descendant(

@@ -73,7 +73,8 @@ class _AddEntryCardState extends ConsumerState<AddEntryCard> {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        // Collapsed: the card ends right under the chevron.
+        padding: EdgeInsets.fromLTRB(16, 16, 16, _expanded ? 16 : 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
