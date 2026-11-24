@@ -17,6 +17,7 @@ const _weekStartKey = 'weekStart';
 const _calendarLevelKey = 'calendarLevel';
 const _hourHeightKey = 'calendarHourHeight';
 const _dailyGoalsKey = 'dailyGoals';
+const _goalDaysKey = 'goalDays';
 
 /// Height of one hour in the Calendar, in logical pixels: the zoom range.
 const minHourHeight = 28.0;
@@ -33,6 +34,7 @@ class AppSettings {
     this.calendarLevel = 1,
     this.calendarHourHeight = defaultHourHeight,
     this.dailyGoals = const {},
+    this.showGoalDays = false,
   });
 
   factory AppSettings.defaults() => AppSettings(
@@ -67,6 +69,9 @@ class AppSettings {
   /// `budget.journal`, and shown on the Track screen.
   final Map<String, Duration> dailyGoals;
 
+  /// Goals show `[days done/days needed]` when their account has a daily goal.
+  final bool showGoalDays;
+
   FileSettings get fileSettings => FileSettings(
     split,
     fileNameTemplate,
@@ -83,6 +88,7 @@ class AppSettings {
     int? calendarLevel,
     double? calendarHourHeight,
     Map<String, Duration>? dailyGoals,
+    bool? showGoalDays,
   }) => AppSettings(
     split: split ?? this.split,
     projects: projects ?? this.projects,
@@ -92,6 +98,7 @@ class AppSettings {
     calendarLevel: calendarLevel ?? this.calendarLevel,
     calendarHourHeight: calendarHourHeight ?? this.calendarHourHeight,
     dailyGoals: dailyGoals ?? this.dailyGoals,
+    showGoalDays: showGoalDays ?? this.showGoalDays,
   );
 }
 
@@ -137,6 +144,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
       calendarHourHeight: (prefs.getDouble(_hourHeightKey) ?? defaultHourHeight)
           .clamp(minHourHeight, maxHourHeight),
       dailyGoals: _readDailyGoals(prefs.getString(_dailyGoalsKey)),
+      showGoalDays: prefs.getBool(_goalDaysKey) ?? false,
     );
   }
 
@@ -212,6 +220,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
         .read(sharedPreferencesProvider)
         .setString(_weekStartKey, weekStart.name);
     state = state.copyWith(weekStart: weekStart);
+  }
+
+  Future<void> setShowGoalDays(bool value) async {
+    await ref.read(sharedPreferencesProvider).setBool(_goalDaysKey, value);
+    state = state.copyWith(showGoalDays: value);
   }
 
   /// 1 to 3: how many account levels name a color in the Calendar.

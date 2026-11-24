@@ -168,6 +168,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ),
             const Divider(height: 32),
+            const _SectionTitle('Goals'),
+            SwitchListTile(
+              key: const Key('goal-days'),
+              title: const Text('Show days progress'),
+              subtitle: const Text(
+                'On goals whose account has a daily goal: [days done/days '
+                'needed].',
+              ),
+              value: settings.showGoalDays,
+              onChanged: notifier.setShowGoalDays,
+            ),
+            const Divider(height: 32),
             const _SectionTitle('Metrics'),
             ListTile(
               title: const Text('Week starts on'),

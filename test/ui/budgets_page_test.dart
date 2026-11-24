@@ -108,6 +108,45 @@ void main() {
       },
     );
 
+    group('days progress', () {
+      const files = {
+        '2026-10.timeclock': _data,
+        'budget.journal':
+            '~ monthly from 2026-10-01 to 2026-11-01\n    (work)    55h\n'
+            '    (personal)    10h\n\n'
+            '~ daily\n    (work)    8h\n',
+      };
+
+      Finder days(String account) =>
+          find.byKey(Key('goal-days-2026-10-$account'));
+
+      budgetsTest('shows done and needed days of the daily goal', (
+        tester,
+        _,
+      ) async {
+        // Work used 3:00 of a 1.5h day: 2 days done, 55h / 1.5h -> 37.
+        expect(tester.widget<Text>(days('work')).data, '[2/37]');
+        expect(days('personal'), findsNothing);
+      }, files: files, prefs: const {
+        'goalDays': true,
+        'dailyGoals': '{"work":5400}',
+      });
+
+      budgetsTest('is hidden when the setting is off', (tester, _) async {
+        expect(days('work'), findsNothing);
+      }, files: files, prefs: const {'dailyGoals': '{"work":5400}'});
+
+      budgetsTest('is hidden on daily goals', (tester, _) async {
+        expect(
+          find.byKey(const Key('goal-days-Every day-work')),
+          findsNothing,
+        );
+      }, files: files, prefs: const {
+        'goalDays': true,
+        'dailyGoals': '{"work":5400}',
+      });
+    });
+
     budgetsTest(
       'goals are yellow while in progress and green once achieved',
       (tester, storage) async {

@@ -236,6 +236,19 @@ void main() {
       expect(c.read(settingsProvider).weekStart.name, 'sunday');
     });
 
+    settingsTest('days progress on goals is off, and can be turned on', (
+      tester,
+      c,
+    ) async {
+      expect(c.read(settingsProvider).showGoalDays, isFalse);
+      final tile = find.byKey(const Key('goal-days'));
+      await tester.ensureVisible(tile);
+      await tester.tap(tile);
+      await tester.pump();
+      expect(c.read(settingsProvider).showGoalDays, isTrue);
+      expect(c.read(sharedPreferencesProvider).getBool('goalDays'), isTrue);
+    });
+
     settingsTest('shows a small version number at the end', (tester, c) async {
       await tester.pumpAndSettle();
       final version = find.byKey(const Key('version'));

@@ -92,10 +92,23 @@ final warningsProvider = Provider<List<FileWarning>>(
 
 /// How much of a budget is used.
 class BudgetProgress {
-  const BudgetProgress(this.budget, this.used);
+  const BudgetProgress(this.budget, this.used, {this.daily});
 
   final Budget budget;
   final Duration used;
+
+  /// Daily goal of the same account, when days progress is wanted.
+  final Duration? daily;
+
+  /// Days of the daily goal: done and needed. Null without a daily goal.
+  ({int done, int total})? get days {
+    final perDay = daily;
+    if (perDay == null || perDay <= Duration.zero) return null;
+    return (
+      done: used.inSeconds ~/ perDay.inSeconds,
+      total: (allowed.inSeconds / perDay.inSeconds).ceil(),
+    );
+  }
 
   String get account => budget.account;
   Duration get allowed => budget.amount;
@@ -117,10 +130,18 @@ final budgetProgressProvider = Provider<List<BudgetProgress>>((ref) {
   final now = nowOf(ref);
   final weekStart = ref.watch(settingsProvider.select((s) => s.weekStart));
   final entries = _entries(ref).map((e) => e.entry).toList();
+  final showDays = ref.watch(settingsProvider.select((s) => s.showGoalDays));
+  final dailyGoals = ref.watch(settingsProvider.select((s) => s.dailyGoals));
 
   return [
     for (final b in budgets)
-      BudgetProgress(b, _usedBy(entries, b, now, weekStart)),
+      BudgetProgress(
+        b,
+        _usedBy(entries, b, now, weekStart),
+        daily: showDays && b.period != BudgetPeriod.daily
+            ? dailyGoals[b.account]
+            : null,
+      ),
   ];
 });
 

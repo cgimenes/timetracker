@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timetracker/core/budget.dart';
 import 'package:timetracker/core/file_naming.dart';
 import 'package:timetracker/core/metrics.dart';
 import 'package:timetracker/data/providers.dart';
@@ -343,6 +344,39 @@ void main() {
       final state = c.read(entriesProvider);
       expect(state.hasError, isTrue);
       expect(state.value?.running, hasLength(1));
+    });
+  });
+
+  group('BudgetProgress.days', () {
+    BudgetProgress progress(int allowedH, int usedH, Duration? daily) =>
+        BudgetProgress(
+          Budget(
+            'work',
+            const BudgetWindow.recurring(BudgetPeriod.monthly),
+            Duration(hours: allowedH),
+          ),
+          Duration(hours: usedH),
+          daily: daily,
+        );
+
+    test('done and needed days of the daily goal', () {
+      final days = progress(55, 11, const Duration(minutes: 330)).days;
+      expect((days!.done, days.total), (2, 10));
+    });
+
+    test('needed days round up', () {
+      final days = progress(55, 9, const Duration(minutes: 270)).days;
+      expect((days!.done, days.total), (2, 13));
+    });
+
+    test('done days are not capped', () {
+      final days = progress(10, 22, const Duration(hours: 1)).days;
+      expect((days!.done, days.total), (22, 10));
+    });
+
+    test('null without a daily goal', () {
+      expect(progress(55, 11, null).days, isNull);
+      expect(progress(55, 11, Duration.zero).days, isNull);
     });
   });
 

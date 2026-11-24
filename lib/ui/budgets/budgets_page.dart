@@ -212,6 +212,7 @@ class _BudgetTile extends ConsumerWidget {
     final brightness = Theme.of(context).brightness;
     final b = progress.budget;
     final achieved = progress.achieved;
+    final days = progress.days;
 
     return ListTile(
       key: Key('budget-$label-${b.account}'),
@@ -228,6 +229,17 @@ class _BudgetTile extends ConsumerWidget {
                 key: Key('goal-achieved-$label-${b.account}'),
                 size: 18,
                 color: goalAchievedTextColor(brightness),
+              ),
+            ),
+          if (days != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Text(
+                '[${days.done}/${days.total}]',
+                key: Key('goal-days-$label-${b.account}'),
+                style: achieved
+                    ? TextStyle(color: goalAchievedTextColor(brightness))
+                    : null,
               ),
             ),
           Text(
