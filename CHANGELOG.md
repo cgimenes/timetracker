@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.18.0...timetracker-v1.19.0) (2026-11-24)
+
+
+### Features
+
+* show days progress on goals ([be38c16](https://github.com/cgimenes/timetracker/commit/be38c16ee836ac1725c86ffc77c24c999cefa9dd))
+
 ## [1.18.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.17.0...timetracker-v1.18.0) (2026-11-18)
 
 
