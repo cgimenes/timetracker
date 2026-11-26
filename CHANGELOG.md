@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.19.0...timetracker-v1.20.0) (2026-11-26)
+
+
+### Features
+
+* show pace chart on goals ([f1ecea4](https://github.com/cgimenes/timetracker/commit/f1ecea42de8085e031299c5a073a8f7667b2abd9))
+
 ## [1.19.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.18.0...timetracker-v1.19.0) (2026-11-24)
 
 
