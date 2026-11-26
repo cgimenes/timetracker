@@ -120,31 +120,37 @@ void main() {
       Finder days(String account) =>
           find.byKey(Key('goal-days-2026-10-$account'));
 
-      budgetsTest('shows done and needed days of the daily goal', (
-        tester,
-        _,
-      ) async {
-        // Work used 3:00 of a 1.5h day: 2 days done, 55h / 1.5h -> 37.
-        expect(tester.widget<Text>(days('work')).data, '[2/37]');
-        expect(days('personal'), findsNothing);
-      }, files: files, prefs: const {
-        'goalDays': true,
-        'dailyGoals': '{"work":5400}',
-      });
+      budgetsTest(
+        'shows done and needed days of the daily goal',
+        (tester, _) async {
+          // Work used 3:00 of a 1.5h day: 2 days done, 55h / 1.5h -> 37.
+          expect(tester.widget<Text>(days('work')).data, '[2/37]');
+          expect(days('personal'), findsNothing);
+        },
+        files: files,
+        prefs: const {'goalDays': true, 'dailyGoals': '{"work":5400}'},
+      );
 
-      budgetsTest('is hidden when the setting is off', (tester, _) async {
-        expect(days('work'), findsNothing);
-      }, files: files, prefs: const {'dailyGoals': '{"work":5400}'});
+      budgetsTest(
+        'is hidden when the setting is off',
+        (tester, _) async {
+          expect(days('work'), findsNothing);
+        },
+        files: files,
+        prefs: const {'dailyGoals': '{"work":5400}'},
+      );
 
-      budgetsTest('is hidden on daily goals', (tester, _) async {
-        expect(
-          find.byKey(const Key('goal-days-Every day-work')),
-          findsNothing,
-        );
-      }, files: files, prefs: const {
-        'goalDays': true,
-        'dailyGoals': '{"work":5400}',
-      });
+      budgetsTest(
+        'is hidden on daily goals',
+        (tester, _) async {
+          expect(
+            find.byKey(const Key('goal-days-Every day-work')),
+            findsNothing,
+          );
+        },
+        files: files,
+        prefs: const {'goalDays': true, 'dailyGoals': '{"work":5400}'},
+      );
     });
 
     budgetsTest(
@@ -571,5 +577,40 @@ void main() {
       home: const HomeShell(),
       files: const {},
     );
+  });
+
+  group('pace chart', () {
+    const files = {
+      '2026-10.timeclock': _data,
+      'budget.journal':
+          '~ weekly\n    (work)    10h\n\n~ daily\n    (work)    8h\n',
+    };
+
+    budgetsTest('is hidden until the pace is shown', (tester, _) async {
+      const toggle = Key('goal-pace-toggle-Every week-work');
+      expect(find.byKey(const Key('goal-pace-Every week-work')), findsNothing);
+
+      await tester.tap(find.byKey(toggle));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('goal-pace-lines-Every week-work')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('goal-pace-bars-Every week-work')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(toggle));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('goal-pace-Every week-work')), findsNothing);
+    }, files: files);
+
+    budgetsTest('daily goals have no pace', (tester, _) async {
+      expect(
+        find.byKey(const Key('goal-pace-toggle-Every day-work')),
+        findsNothing,
+      );
+    }, files: files);
   });
 }

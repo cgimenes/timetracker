@@ -347,6 +347,33 @@ void main() {
     });
   });
 
+  group('goalPaceProvider', () {
+    const weekly = Budget(
+      'work',
+      BudgetWindow.recurring(BudgetPeriod.weekly),
+      Duration(hours: 20),
+    );
+
+    test('covers the current week and follows the daily goal', () async {
+      final storage = MemoryStorage({
+        '2026-10.timeclock':
+            'i 2026-10-27 09:00:00 work:acme\no 2026-10-27 12:00:00\n',
+      });
+      final c = await makeContainer(
+        storage,
+        prefs: {'dailyGoals': '{"work":14400}'},
+      );
+      await c.read(entriesProvider.future);
+
+      final pace = c.read(goalPaceProvider(weekly));
+      expect(pace.first.day, DateTime(2026, 10, 26));
+      expect(pace, hasLength(7));
+      expect(pace.map((d) => d.expected.inHours), [4, 8, 12, 16, 20, 20, 20]);
+      expect(pace[1].current, const Duration(hours: 3));
+      expect(pace[5].current, isNull);
+    });
+  });
+
   group('BudgetProgress.days', () {
     BudgetProgress progress(int allowedH, int usedH, Duration? daily) =>
         BudgetProgress(

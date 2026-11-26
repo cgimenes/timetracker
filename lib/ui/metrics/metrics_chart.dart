@@ -141,7 +141,7 @@ class MetricsChart extends ConsumerWidget {
             reservedSize: 36,
             getTitlesWidget: (value, meta) => value == meta.max
                 ? const SizedBox.shrink()
-                : Text('${_hoursLabel(value)}h', style: labelStyle),
+                : Text('${hoursLabel(value)}h', style: labelStyle),
           ),
         ),
         bottomTitles: AxisTitles(
@@ -216,9 +216,6 @@ class MetricsChart extends ConsumerWidget {
       ],
     );
   }
-
-  String _hoursLabel(double v) =>
-      v == v.roundToDouble() ? '${v.toInt()}' : v.toStringAsFixed(1);
 
   String _title(Bucket b) {
     final start = b.range.start;

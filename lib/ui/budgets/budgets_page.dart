@@ -19,6 +19,7 @@ import '../format.dart';
 import '../goal_dialog.dart';
 import '../palette.dart';
 import '../ui_actions.dart';
+import 'goal_pace_chart.dart';
 
 /// Every budget, grouped by the day, week or month it is for (the same slices
 /// the files are split in). This is where budgets are configured.
@@ -201,14 +202,24 @@ class _WindowCard extends ConsumerWidget {
   }
 }
 
-class _BudgetTile extends ConsumerWidget {
+class _BudgetTile extends ConsumerStatefulWidget {
   const _BudgetTile(this.label, this.progress);
 
   final String label;
   final BudgetProgress progress;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_BudgetTile> createState() => _BudgetTileState();
+}
+
+class _BudgetTileState extends ConsumerState<_BudgetTile> {
+  bool _showPace = false;
+
+  String get label => widget.label;
+  BudgetProgress get progress => widget.progress;
+
+  @override
+  Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
     final b = progress.budget;
     final achieved = progress.achieved;
@@ -250,19 +261,38 @@ class _BudgetTile extends ConsumerWidget {
           ),
         ],
       ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 6),
-        child: LinearProgressIndicator(
-          key: Key('goal-bar-$label-${b.account}'),
-          value: progress.fraction,
-          color: goalBarColor(achieved: achieved, brightness: brightness),
-        ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: LinearProgressIndicator(
+              key: Key('goal-bar-$label-${b.account}'),
+              value: progress.fraction,
+              color: goalBarColor(achieved: achieved, brightness: brightness),
+            ),
+          ),
+          if (_showPace)
+            GoalPaceChart(b, key: Key('goal-pace-$label-${b.account}')),
+        ],
       ),
-      trailing: IconButton(
-        key: Key('budget-remove-$label-${b.account}'),
-        tooltip: 'Remove',
-        icon: Icon(Icons.delete_outline, color: destructiveColor(context)),
-        onPressed: () => _confirmRemove(context, ref),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (b.period != BudgetPeriod.daily)
+            IconButton(
+              key: Key('goal-pace-toggle-$label-${b.account}'),
+              tooltip: _showPace ? 'Hide pace' : 'Show pace',
+              icon: Icon(_showPace ? Icons.expand_less : Icons.show_chart),
+              onPressed: () => setState(() => _showPace = !_showPace),
+            ),
+          IconButton(
+            key: Key('budget-remove-$label-${b.account}'),
+            tooltip: 'Remove',
+            icon: Icon(Icons.delete_outline, color: destructiveColor(context)),
+            onPressed: () => _confirmRemove(context, ref),
+          ),
+        ],
       ),
     );
   }

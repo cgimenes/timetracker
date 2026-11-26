@@ -145,26 +145,36 @@ final budgetProgressProvider = Provider<List<BudgetProgress>>((ref) {
   ];
 });
 
+DateRange _rangeOf(Budget b, DateTime now, WeekStart weekStart) {
+  final w = b.window;
+  return w.recurring
+      ? periodRange(w.period.kind, now, weekStart: weekStart)
+      : DateRange(w.from!, w.to!);
+}
+
 Duration _usedBy(
   List<Entry> entries,
   Budget b,
   DateTime now,
   WeekStart weekStart,
-) {
-  final w = b.window;
-  final range = w.recurring
-      ? periodRange(w.period.kind, now, weekStart: weekStart)
-      : DateRange(w.from!, w.to!);
-  final metrics = computeMetrics(
-    entries,
-    range,
-    level: accountDepth(b.account),
-    now: now,
+) => accountTime(entries, b.account, _rangeOf(b, now, weekStart), now);
+
+/// Day by day pace of a budget: time done and time expected. The expected time
+/// follows the daily goal of the account in Settings, when there is one.
+final goalPaceProvider = Provider.family<List<PaceDay>, Budget>((ref, budget) {
+  final weekStart = ref.watch(settingsProvider.select((s) => s.weekStart));
+  final daily = ref.watch(
+    settingsProvider.select((s) => s.dailyGoals[budget.account]),
   );
-  return metrics.rows
-      .where((r) => r.account == b.account)
-      .fold(Duration.zero, (sum, r) => sum + r.duration);
-}
+  final now = nowOf(ref);
+  return goalPace(
+    _entries(ref).map((e) => e.entry),
+    budget,
+    _rangeOf(budget, now, weekStart),
+    now,
+    daily: daily,
+  );
+});
 
 /// How the Metrics chart groups time. Not saved: it starts on days.
 final chartGroupingProvider = NotifierProvider<ChartGroupingNotifier, Grouping>(

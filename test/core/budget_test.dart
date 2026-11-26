@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timetracker/core/budget.dart';
 import 'package:timetracker/core/file_naming.dart';
+import 'package:timetracker/core/metrics.dart';
+import 'package:timetracker/core/timeclock.dart';
 
 const _daily = BudgetWindow.recurring(BudgetPeriod.daily);
 const _weekly = BudgetWindow.recurring(BudgetPeriod.weekly);
@@ -217,6 +219,86 @@ void main() {
       );
       expect(doc.renameAccount('a', 'b'), 1);
       expect(doc.serialize(), '~ monthly\n    (b)    9h\n');
+    });
+  });
+
+  group('goalPace', () {
+    Entry entry(String account, DateTime start, DateTime? end) => Entry(
+      inIndex: 0,
+      outIndex: end == null ? null : 1,
+      account: account,
+      start: start,
+      end: end,
+      comment: '',
+    );
+
+    // Friday 2026-10-30, 15:00, in the week of Monday 2026-10-26.
+    final now = DateTime(2026, 10, 30, 15);
+    final week = DateRange(DateTime(2026, 10, 26), DateTime(2026, 11, 2));
+    final entries = [
+      entry('work:acme', DateTime(2026, 10, 26, 9), DateTime(2026, 10, 26, 11)),
+      entry('work', DateTime(2026, 10, 28, 9), DateTime(2026, 10, 28, 10)),
+      entry('personal', DateTime(2026, 10, 27, 9), DateTime(2026, 10, 27, 12)),
+      entry('work', DateTime(2026, 10, 30, 14), null),
+    ];
+
+    List<int?> hours(Iterable<Duration?> values) => [
+      for (final v in values) v?.inHours,
+    ];
+
+    test('expected grows evenly over the days without a daily goal', () {
+      final pace = goalPace(
+        entries,
+        const Budget('work', _weekly, Duration(hours: 35)),
+        week,
+        now,
+      );
+      expect(pace, hasLength(7));
+      expect(hours(pace.map((d) => d.expected)), [5, 10, 15, 20, 25, 30, 35]);
+    });
+
+    test('expected follows the daily goal up to the goal', () {
+      final pace = goalPace(
+        entries,
+        const Budget('work', _weekly, Duration(hours: 20)),
+        week,
+        now,
+        daily: const Duration(hours: 8),
+      );
+      expect(hours(pace.map((d) => d.expected)), [8, 16, 20, 20, 20, 20, 20]);
+    });
+
+    test('a zero daily goal is ignored', () {
+      final pace = goalPace(
+        entries,
+        const Budget('work', _weekly, Duration(hours: 7)),
+        week,
+        now,
+        daily: Duration.zero,
+      );
+      expect(hours(pace.map((d) => d.expected)), [1, 2, 3, 4, 5, 6, 7]);
+    });
+
+    test('current is cumulative, counts sub-accounts and running entries', () {
+      final pace = goalPace(
+        entries,
+        const Budget('work', _weekly, Duration(hours: 35)),
+        week,
+        now,
+      );
+      expect(hours(pace.map((d) => d.current)), [2, 2, 3, 3, 4, null, null]);
+    });
+
+    test('difference is current minus expected, null for future days', () {
+      final pace = goalPace(
+        entries,
+        const Budget('work', _weekly, Duration(hours: 35)),
+        week,
+        now,
+      );
+      expect(pace[0].difference, const Duration(hours: -3));
+      expect(pace[4].difference, const Duration(hours: -21));
+      expect(pace[5].difference, isNull);
     });
   });
 }

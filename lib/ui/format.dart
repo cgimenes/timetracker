@@ -3,6 +3,14 @@ String _two(int n) => n.toString().padLeft(2, '0');
 /// `3:05` for totals.
 String formatHm(Duration d) => '${d.inHours}:${_two(d.inMinutes % 60)}';
 
+/// `+3:05` or `-0:20`, for differences.
+String formatSignedHm(Duration d) =>
+    '${d.isNegative ? '-' : '+'}${formatHm(d.abs())}';
+
+/// `8` or `7.5`, for chart axes.
+String hoursLabel(double v) =>
+    v == v.roundToDouble() ? '${v.toInt()}' : v.toStringAsFixed(1);
+
 /// `3:05:09` for timers that tick.
 String formatHms(Duration d) =>
     '${d.inHours}:${_two(d.inMinutes % 60)}:${_two(d.inSeconds % 60)}';

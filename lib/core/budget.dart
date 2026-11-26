@@ -1,6 +1,7 @@
 import 'account.dart';
 import 'file_naming.dart';
 import 'metrics.dart';
+import 'timeclock.dart';
 
 /// Period of a budget. Maps to the hledger periodic transaction keyword and
 /// to the Metrics period it is measured against.
@@ -144,6 +145,94 @@ class Budget {
 
   @override
   String toString() => '$account $window ${formatHours(amount)}h';
+}
+
+/// Time of [account], and its sub-accounts, inside [range].
+Duration accountTime(
+  Iterable<Entry> entries,
+  String account,
+  DateRange range,
+  DateTime now,
+) {
+  final metrics = computeMetrics(
+    entries,
+    range,
+    level: accountDepth(account),
+    now: now,
+  );
+  return metrics.rows
+      .where((r) => r.account == account)
+      .fold(Duration.zero, (sum, r) => sum + r.duration);
+}
+
+/// One day of a goal's pace, counting from the start of the window to the end
+/// of [day].
+class PaceDay {
+  const PaceDay(this.day, this.expected, this.current);
+
+  final DateTime day;
+
+  /// Time that should be done by the end of the day.
+  final Duration expected;
+
+  /// Time done by the end of the day. Null for days after today.
+  final Duration? current;
+
+  /// How far ahead (positive) or behind (negative) the goal is.
+  Duration? get difference {
+    final done = current;
+    return done == null ? null : done - expected;
+  }
+}
+
+/// Pace of [budget] in [range], one item per day. Expected time grows by
+/// [daily] each day up to the goal, or evenly over the days without it.
+List<PaceDay> goalPace(
+  Iterable<Entry> entries,
+  Budget budget,
+  DateRange range,
+  DateTime now, {
+  Duration? daily,
+}) {
+  final goal = budget.amount;
+  final perDay = daily != null && daily > Duration.zero ? daily : null;
+  final today = DateTime(now.year, now.month, now.day);
+  final list = entries.toList();
+
+  final days = <DateTime>[];
+  for (
+    var d = range.start;
+    d.isBefore(range.end);
+    d = DateTime(d.year, d.month, d.day + 1)
+  ) {
+    days.add(d);
+  }
+
+  var current = Duration.zero;
+  return [
+    for (var i = 0; i < days.length; i++)
+      () {
+        final day = days[i];
+        final next = DateTime(day.year, day.month, day.day + 1);
+        final isFuture = day.isAfter(today);
+        if (!isFuture) {
+          current += accountTime(
+            list,
+            budget.account,
+            DateRange(day, next),
+            now,
+          );
+        }
+        final paced = perDay != null
+            ? perDay * (i + 1)
+            : goal * (i + 1) ~/ days.length;
+        return PaceDay(
+          day,
+          paced > goal ? goal : paced,
+          isFuture ? null : current,
+        );
+      }(),
+  ];
 }
 
 /// `40`, `1.5` or `0.25`: hours with at most two decimals, no trailing zeros.
