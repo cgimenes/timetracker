@@ -185,14 +185,20 @@ class PaceDay {
   }
 }
 
+bool _isWeekend(DateTime d) =>
+    d.weekday == DateTime.saturday || d.weekday == DateTime.sunday;
+
 /// Pace of [budget] in [range], one item per day. Expected time grows by
-/// [daily] each day up to the goal, or evenly over the days without it.
+/// [daily] each day up to the goal, or evenly over the days without it. With
+/// [skipWeekends] it does not grow on Saturdays and Sundays, unless the range
+/// has no other day.
 List<PaceDay> goalPace(
   Iterable<Entry> entries,
   Budget budget,
   DateRange range,
   DateTime now, {
   Duration? daily,
+  bool skipWeekends = false,
 }) {
   final goal = budget.amount;
   final perDay = daily != null && daily > Duration.zero ? daily : null;
@@ -208,11 +214,16 @@ List<PaceDay> goalPace(
     days.add(d);
   }
 
+  final skipped = skipWeekends && !days.every(_isWeekend);
+  final paceDays = skipped
+      ? days.where((d) => !_isWeekend(d)).length
+      : days.length;
+
   var current = Duration.zero;
+  var counted = 0;
   return [
-    for (var i = 0; i < days.length; i++)
+    for (final day in days)
       () {
-        final day = days[i];
         final next = DateTime(day.year, day.month, day.day + 1);
         final isFuture = day.isAfter(today);
         if (!isFuture) {
@@ -223,9 +234,10 @@ List<PaceDay> goalPace(
             now,
           );
         }
+        if (!skipped || !_isWeekend(day)) counted++;
         final paced = perDay != null
-            ? perDay * (i + 1)
-            : goal * (i + 1) ~/ days.length;
+            ? perDay * counted
+            : goal * counted ~/ paceDays;
         return PaceDay(
           day,
           paced > goal ? goal : paced,

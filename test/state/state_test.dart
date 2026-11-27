@@ -372,6 +372,17 @@ void main() {
       expect(pace[1].current, const Duration(hours: 3));
       expect(pace[5].current, isNull);
     });
+
+    test('stays flat on weekends when Settings skips them', () async {
+      final c = await makeContainer(
+        MemoryStorage({}),
+        prefs: {'dailyGoals': '{"work":14400}', 'goalSkipWeekends': true},
+      );
+      await c.read(entriesProvider.future);
+
+      final pace = c.read(goalPaceProvider(weekly));
+      expect(pace.map((d) => d.expected.inHours), [4, 8, 12, 16, 20, 20, 20]);
+    });
   });
 
   group('BudgetProgress.days', () {

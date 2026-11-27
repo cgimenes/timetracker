@@ -160,9 +160,13 @@ Duration _usedBy(
 ) => accountTime(entries, b.account, _rangeOf(b, now, weekStart), now);
 
 /// Day by day pace of a budget: time done and time expected. The expected time
-/// follows the daily goal of the account in Settings, when there is one.
+/// follows the daily goal of the account in Settings, when there is one, and
+/// stays flat on weekends when Settings asks for it.
 final goalPaceProvider = Provider.family<List<PaceDay>, Budget>((ref, budget) {
   final weekStart = ref.watch(settingsProvider.select((s) => s.weekStart));
+  final skipWeekends = ref.watch(
+    settingsProvider.select((s) => s.skipGoalWeekends),
+  );
   final daily = ref.watch(
     settingsProvider.select((s) => s.dailyGoals[budget.account]),
   );
@@ -173,6 +177,7 @@ final goalPaceProvider = Provider.family<List<PaceDay>, Budget>((ref, budget) {
     _rangeOf(budget, now, weekStart),
     now,
     daily: daily,
+    skipWeekends: skipWeekends,
   );
 });
 

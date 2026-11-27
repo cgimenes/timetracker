@@ -179,6 +179,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               value: settings.showGoalDays,
               onChanged: notifier.setShowGoalDays,
             ),
+            SwitchListTile(
+              key: const Key('goal-skip-weekends'),
+              title: const Text('Skip weekends in pace'),
+              subtitle: const Text(
+                'Expected time does not grow on Saturdays and Sundays.',
+              ),
+              value: settings.skipGoalWeekends,
+              onChanged: notifier.setSkipGoalWeekends,
+            ),
             const Divider(height: 32),
             const _SectionTitle('Metrics'),
             ListTile(

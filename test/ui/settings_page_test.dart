@@ -249,6 +249,22 @@ void main() {
       expect(c.read(sharedPreferencesProvider).getBool('goalDays'), isTrue);
     });
 
+    settingsTest(
+      'skipping weekends in goal pace is off, and can be turned on',
+      (tester, c) async {
+        expect(c.read(settingsProvider).skipGoalWeekends, isFalse);
+        final tile = find.byKey(const Key('goal-skip-weekends'));
+        await tester.ensureVisible(tile);
+        await tester.tap(tile);
+        await tester.pump();
+        expect(c.read(settingsProvider).skipGoalWeekends, isTrue);
+        expect(
+          c.read(sharedPreferencesProvider).getBool('goalSkipWeekends'),
+          isTrue,
+        );
+      },
+    );
+
     settingsTest('shows a small version number at the end', (tester, c) async {
       await tester.pumpAndSettle();
       final version = find.byKey(const Key('version'));

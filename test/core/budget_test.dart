@@ -279,6 +279,52 @@ void main() {
       expect(hours(pace.map((d) => d.expected)), [1, 2, 3, 4, 5, 6, 7]);
     });
 
+    test('skipping weekends keeps expected flat on Saturday and Sunday', () {
+      final pace = goalPace(
+        entries,
+        const Budget('work', _weekly, Duration(hours: 35)),
+        week,
+        now,
+        skipWeekends: true,
+      );
+      expect(hours(pace.map((d) => d.expected)), [7, 14, 21, 28, 35, 35, 35]);
+    });
+
+    test('skipping weekends follows the daily goal on weekdays only', () {
+      final pace = goalPace(
+        entries,
+        const Budget('work', _weekly, Duration(hours: 35)),
+        week,
+        now,
+        daily: const Duration(hours: 4),
+        skipWeekends: true,
+      );
+      expect(hours(pace.map((d) => d.expected)), [4, 8, 12, 16, 20, 20, 20]);
+    });
+
+    test('skipping weekends in a range of weekend days only counts them', () {
+      final pace = goalPace(
+        entries,
+        const Budget('work', _weekly, Duration(hours: 10)),
+        DateRange(DateTime(2026, 10, 31), DateTime(2026, 11, 2)),
+        now,
+        skipWeekends: true,
+      );
+      expect(hours(pace.map((d) => d.expected)), [5, 10]);
+    });
+
+    test('time done on a weekend still counts when skipping weekends', () {
+      final pace = goalPace(
+        [entry('work', DateTime(2026, 10, 31, 10), DateTime(2026, 10, 31, 12))],
+        const Budget('work', _weekly, Duration(hours: 35)),
+        week,
+        DateTime(2026, 11, 1, 15),
+        skipWeekends: true,
+      );
+      expect(hours(pace.map((d) => d.current)), [0, 0, 0, 0, 0, 2, 2]);
+      expect(pace[5].difference, const Duration(hours: -33));
+    });
+
     test('current is cumulative, counts sub-accounts and running entries', () {
       final pace = goalPace(
         entries,

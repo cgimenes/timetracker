@@ -18,6 +18,7 @@ const _calendarLevelKey = 'calendarLevel';
 const _hourHeightKey = 'calendarHourHeight';
 const _dailyGoalsKey = 'dailyGoals';
 const _goalDaysKey = 'goalDays';
+const _skipGoalWeekendsKey = 'goalSkipWeekends';
 
 /// Height of one hour in the Calendar, in logical pixels: the zoom range.
 const minHourHeight = 28.0;
@@ -35,6 +36,7 @@ class AppSettings {
     this.calendarHourHeight = defaultHourHeight,
     this.dailyGoals = const {},
     this.showGoalDays = false,
+    this.skipGoalWeekends = false,
   });
 
   factory AppSettings.defaults() => AppSettings(
@@ -72,6 +74,9 @@ class AppSettings {
   /// Goals show `[days done/days needed]` when their account has a daily goal.
   final bool showGoalDays;
 
+  /// The expected time in the goal pace chart does not grow on weekends.
+  final bool skipGoalWeekends;
+
   FileSettings get fileSettings => FileSettings(
     split,
     fileNameTemplate,
@@ -89,6 +94,7 @@ class AppSettings {
     double? calendarHourHeight,
     Map<String, Duration>? dailyGoals,
     bool? showGoalDays,
+    bool? skipGoalWeekends,
   }) => AppSettings(
     split: split ?? this.split,
     projects: projects ?? this.projects,
@@ -99,6 +105,7 @@ class AppSettings {
     calendarHourHeight: calendarHourHeight ?? this.calendarHourHeight,
     dailyGoals: dailyGoals ?? this.dailyGoals,
     showGoalDays: showGoalDays ?? this.showGoalDays,
+    skipGoalWeekends: skipGoalWeekends ?? this.skipGoalWeekends,
   );
 }
 
@@ -145,6 +152,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
           .clamp(minHourHeight, maxHourHeight),
       dailyGoals: _readDailyGoals(prefs.getString(_dailyGoalsKey)),
       showGoalDays: prefs.getBool(_goalDaysKey) ?? false,
+      skipGoalWeekends: prefs.getBool(_skipGoalWeekendsKey) ?? false,
     );
   }
 
@@ -225,6 +233,13 @@ class SettingsNotifier extends Notifier<AppSettings> {
   Future<void> setShowGoalDays(bool value) async {
     await ref.read(sharedPreferencesProvider).setBool(_goalDaysKey, value);
     state = state.copyWith(showGoalDays: value);
+  }
+
+  Future<void> setSkipGoalWeekends(bool value) async {
+    await ref
+        .read(sharedPreferencesProvider)
+        .setBool(_skipGoalWeekendsKey, value);
+    state = state.copyWith(skipGoalWeekends: value);
   }
 
   /// 1 to 3: how many account levels name a color in the Calendar.
