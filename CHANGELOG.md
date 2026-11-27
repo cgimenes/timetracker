@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.20.0...timetracker-v1.21.0) (2026-11-27)
+
+
+### Features
+
+* skip weekends in goal pace ([02111da](https://github.com/cgimenes/timetracker/commit/02111da1a4f45024bfbb7670ca220bf720d96ad8))
+
 ## [1.20.0](https://github.com/cgimenes/timetracker/compare/timetracker-v1.19.0...timetracker-v1.20.0) (2026-11-26)
 
 
